@@ -70,7 +70,10 @@ public enum ResultCode {
     DATABASE_ERROR(6001, "数据库操作失败"),
     NETWORK_ERROR(6002, "网络连接异常"),
     FILE_UPLOAD_ERROR(6003, "文件上传失败"),
-    FILE_DOWNLOAD_ERROR(6004, "文件下载失败");
+    FILE_DOWNLOAD_ERROR(6004, "文件下载失败"),
+    
+    // 删除相关
+    CANNOT_DELETE(7001, "无法删除，存在关联数据");
 
     private final Integer code;
     private final String message;

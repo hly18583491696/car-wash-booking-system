@@ -169,6 +169,19 @@ export const orderApi = {
     }
   },
 
+  // 永久删除订单（硬删除）
+  async permanentlyDeleteOrder(orderId) {
+    try {
+      console.log('🗑️ 永久删除订单，ID:', orderId)
+      const response = await realApi.permanentlyDeleteOrder(orderId)
+      console.log('✅ 订单永久删除成功')
+      return response
+    } catch (error) {
+      console.error('❌ 永久删除订单失败:', error)
+      throw error
+    }
+  },
+
   // 测试工具方法
   setMockMode(enabled) {
     USE_MOCK_API = enabled

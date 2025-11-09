@@ -80,6 +80,12 @@ public interface UserService {
     void deleteUser(Long userId);
 
     /**
+     * 永久删除用户（硬删除，管理员专用）
+     * 注意：如果用户存在订单或反馈，将禁止删除
+     */
+    void permanentlyDeleteUser(Long userId);
+
+    /**
      * 获取用户总数
      */
     long getUserCount();

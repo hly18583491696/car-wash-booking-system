@@ -86,6 +86,19 @@ export const serviceApi = {
       console.error('❌ 删除服务失败:', error)
       throw error
     }
+  },
+
+  // 永久删除服务（管理员专用）
+  async permanentlyDeleteService(serviceId) {
+    try {
+      console.log('🗑️ 永久删除服务，服务ID:', serviceId)
+      const response = await realApi.permanentlyDeleteService(serviceId)
+      console.log('✅ 服务永久删除成功')
+      return response
+    } catch (error) {
+      console.error('❌ 永久删除服务失败:', error)
+      throw error
+    }
   }
 }
 

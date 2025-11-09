@@ -7,7 +7,11 @@ import com.carwash.dto.LoginRequest;
 import com.carwash.dto.LoginResponse;
 import com.carwash.dto.RegisterRequest;
 import com.carwash.dto.UserInfoResponse;
+import com.carwash.entity.Booking;
+import com.carwash.entity.Feedback;
 import com.carwash.entity.User;
+import com.carwash.mapper.BookingMapper;
+import com.carwash.mapper.FeedbackMapper;
 import com.carwash.mapper.UserMapper;
 import com.carwash.service.SmsService;
 import com.carwash.service.UserService;
@@ -41,6 +45,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private BookingMapper bookingMapper;
+
+    @Autowired
+    private FeedbackMapper feedbackMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -282,6 +292,84 @@ public class UserServiceImpl implements UserService {
         }
 
         log.info("用户删除成功，用户ID: {}", userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void permanentlyDeleteUser(Long userId) {
+        log.info("永久删除用户（硬删除），用户ID: {}", userId);
+
+        // 验证用户ID
+        if (userId == null) {
+            log.error("用户ID为空");
+            throw new BusinessException(ResultCode.PARAM_ERROR, "用户ID不能为空");
+        }
+
+        // 检查用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            log.error("用户不存在，用户ID: {}", userId);
+            throw new BusinessException(ResultCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        String username = user.getUsername();
+        log.info("用户删除前状态 - 用户ID: {}, 用户名: {}, deleted: {}, 状态: {}", 
+            userId, username, user.getDeleted(), user.getStatus());
+
+        // 检查用户是否有订单
+        QueryWrapper<Booking> bookingWrapper = new QueryWrapper<>();
+        bookingWrapper.eq("user_id", userId).eq("deleted", 0);
+        long bookingCount = bookingMapper.selectCount(bookingWrapper);
+        if (bookingCount > 0) {
+            log.error("用户存在订单，无法删除，用户ID: {}, 订单数量: {}", userId, bookingCount);
+            throw new BusinessException(ResultCode.CANNOT_DELETE, 
+                String.format("用户存在 %d 个订单，无法删除，请先处理订单", bookingCount));
+        }
+
+        // 检查用户是否有反馈
+        QueryWrapper<Feedback> feedbackWrapper = new QueryWrapper<>();
+        feedbackWrapper.eq("user_id", userId).eq("deleted", 0);
+        long feedbackCount = feedbackMapper.selectCount(feedbackWrapper);
+        if (feedbackCount > 0) {
+            log.error("用户存在反馈，无法删除，用户ID: {}, 反馈数量: {}", userId, feedbackCount);
+            throw new BusinessException(ResultCode.CANNOT_DELETE, 
+                String.format("用户存在 %d 条反馈，无法删除，请先处理反馈", feedbackCount));
+        }
+
+        // 执行硬删除，从数据库中完全移除记录
+        log.info("执行数据库删除操作");
+        int result = userMapper.deleteById(userId);
+        log.info("数据库删除结果: {}", result);
+        
+        if (result <= 0) {
+            log.error("硬删除用户失败，数据库操作失败，用户ID: {}, 影响行数: {}", userId, result);
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "硬删除用户失败，数据库操作失败");
+        }
+
+        // 验证删除结果，确认记录不再存在
+        log.info("验证数据库删除结果");
+        User deletedUser = userMapper.selectById(userId);
+        
+        if (deletedUser != null) {
+            log.error("验证失败：删除后用户仍然存在，用户ID: {}", userId);
+            
+            // 尝试重新删除一次
+            log.info("尝试重新删除用户");
+            int retryResult = userMapper.deleteById(userId);
+            
+            if (retryResult <= 0) {
+                throw new BusinessException(ResultCode.SYSTEM_ERROR, "重试硬删除用户失败");
+            }
+            
+            // 再次验证
+            User finalUser = userMapper.selectById(userId);
+            if (finalUser != null) {
+                throw new BusinessException(ResultCode.SYSTEM_ERROR, 
+                    "数据库删除验证失败，记录仍然存在");
+            }
+        }
+
+        log.info("用户硬删除成功，用户ID: {}, 用户名: {}, 记录已从数据库中完全移除", userId, username);
     }
 
     @Override

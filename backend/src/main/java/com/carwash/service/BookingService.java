@@ -49,6 +49,11 @@ public interface BookingService {
     void deleteBooking(Long bookingId);
 
     /**
+     * 永久删除订单（硬删除）
+     */
+    void permanentlyDeleteBooking(Long bookingId);
+
+    /**
      * 获取所有订单（管理员）
      */
     List<BookingResponse> getAllBookings();

@@ -52,6 +52,19 @@ export const userApi = {
     }
   },
 
+  // 永久删除用户（硬删除）
+  async permanentlyDeleteUser(userId) {
+    try {
+      console.log('🗑️ 永久删除用户，用户ID:', userId)
+      const response = await realApi.permanentlyDeleteUser(userId)
+      console.log('✅ 用户永久删除成功')
+      return response
+    } catch (error) {
+      console.error('❌ 永久删除用户失败:', error)
+      throw error
+    }
+  },
+
   // 获取用户统计
   async getUserStats() {
     try {
