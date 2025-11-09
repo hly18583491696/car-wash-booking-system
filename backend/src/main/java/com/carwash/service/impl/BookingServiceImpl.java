@@ -6,9 +6,13 @@ import com.carwash.common.result.ResultCode;
 import com.carwash.dto.BookingRequest;
 import com.carwash.dto.BookingResponse;
 import com.carwash.entity.Booking;
+import com.carwash.entity.Feedback;
+import com.carwash.entity.Payment;
 import com.carwash.entity.Service;
 import com.carwash.entity.TimeSlot;
 import com.carwash.mapper.BookingMapper;
+import com.carwash.mapper.FeedbackMapper;
+import com.carwash.mapper.PaymentMapper;
 import com.carwash.mapper.ServiceMapper;
 import com.carwash.mapper.TimeSlotMapper;
 import com.carwash.mapper.UserMapper;
@@ -50,6 +54,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Autowired
     private TimeSlotMapper timeSlotMapper;
+
+    @Autowired
+    private PaymentMapper paymentMapper;
+
+    @Autowired
+    private FeedbackMapper feedbackMapper;
 
     @Autowired
     private WebSocketService webSocketService;
@@ -434,6 +444,38 @@ public class BookingServiceImpl implements BookingService {
         String orderNo = booking.getOrderNo();
         log.info("订单删除前状态 - 订单ID: {}, 订单号: {}, deleted: {}, 状态: {}", 
             bookingId, orderNo, booking.getDeleted(), booking.getStatus());
+
+        // 级联删除关联的支付记录
+        try {
+            QueryWrapper<Payment> paymentWrapper = new QueryWrapper<>();
+            paymentWrapper.eq("booking_id", bookingId);
+            List<Payment> payments = paymentMapper.selectList(paymentWrapper);
+            if (payments != null && !payments.isEmpty()) {
+                log.info("删除订单关联的支付记录，数量: {}", payments.size());
+                for (Payment payment : payments) {
+                    paymentMapper.deleteById(payment.getId());
+                    log.info("已删除支付记录，支付ID: {}", payment.getId());
+                }
+            }
+        } catch (Exception e) {
+            log.error("删除关联支付记录失败", e);
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "删除关联支付记录失败");
+        }
+
+        // 级联删除关联的反馈记录
+        try {
+            List<Feedback> feedbacks = feedbackMapper.selectByBookingId(bookingId);
+            if (feedbacks != null && !feedbacks.isEmpty()) {
+                log.info("删除订单关联的反馈记录，数量: {}", feedbacks.size());
+                for (Feedback feedback : feedbacks) {
+                    feedbackMapper.deleteById(feedback.getId());
+                    log.info("已删除反馈记录，反馈ID: {}", feedback.getId());
+                }
+            }
+        } catch (Exception e) {
+            log.error("删除关联反馈记录失败", e);
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "删除关联反馈记录失败");
+        }
 
         // 执行硬删除，从数据库中完全移除记录
         log.info("执行数据库删除操作");
