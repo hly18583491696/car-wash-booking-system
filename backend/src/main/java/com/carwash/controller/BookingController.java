@@ -124,6 +124,25 @@ public class BookingController {
     }
 
     /**
+     * 永久删除订单（管理员）
+     * 完全从数据库中移除订单数据，此操作不可恢复
+     */
+    @DeleteMapping("/{bookingId}/permanent")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<Void> permanentlyDeleteBooking(@PathVariable Long bookingId) {
+        log.info("永久删除订单请求，订单ID: {}", bookingId);
+        
+        try {
+            bookingService.permanentlyDeleteBooking(bookingId);
+            log.info("订单永久删除成功，订单ID: {}", bookingId);
+            return Result.success("订单已永久删除");
+        } catch (Exception e) {
+            log.error("永久删除订单失败，订单ID: {}", bookingId, e);
+            return Result.error("永久删除订单失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 更新订单状态（管理员）
      */
     @PutMapping("/{bookingId}/status")

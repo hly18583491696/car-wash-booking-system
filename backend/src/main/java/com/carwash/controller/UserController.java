@@ -91,11 +91,30 @@ public class UserController {
      * 删除用户（管理员专用）
      */
     @DeleteMapping("/admin/{userId}")
-    @Operation(summary = "删除用户", description = "管理员删除用户")
+    @Operation(summary = "删除用户", description = "管理员软删除用户")
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return Result.success("用户删除成功");
+    }
+
+    /**
+     * 永久删除用户（管理员专用）
+     */
+    @DeleteMapping("/admin/{userId}/permanent")
+    @Operation(summary = "永久删除用户", description = "管理员硬删除用户，完全从数据库移除，此操作不可恢复")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<Void> permanentlyDeleteUser(@PathVariable Long userId) {
+        log.info("硬删除用户请求，用户ID: {}", userId);
+        
+        try {
+            userService.permanentlyDeleteUser(userId);
+            log.info("用户硬删除成功，用户ID: {}", userId);
+            return Result.success("用户已永久删除");
+        } catch (Exception e) {
+            log.error("硬删除用户失败，用户ID: {}", userId, e);
+            return Result.error("硬删除用户失败: " + e.getMessage());
+        }
     }
 
     /**

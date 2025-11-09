@@ -1262,9 +1262,40 @@ export function useAdminDashboard() {
     ElMessage.info(`编辑服务: ${service.name}`)
   }
 
-  const toggleServiceStatus = (service) => {
-    service.status = service.status === 1 ? 0 : 1
-    ElMessage.success(`${service.name} 已${service.status === 1 ? '启用' : '禁用'}`)
+  const toggleServiceStatus = async (service) => {
+    try {
+      const newStatus = service.status === 1 ? 0 : 1
+      const statusText = newStatus === 1 ? '启用' : '禁用'
+      
+      // 确认操作
+      await ElMessageBox.confirm(
+        `确定要${statusText}服务「${service.name}」吗？`,
+        '确认操作',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      
+      // 调用后端API更新状态
+      console.log(`🔄 更新服务状态: ${service.name} (${service.id}) -> ${statusText}`)
+      await serviceApi.updateServiceStatus(service.id, newStatus)
+      
+      // 更新前端状态
+      service.status = newStatus
+      
+      ElMessage.success(`${service.name} 已${statusText}`)
+      
+      // 刷新服务列表以确保数据一致性
+      await loadServicesDataOptimized()
+      
+    } catch (error) {
+      if (error !== 'cancel') {
+        console.error('❌ 更新服务状态失败:', error)
+        ElMessage.error('更新服务状态失败，请重试')
+      }
+    }
   }
 
   const deleteService = async (service) => {
@@ -1309,9 +1340,40 @@ export function useAdminDashboard() {
   }
 
   // 用户管理
-  const toggleUserStatus = (user) => {
-    user.status = user.status === 1 ? 0 : 1
-    ElMessage.success(`用户 ${user.username} 已${user.status === 1 ? '启用' : '禁用'}`)
+  const toggleUserStatus = async (user) => {
+    try {
+      const newStatus = user.status === 1 ? 0 : 1
+      const statusText = newStatus === 1 ? '启用' : '禁用'
+      
+      // 确认操作
+      await ElMessageBox.confirm(
+        `确定要${statusText}用户「${user.username}」吗？`,
+        '确认操作',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      
+      // 调用后端API更新状态
+      console.log(`🔄 更新用户状态: ${user.username} (${user.id}) -> ${statusText}`)
+      await userApi.updateUserStatus(user.id, newStatus)
+      
+      // 更新前端状态
+      user.status = newStatus
+      
+      ElMessage.success(`用户 ${user.username} 已${statusText}`)
+      
+      // 刷新用户列表以确保数据一致性
+      await loadUsersDataOptimized()
+      
+    } catch (error) {
+      if (error !== 'cancel') {
+        console.error('❌ 更新用户状态失败:', error)
+        ElMessage.error('更新用户状态失败，请重试')
+      }
+    }
   }
 
   const viewUserDetail = (user) => {
@@ -1329,6 +1391,49 @@ export function useAdminDashboard() {
 
   const backupDatabase = () => {
     ElMessage.success('数据库备份中...')
+  }
+
+  // 支付审计 - 状态文本转换
+  const getStatusText = (status) => {
+    const statusMap = {
+      'PENDING': '待处理',
+      'SUCCESS': '成功',
+      'FAILED': '失败',
+      'REFUNDING': '退款中',
+      'REFUNDED': '已退款',
+      'CANCELLED': '已取消',
+      'PROCESSING': '处理中'
+    }
+    return statusMap[status] || status || '未知'
+  }
+
+  // 支付审计 - 状态标签类型
+  const getStatusTagType = (status) => {
+    const typeMap = {
+      'PENDING': 'warning',
+      'SUCCESS': 'success',
+      'FAILED': 'danger',
+      'REFUNDING': 'warning',
+      'REFUNDED': 'info',
+      'CANCELLED': 'info',
+      'PROCESSING': 'primary'
+    }
+    return typeMap[status] || 'info'
+  }
+
+  // 支付审计 - 事件类型文本转换
+  const getEventTypeText = (eventType) => {
+    const eventTypeMap = {
+      'PAYMENT_CREATED': '创建支付',
+      'PAYMENT_SUCCESS': '支付成功',
+      'PAYMENT_FAILED': '支付失败',
+      'PAYMENT_CANCELLED': '支付取消',
+      'REFUND_CREATED': '发起退款',
+      'REFUND_SUCCESS': '退款成功',
+      'REFUND_FAILED': '退款失败',
+      'REFUND_CANCELLED': '退款取消'
+    }
+    return eventTypeMap[eventType] || eventType || '未知'
   }
 
   // 优化版本的图表初始化
@@ -2122,6 +2227,9 @@ export function useAdminDashboard() {
     onAuditFilterChange,
     handleAuditSizeChange,
     handleAuditCurrentChange,
+    getStatusText,
+    getStatusTagType,
+    getEventTypeText,
     clearSystemCache,
     exportSystemLogs,
     backupDatabase,

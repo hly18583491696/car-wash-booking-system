@@ -405,11 +405,15 @@
             <el-table :data="audits" style="width: 100%" v-loading="auditLoading">
               <el-table-column prop="paymentNo" label="支付单号" width="180" />
               <el-table-column prop="orderNo" label="订单号" width="180" />
-              <el-table-column prop="eventType" label="事件类型" width="140" />
+              <el-table-column prop="eventType" label="事件类型" width="140">
+                <template #default="scope">
+                  {{ getEventTypeText(scope.row.eventType) }}
+                </template>
+              </el-table-column>
               <el-table-column prop="status" label="状态" width="120">
                 <template #default="scope">
-                  <el-tag :type="scope.row.status === 'SUCCESS' ? 'success' : scope.row.status === 'FAILED' ? 'danger' : 'info'">
-                    {{ scope.row.status || '未知' }}
+                  <el-tag :type="getStatusTagType(scope.row.status)">
+                    {{ getStatusText(scope.row.status) }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -595,6 +599,9 @@ const {
   onAuditFilterChange,
   handleAuditSizeChange,
   handleAuditCurrentChange,
+  getStatusText,
+  getStatusTagType,
+  getEventTypeText,
   initialize
 } = useAdminDashboard()
 

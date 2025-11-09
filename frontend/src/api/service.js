@@ -75,6 +75,32 @@ export const serviceApi = {
     }
   },
 
+  // 更新服务信息（管理员专用）
+  async updateService(serviceId, serviceData) {
+    try {
+      console.log('📝 更新服务信息，服务ID:', serviceId, '数据:', serviceData)
+      const response = await realApi.updateService(serviceId, serviceData)
+      console.log('✅ 服务更新成功')
+      return response
+    } catch (error) {
+      console.error('❌ 更新服务失败:', error)
+      throw error
+    }
+  },
+
+  // 更新服务状态（管理员专用）
+  async updateServiceStatus(serviceId, status) {
+    try {
+      console.log('🔄 更新服务状态，服务ID:', serviceId, '状态:', status)
+      const response = await realApi.updateServiceStatus(serviceId, status)
+      console.log('✅ 服务状态更新成功')
+      return response
+    } catch (error) {
+      console.error('❌ 更新服务状态失败:', error)
+      throw error
+    }
+  },
+
   // 删除服务（管理员专用）
   async deleteService(serviceId) {
     try {
@@ -84,6 +110,19 @@ export const serviceApi = {
       return response
     } catch (error) {
       console.error('❌ 删除服务失败:', error)
+      throw error
+    }
+  },
+
+  // 永久删除服务（管理员专用）
+  async permanentlyDeleteService(serviceId) {
+    try {
+      console.log('🗑️ 永久删除服务，服务ID:', serviceId)
+      const response = await realApi.permanentlyDeleteService(serviceId)
+      console.log('✅ 服务永久删除成功')
+      return response
+    } catch (error) {
+      console.error('❌ 永久删除服务失败:', error)
       throw error
     }
   }

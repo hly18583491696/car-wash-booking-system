@@ -108,6 +108,11 @@ export const realApi = {
     return request.delete(`/services/${id}`)
   },
 
+  // 永久删除服务（管理员专用）
+  async permanentlyDeleteService(id) {
+    return request.delete(`/services/${id}/permanent`)
+  },
+
   // 更新服务状态
   async updateServiceStatus(id, status) {
     return request.put(`/services/${id}/status`, null, {
@@ -231,6 +236,11 @@ export const realApi = {
     return request.delete(`/bookings/${orderId}`)
   },
 
+  // 永久删除订单（管理员专用）
+  async permanentlyDeleteOrder(orderId) {
+    return request.delete(`/bookings/${orderId}/permanent`)
+  },
+
   // 创建预约订单
   async createBooking(bookingData) {
     return request.post('/bookings', bookingData)
@@ -263,6 +273,11 @@ export const realApi = {
   // 删除用户（管理员专用）
   async deleteUser(userId) {
     return request.delete(`/user/admin/${userId}`)
+  },
+
+  // 永久删除用户（管理员专用）
+  async permanentlyDeleteUser(userId) {
+    return request.delete(`/user/admin/${userId}/permanent`)
   },
 
   // 获取用户统计
