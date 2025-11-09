@@ -31,6 +31,12 @@ public interface ServiceManagementService {
     void deleteService(Long serviceId);
 
     /**
+     * 永久删除服务项目（硬删除）
+     * 完全从数据库中移除服务数据，此操作不可恢复
+     */
+    void permanentlyDeleteService(Long serviceId);
+
+    /**
      * 根据ID获取服务项目
      */
     ServiceResponse getServiceById(Long serviceId);

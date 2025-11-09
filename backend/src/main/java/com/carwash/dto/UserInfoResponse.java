@@ -62,4 +62,86 @@ public class UserInfoResponse {
      * 最后登录时间
      */
     private LocalDateTime lastLoginTime;
+
+    // Getter methods
+    public Long getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+
+    // Setter methods
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
+    }
 }

@@ -49,4 +49,16 @@ public interface ServiceMapper extends BaseMapper<Service> {
      */
     @Update("UPDATE services SET status = #{status} WHERE id = #{serviceId}")
     int updateStatus(@Param("serviceId") Long serviceId, @Param("status") Integer status);
+
+    /**
+     * 统计总服务数
+     */
+    @Select("SELECT COUNT(*) FROM services WHERE deleted = 0")
+    int countTotalServices();
+
+    /**
+     * 统计可用服务数
+     */
+    @Select("SELECT COUNT(*) FROM services WHERE status = 1 AND deleted = 0")
+    int countAvailableServices();
 }

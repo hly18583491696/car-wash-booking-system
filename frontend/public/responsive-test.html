@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>响应式设计测试 - 汽车洗车服务预约系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .device-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .test-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .test-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .navigation-test {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #333;
+            color: white;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .button-test {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* 响应式断点测试 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .test-section {
+                padding: 1rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .navigation-test {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .button-test {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 1rem 0;
+            }
+            
+            .header h1 {
+                font-size: 1.25rem;
+            }
+            
+            .test-card {
+                padding: 1rem;
+            }
+            
+            .info-card {
+                padding: 0.75rem;
+            }
+        }
+        
+        /* 设备方向测试 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .header {
+                padding: 1rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>响应式设计测试页面</h1>
+        <p>汽车洗车服务预约系统 - 多设备兼容性验证</p>
+    </div>
+    
+    <div class="container">
+        <!-- 设备信息 -->
+        <div class="test-section">
+            <h2>当前设备信息</h2>
+            <div class="device-info">
+                <div class="info-card">
+                    <h3>屏幕尺寸</h3>
+                    <p id="screen-size">检测中...</p>
+                </div>
+                <div class="info-card">
+                    <h3>视口尺寸</h3>
+                    <p id="viewport-size">检测中...</p>
+                </div>
+                <div class="info-card">
+                    <h3>设备类型</h3>
+                    <p id="device-type">检测中...</p>
+                </div>
+                <div class="info-card">
+                    <h3>用户代理</h3>
+                    <p id="user-agent">检测中...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 导航测试 -->
+        <div class="test-section">
+            <h2>导航响应式测试</h2>
+            <div class="navigation-test">
+                <div class="logo">洗车预约系统</div>
+                <nav class="nav-links">
+                    <a href="#" class="nav-link">首页</a>
+                    <a href="#" class="nav-link">服务</a>
+                    <a href="#" class="nav-link">预约</a>
+                    <a href="#" class="nav-link">订单</a>
+                    <a href="#" class="nav-link">登录</a>
+                </nav>
+                <button class="mobile-menu">☰</button>
+            </div>
+        </div>
+        
+        <!-- 网格布局测试 -->
+        <div class="test-section">
+            <h2>网格布局响应式测试</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>服务1</h3>
+                    <p>基础洗车</p>
+                </div>
+                <div class="test-card">
+                    <h3>服务2</h3>
+                    <p>精洗服务</p>
+                </div>
+                <div class="test-card">
+                    <h3>服务3</h3>
+                    <p>打蜡护理</p>
+                </div>
+                <div class="test-card">
+                    <h3>服务4</h3>
+                    <p>内饰清洁</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 按钮测试 -->
+        <div class="test-section">
+            <h2>按钮响应式测试</h2>
+            <div class="button-test">
+                <button class="btn btn-primary">立即预约</button>
+                <button class="btn btn-secondary">查看服务</button>
+                <button class="btn btn-primary">联系我们</button>
+                <button class="btn btn-secondary">了解更多</button>
+            </div>
+        </div>
+        
+        <!-- 访问链接 -->
+        <div class="test-section">
+            <h2>系统访问链接</h2>
+            <div class="button-test">
+                <a href="http://localhost:3000/" class="btn btn-primary">访问首页</a>
+                <a href="http://localhost:3000/guest" class="btn btn-secondary">访问访客页面</a>
+                <a href="http://localhost:3000/login" class="btn btn-primary">访问登录页面</a>
+                <a href="http://localhost:3000/services" class="btn btn-secondary">访问服务页面</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 更新设备信息
+        function updateDeviceInfo() {
+            document.getElementById('screen-size').textContent = 
+                `${screen.width} × ${screen.height}`;
+            
+            document.getElementById('viewport-size').textContent = 
+                `${window.innerWidth} × ${window.innerHeight}`;
+            
+            // 检测设备类型
+            let deviceType = 'Desktop';
+            if (window.innerWidth <= 480) {
+                deviceType = 'Mobile';
+            } else if (window.innerWidth <= 768) {
+                deviceType = 'Tablet';
+            }
+            document.getElementById('device-type').textContent = deviceType;
+            
+            document.getElementById('user-agent').textContent = 
+                navigator.userAgent.substring(0, 50) + '...';
+        }
+        
+        // 初始化和窗口大小变化时更新
+        updateDeviceInfo();
+        window.addEventListener('resize', updateDeviceInfo);
+        
+        // 移动端菜单切换
+        document.querySelector('.mobile-menu').addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks.style.display === 'flex') {
+                navLinks.style.display = 'none';
+            } else {
+                navLinks.style.display = 'flex';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '100%';
+                navLinks.style.left = '0';
+                navLinks.style.right = '0';
+                navLinks.style.background = '#333';
+                navLinks.style.padding = '1rem';
+            }
+        });
+    </script>
+</body>
+</html>

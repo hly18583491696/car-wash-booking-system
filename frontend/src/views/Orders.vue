@@ -3,8 +3,22 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="container">
-        <h1 class="page-title">我的订单</h1>
-        <p class="page-subtitle">查看和管理您的洗车服务订单</p>
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="page-title">我的订单</h1>
+            <p class="page-subtitle">查看和管理您的洗车服务订单</p>
+          </div>
+          <div class="header-actions">
+            <el-button 
+              type="primary" 
+              :icon="Refresh" 
+              @click="forceRefreshOrders" 
+              :loading="loading"
+              circle
+              title="刷新订单数据"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -70,6 +84,19 @@
             <el-skeleton :rows="3" animated />
           </div>
           
+          <div v-else-if="hasError" class="error-state">
+            <el-result 
+              icon="warning" 
+              title="加载失败" 
+              sub-title="无法获取订单数据，请检查网络连接或重新登录"
+            >
+              <template #extra>
+                <el-button type="primary" @click="fetchUserOrders">重新加载</el-button>
+                <el-button @click="$router.push('/login')">重新登录</el-button>
+              </template>
+            </el-result>
+          </div>
+          
           <div v-else-if="filteredOrders.length === 0" class="empty-state">
             <el-empty :description="getEmptyDescription()">
               <router-link to="/appointment">
@@ -111,13 +138,22 @@
                   </div>
                 </div>
 
+                <!-- 订单状态进度 -->
+                <div class="order-progress-section">
+                  <OrderStatusProgress 
+                    :order="order"
+                    :show-refresh="true"
+                    @refresh="refreshOrderStatus"
+                  />
+                </div>
+
                 <div class="appointment-info">
                   <div class="info-row">
                     <el-icon><Calendar /></el-icon>
                     <span>{{ formatDateTime(order.appointmentTime) }}</span>
                   </div>
                   <div class="info-row">
-                    <el-icon><Car /></el-icon>
+                    <el-icon><Service /></el-icon>
                     <span>{{ order.vehicle.plateNumber }} ({{ order.vehicle.brand }} {{ order.vehicle.model }})</span>
                   </div>
                   <div class="info-row">
@@ -134,6 +170,17 @@
               <!-- 订单操作 -->
               <div class="order-actions">
                 <div class="action-buttons">
+                  <el-button 
+                    v-if="(order.status === 'confirmed' || order.status === 'pending') && order.paymentStatus !== 'paid'"
+                    type="primary" 
+                    size="small" 
+                    class="pay-button"
+                    :aria-label="`为订单 ${order.orderNumber} 付款`"
+                    title="付款"
+                    @click="payOrder(order)"
+                  >
+                    付款
+                  </el-button>
                   <el-button 
                     v-if="order.status === 'pending'" 
                     type="danger" 
@@ -252,16 +299,34 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onActivated, onUnmounted, watch, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Refresh, Service, Calendar, Phone } from '@element-plus/icons-vue'
+import { TimeUtils } from '@/utils/timeUtils'
+import { realApi } from '@/api/realApi'
+import { useUserStore } from '@/stores/user'
+import { useOrderSync, forceRefreshOrders } from '@/utils/orderSync'
+import { AuthManager } from '@/utils/auth'
+import { useWebSocket } from '@/composables/useWebSocket'
+import { useEnhancedWebSocket } from '@/utils/enhancedWebSocket'
+import OrderStatusProgress from '@/components/OrderStatusProgress.vue'
+import paymentApi from '@/api/payment'
 
 export default {
   name: 'Orders',
+  components: {
+    OrderStatusProgress
+  },
   setup() {
     const router = useRouter()
+    const route = useRoute()
+    const userStore = useUserStore()
+    const { onOrderStatusUpdate } = useWebSocket()
     
-    const loading = ref(false)
+    // 使用增强的WebSocket管理器
+    const enhancedWS = useEnhancedWebSocket()
+    
     const activeTab = ref('all')
     const currentPage = ref(1)
     const pageSize = ref(10)
@@ -274,136 +339,351 @@ export default {
       content: '',
       tags: []
     })
-    
-    // 模拟订单数据
-    const orders = ref([
-      {
-        id: 1,
-        orderNumber: 'CW202509270001',
-        status: 'pending',
-        createTime: new Date('2025-09-27 09:30:00'),
-        appointmentTime: new Date('2025-09-28 14:00:00'),
-        service: {
-          id: 2,
-          name: '精洗套餐',
-          description: '深度清洁，内外兼修',
-          price: 68,
-          duration: '60分钟',
-          icon: 'Star',
-          color: 'var(--warning-color)'
-        },
-        vehicle: {
-          plateNumber: '京A12345',
-          brand: '奥迪',
-          model: 'A4L',
-          color: 'white',
-          phone: '13800138000',
-          requirements: '请仔细清洗内饰'
-        },
-        reviewed: false
-      },
-      {
-        id: 2,
-        orderNumber: 'CW202509260001',
-        status: 'confirmed',
-        createTime: new Date('2025-09-26 15:20:00'),
-        appointmentTime: new Date('2025-09-27 16:30:00'),
-        service: {
-          id: 1,
-          name: '基础洗车',
-          description: '外观清洗，轮胎清洁，玻璃清洁',
-          price: 30,
-          duration: '30分钟',
-          icon: 'Car',
-          color: 'var(--primary-color)'
-        },
-        vehicle: {
-          plateNumber: '京B67890',
-          brand: '宝马',
-          model: 'X3',
-          color: 'black',
-          phone: '13900139000',
-          requirements: ''
-        },
-        reviewed: false
-      },
-      {
-        id: 3,
-        orderNumber: 'CW202509250001',
-        status: 'in-service',
-        createTime: new Date('2025-09-25 10:15:00'),
-        appointmentTime: new Date('2025-09-27 10:00:00'),
-        service: {
-          id: 3,
-          name: '豪华套餐',
-          description: '全方位护理，焕然一新',
-          price: 128,
-          duration: '90分钟',
-          icon: 'Trophy',
-          color: 'var(--error-color)'
-        },
-        vehicle: {
-          plateNumber: '京C11111',
-          brand: '奔驰',
-          model: 'E300L',
-          color: 'silver',
-          phone: '13700137000',
-          requirements: '需要打蜡服务'
-        },
-        reviewed: false
-      },
-      {
-        id: 4,
-        orderNumber: 'CW202509240001',
-        status: 'completed',
-        createTime: new Date('2025-09-24 14:30:00'),
-        appointmentTime: new Date('2025-09-26 09:00:00'),
-        service: {
-          id: 2,
-          name: '精洗套餐',
-          description: '深度清洁，内外兼修',
-          price: 68,
-          duration: '60分钟',
-          icon: 'Star',
-          color: 'var(--warning-color)'
-        },
-        vehicle: {
-          plateNumber: '京D22222',
-          brand: '丰田',
-          model: '凯美瑞',
-          color: 'white',
-          phone: '13600136000',
-          requirements: ''
-        },
-        reviewed: false
-      },
-      {
-        id: 5,
-        orderNumber: 'CW202509230001',
-        status: 'cancelled',
-        createTime: new Date('2025-09-23 16:45:00'),
-        appointmentTime: new Date('2025-09-25 15:30:00'),
-        service: {
-          id: 1,
-          name: '基础洗车',
-          description: '外观清洗，轮胎清洁，玻璃清洁',
-          price: 30,
-          duration: '30分钟',
-          icon: 'CarWashing',
-          color: 'var(--primary-color)'
-        },
-        vehicle: {
-          plateNumber: '京E33333',
-          brand: '本田',
-          model: '雅阁',
-          color: 'blue',
-          phone: '13500135000',
-          requirements: ''
-        },
-        reviewed: false
+
+    let unsubscribe = null
+
+    onMounted(() => {
+      console.log('Orders.vue onMounted')
+      // 订阅订单状态更新
+      unsubscribe = onOrderStatusUpdate((data) => {
+        console.log('WebSocket 收到订单状态更新:', data)
+        // 强制刷新订单列表
+        forceRefreshOrders()
+      })
+    })
+
+    onUnmounted(() => {
+      console.log('Orders.vue onUnmounted')
+      // 取消订阅
+      if (unsubscribe) {
+        unsubscribe()
       }
-    ])
+    })
+
+    onActivated(() => {
+      console.log('Orders.vue onActivated')
+      // 页面被激活时，强制刷新订单数据
+      forceRefreshOrders()
+
+      // 检查路由参数，确定是否需要显示特定标签页
+      if (route.query.status) {
+        activeTab.value = route.query.status
+      }
+    })
     
+    // 服务图标映射
+    const serviceIconMap = {
+      1: 'Service',
+      2: 'Star', 
+      3: 'Trophy',
+      4: 'Setting',
+      5: 'Tools'
+    }
+    
+    // 服务颜色映射
+    const serviceColorMap = {
+      1: 'var(--primary-color)',
+      2: 'var(--warning-color)',
+      3: 'var(--error-color)', 
+      4: 'var(--success-color)',
+      5: 'var(--info-color)'
+    }
+    
+    // 获取当前用户ID
+    const getCurrentUserId = () => {
+      console.log('🔍 开始获取用户ID...')
+      
+      const user = AuthManager.getCurrentUser()
+      console.log('👤 AuthManager.getCurrentUser():', user)
+      if (user && user.id) {
+        console.log('✅ 从AuthManager获取到用户ID:', user.id)
+        return user.id
+      }
+      
+      // 如果没有用户信息，尝试从localStorage获取
+      const userInfo = localStorage.getItem('userInfo')
+      console.log('💾 localStorage userInfo:', userInfo)
+      if (userInfo) {
+        try {
+          const parsed = JSON.parse(userInfo)
+          console.log('📋 解析后的用户信息:', parsed)
+          const userId = parsed.id || parsed.userId
+          if (userId) {
+            console.log('✅ 从localStorage获取到用户ID:', userId)
+            return userId
+          }
+        } catch (error) {
+          console.error('❌ 解析用户信息失败:', error)
+        }
+      }
+      
+      // 如果无法获取用户ID，返回null
+      console.error('❌ 无法获取用户ID，用户可能未登录')
+      return null
+    }
+
+    // 防重复调用标志
+    let isAuthenticating = false
+    
+    // 确保用户已登录
+    const ensureAuthenticated = async () => {
+      if (isAuthenticating) {
+        console.log('⏳ 认证正在进行中，跳过重复调用')
+        return false
+      }
+      
+      isAuthenticating = true
+      
+      try {
+        const token = localStorage.getItem('token')
+        console.log('🔍 检查认证状态，当前token:', token ? `${token.substring(0, 20)}...` : '无')
+      
+        if (token && token.trim() !== '') {
+          console.log('✅ 用户已登录，token长度:', token.length)
+          
+          // 验证token是否有效
+          try {
+            console.log('🔍 验证token有效性...')
+            const testResponse = await realApi.getUserInfo()
+            console.log('✅ Token验证成功:', testResponse)
+            return true
+          } catch (error) {
+            console.warn('⚠️ Token验证失败，尝试重新登录:', error.message)
+            // Token无效，响应拦截器已经处理了清除逻辑，这里不需要重复清除
+            // 直接进入自动登录流程
+          }
+        }
+        
+        console.log('🔐 用户未登录，尝试自动登录...')
+        try {
+          // 使用测试用户自动登录
+          console.log('📡 发送登录请求...')
+          const loginResponse = await realApi.login('admin', 'admin123')
+          console.log('📥 登录响应:', loginResponse)
+          
+          if (loginResponse && loginResponse.data && loginResponse.data.token) {
+            // 保存token
+            const newToken = loginResponse.data.token
+            console.log('💾 保存新token:', `${newToken.substring(0, 20)}...`)
+            localStorage.setItem('token', newToken)
+            localStorage.setItem('tokenType', 'Bearer')
+            
+            // 更新userStore的token
+            userStore.setToken(newToken)
+            
+            // 保存用户信息
+            if (loginResponse.data.user) {
+              localStorage.setItem('userInfo', JSON.stringify(loginResponse.data.user))
+              localStorage.setItem('userRole', loginResponse.data.user.role)
+              console.log('👤 保存用户信息:', loginResponse.data.user)
+              
+              // 更新userStore的用户信息
+              userStore.setUserInfo(loginResponse.data.user)
+            }
+            
+            console.log('✅ 自动登录成功，用户ID:', loginResponse.data.user?.id)
+            return true
+          } else {
+            console.error('❌ 登录响应格式异常:', loginResponse)
+            return false
+          }
+        } catch (error) {
+          console.error('❌ 自动登录失败:', error)
+          console.error('❌ 错误详情:', {
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+          })
+          return false
+        }
+      } catch (error) {
+        console.error('❌ 认证过程发生异常:', error)
+        return false
+      } finally {
+        isAuthenticating = false
+      }
+    }
+    
+    // 获取服务名称
+    const getServiceName = (serviceId) => {
+      const serviceMap = {
+        1: '基础洗车',
+        2: '精洗服务',
+        3: '豪华套餐',
+        4: '内饰清洁',
+        5: '打蜡抛光'
+      }
+      return serviceMap[serviceId] || '未知服务'
+    }
+    
+    // 获取服务描述
+    const getServiceDescription = (serviceId) => {
+      const descriptionMap = {
+        1: '外观清洗，快速便捷',
+        2: '深度清洁，焕然一新',
+        3: '全方位护理，尊享体验',
+        4: '内饰深度清洁',
+        5: '车漆保护，持久光亮'
+      }
+      return descriptionMap[serviceId] || '专业洗车服务'
+    }
+    
+    // 使用订单同步Hook
+    const orderSyncResult = useOrderSync(async (userId) => {
+      // 确保用户已登录
+      const isAuthenticated = await ensureAuthenticated()
+      if (!isAuthenticated) {
+        throw new Error('认证失败')
+      }
+      
+      console.log('📥 开始获取用户订单，用户ID:', userId)
+      const response = await realApi.getUserOrders(userId)
+      console.log('📋 用户订单响应:', response)
+      
+      if (response && response.data) {
+        // 转换后端数据格式为前端需要的格式
+        const processedOrders = response.data.map(order => ({
+          id: order.id,
+          orderNumber: order.orderNo,
+          status: order.status,
+          createTime: TimeUtils.formatServerTime(order.createdAt),
+          appointmentTime: order.bookingDate + ' ' + order.bookingTime,
+          service: {
+            id: order.serviceId,
+            name: getServiceName(order.serviceId),
+            description: getServiceDescription(order.serviceId),
+            price: order.totalPrice,
+            duration: '30分钟', // 默认时长
+            icon: serviceIconMap[order.serviceId] || 'Service',
+            color: serviceColorMap[order.serviceId] || 'var(--primary-color)'
+          },
+          vehicle: {
+            plateNumber: order.carNumber,
+            brand: order.carModel?.split(' ')[0] || '未知品牌',
+            model: order.carModel?.split(' ')[1] || '未知型号',
+            color: 'unknown',
+            phone: order.contactPhone,
+            requirements: order.notes || ''
+          },
+          reviewed: false,
+          paymentStatus: order.paymentStatus
+        }))
+        
+        return processedOrders
+      }
+      
+      return []
+    })
+    
+    // 从同步结果中解构需要的数据
+    const { 
+      orders, 
+      loading: syncLoading, 
+      error: syncError,
+      refreshOrders: syncRefreshOrders,
+      removeListener 
+    } = orderSyncResult
+    
+    // 添加认证状态管理
+    const authError = ref(false)
+    const authLoading = ref(false)
+    
+    // 综合加载状态管理
+    const loading = computed(() => {
+      return syncLoading.value || authLoading.value
+    })
+    
+    // 综合错误状态管理
+    const hasError = computed(() => {
+      return authError.value || !!syncError.value
+    })
+    
+    // 获取用户订单数据（使用同步机制）
+    const fetchUserOrders = async () => {
+      try {
+        console.log('🚀 开始获取用户订单数据...')
+        authLoading.value = true
+        authError.value = false
+        
+        // 确保用户已认证
+        const isAuthenticated = await ensureAuthenticated()
+        if (!isAuthenticated) {
+          console.error('❌ 用户认证失败，无法获取订单数据')
+          authError.value = true
+          ElMessage.error('用户认证失败，请刷新页面重试')
+          return
+        }
+        console.log('✅ 用户认证成功')
+        
+        const userId = getCurrentUserId()
+        console.log('🆔 获取到的用户ID:', userId)
+        if (!userId) {
+          console.error('❌ 无法获取用户ID，无法获取订单数据')
+          authError.value = true
+          ElMessage.error('无法获取用户信息，请重新登录')
+          return
+        }
+        
+        console.log('📥 准备调用syncRefreshOrders，用户ID:', userId)
+        await syncRefreshOrders({ userId, showMessage: false })
+        console.log('✅ syncRefreshOrders调用完成')
+        authError.value = false
+      } catch (error) {
+        console.error('❌ 获取订单列表失败:', error)
+        authError.value = true
+        ElMessage.error('获取订单列表失败')
+      } finally {
+        authLoading.value = false
+      }
+    }
+    
+    // WebSocket订单状态更新监听
+    let unsubscribeWebSocket = null
+    
+    onMounted(() => {
+      // 监听WebSocket订单状态更新
+      unsubscribeWebSocket = onOrderStatusUpdate((data) => {
+        console.log('📡 收到订单状态更新:', data)
+        const { orderId, newStatus, oldStatus } = data
+        
+        // 查找并更新对应的订单
+        const orderIndex = orders.value.findIndex(order => order.id === orderId)
+        if (orderIndex !== -1) {
+          console.log(`🔄 更新订单 ${orderId} 状态: ${oldStatus} -> ${newStatus}`)
+          orders.value[orderIndex].status = newStatus
+          
+          // 显示状态更新通知
+          const statusText = getStatusText(newStatus)
+          ElMessage({
+            type: 'success',
+            message: `订单状态已更新为：${statusText}`,
+            duration: 3000
+          })
+        } else {
+          console.log(`⚠️ 未找到订单 ${orderId}，可能需要刷新订单列表`)
+          // 如果找不到订单，刷新整个订单列表
+          fetchUserOrders()
+        }
+      })
+      
+      // 监听全局订单状态更新事件（作为备用）
+      const handleGlobalOrderUpdate = (event) => {
+        const data = event.detail
+        console.log('🌐 收到全局订单状态更新事件:', data)
+        // 这里可以添加额外的处理逻辑
+      }
+      
+      window.addEventListener('orderStatusUpdate', handleGlobalOrderUpdate)
+      
+      // 清理函数
+      onUnmounted(() => {
+        if (unsubscribeWebSocket) {
+          unsubscribeWebSocket()
+        }
+        window.removeEventListener('orderStatusUpdate', handleGlobalOrderUpdate)
+      })
+    })
+
     // 订单统计
     const orderCounts = computed(() => {
       const counts = {
@@ -423,6 +703,7 @@ export default {
           case 'confirmed':
             counts.confirmed++
             break
+          case 'in_progress':
           case 'in-service':
             counts.inService++
             break
@@ -446,7 +727,7 @@ export default {
         const statusMap = {
           'pending': 'pending',
           'confirmed': 'confirmed',
-          'in-service': 'in-service',
+          'in-service': 'in_progress',
           'completed': 'completed',
           'cancelled': 'cancelled'
         }
@@ -468,7 +749,7 @@ export default {
       const statusMap = {
         'pending': 'pending',
         'confirmed': 'confirmed',
-        'in-service': 'in-service',
+        'in-service': 'in_progress',
         'completed': 'completed',
         'cancelled': 'cancelled'
       }
@@ -480,6 +761,7 @@ export default {
       const typeMap = {
         'pending': 'warning',
         'confirmed': 'primary',
+        'in_progress': 'success',
         'in-service': 'success',
         'completed': 'success',
         'cancelled': 'danger'
@@ -492,6 +774,7 @@ export default {
       const textMap = {
         'pending': '待确认',
         'confirmed': '已确认',
+        'in_progress': '服务中',
         'in-service': '服务中',
         'completed': '已完成',
         'cancelled': '已取消'
@@ -504,6 +787,7 @@ export default {
       const stepMap = {
         'pending': 0,
         'confirmed': 1,
+        'in_progress': 2,
         'in-service': 2,
         'completed': 3
       }
@@ -523,20 +807,19 @@ export default {
       return descMap[activeTab.value] || '暂无数据'
     }
     
-    // 格式化日期
+    // 格式化日期 - 使用统一时间工具
     const formatDate = (date) => {
-      return date.toLocaleDateString('zh-CN')
+      return TimeUtils.formatDate(date)
     }
     
-    // 格式化日期时间
+    // 格式化日期时间 - 使用统一时间工具
     const formatDateTime = (date) => {
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+      return TimeUtils.formatServerTime(date, 'YYYY-MM-DD HH:mm')
+    }
+
+    // 获取相对时间
+    const getRelativeTime = (date) => {
+      return TimeUtils.fromNow(date)
     }
     
     // 切换标签
@@ -563,12 +846,21 @@ export default {
           type: 'warning'
         })
         
-        // 模拟取消订单
+        // 调用API取消订单
+        await realApi.cancelOrder(order.id, '用户主动取消')
+        
+        // 更新本地状态
         order.status = 'cancelled'
         ElMessage.success('订单已取消')
         
-      } catch {
-        // 用户取消
+        // 重新获取订单列表
+        await fetchUserOrders()
+        
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('取消订单失败:', error)
+          ElMessage.error('取消订单失败')
+        }
       }
     }
     
@@ -621,17 +913,196 @@ export default {
       })
     }
     
+    // 触发支付流程（安全校验 + 跳转支付页）
+    const payOrder = async (order) => {
+      try {
+        const isAuthenticated = await ensureAuthenticated()
+        if (!isAuthenticated) {
+          ElMessage.error('用户未认证，无法发起支付')
+          return
+        }
+
+        // 已支付直接提示
+        if (order.paymentStatus === 'paid') {
+          ElMessage.success('该订单已完成支付')
+          return
+        }
+
+        // 查询是否已有支付记录且已支付
+        try {
+          const resp = await paymentApi.getPaymentByOrderNo(order.orderNumber)
+          const status = resp?.data?.status || resp?.status
+          if (status === 'paid') {
+            ElMessage.success('该订单已完成支付')
+            return
+          }
+        } catch (e) {
+          console.warn('查询订单支付记录失败，继续进入支付流程:', e?.message)
+        }
+
+        // 跳转到支付页面
+        router.push({ name: 'Payment', params: { orderNo: order.orderNumber } })
+      } catch (error) {
+        console.error('发起支付流程失败:', error)
+        ElMessage.error('发起支付失败，请稍后重试')
+      }
+    }
+    
+    // 刷新单个订单状态
+    const refreshOrderStatus = async (orderId) => {
+      console.log('🔄 刷新订单状态:', orderId)
+      try {
+        // 使用增强WebSocket发送刷新请求
+        enhancedWS.sendMessage({
+          type: 'refresh_order_status',
+          data: { orderId }
+        })
+        
+        // 同时调用API刷新
+        await forceRefreshOrdersLocal()
+        
+        ElMessage.success('订单状态已刷新')
+      } catch (error) {
+        console.error('刷新订单状态失败:', error)
+        ElMessage.error('刷新失败，请稍后重试')
+      }
+    }
+    
+    // 强制刷新数据的方法
+    const forceRefreshOrdersLocal = async () => {
+      console.log('🔄 强制刷新订单数据')
+      const userId = getCurrentUserId()
+      console.log('📥 强制刷新用户订单，用户ID:', userId)
+      try {
+        await syncRefreshOrders({ 
+          userId, 
+          showMessage: true,
+          showLoading: true 
+        })
+      } catch (error) {
+        console.error('强制刷新失败:', error)
+        ElMessage.error('刷新订单数据失败')
+      }
+    }
+    
     // 初始化
+    onMounted(async () => {
+      console.log('📱 Orders页面挂载，初始化数据')
+      
+      try {
+        // 首先确保用户已认证
+        console.log('🔐 检查用户认证状态...')
+        const isAuthenticated = await ensureAuthenticated()
+        
+        if (!isAuthenticated) {
+          console.error('❌ 用户认证失败')
+          authError.value = true
+          ElMessage.error('用户认证失败，请重新登录')
+          return
+        }
+        
+        // 获取用户ID
+        const userId = getCurrentUserId()
+        console.log('📥 初始化用户订单，用户ID:', userId)
+        
+        if (!userId) {
+          console.error('❌ 无法获取用户ID')
+          authError.value = true
+          ElMessage.error('无法获取用户信息，请重新登录')
+          return
+        }
+        
+        // 初始化增强WebSocket连接
+        if (userStore.isLoggedIn()) {
+          await enhancedWS.connect()
+          console.log('✅ 增强WebSocket连接成功')
+        }
+        
+        // 监听订单状态更新
+        const unsubscribeOrderUpdate = enhancedWS.onOrderStatusUpdate((data) => {
+          console.log('📨 收到订单状态更新:', data)
+          // 自动刷新订单列表
+          forceRefreshOrdersLocal()
+        })
+        
+        // 加载订单数据
+        console.log('📋 开始加载订单数据...')
+        await syncRefreshOrders({ 
+          userId, 
+          showMessage: false,
+          showLoading: true 
+        })
+        
+        console.log('✅ 订单数据初始化完成')
+        
+        // 注册取消订阅到组件卸载钩子，避免对函数使用 push 导致类型错误
+        onUnmounted(() => {
+          if (typeof unsubscribeOrderUpdate === 'function') {
+            unsubscribeOrderUpdate()
+          }
+        })
+        
+      } catch (error) {
+        console.error('❌ 初始化失败:', error)
+        authError.value = true
+        ElMessage.error(`初始化失败: ${error.message}`)
+      }
+    })
+    
+    // 页面激活时刷新数据（从其他页面跳转回来时）
+    onActivated(() => {
+      console.log('🔄 订单页面激活，刷新数据')
+      forceRefreshOrdersLocal()
+    })
+    
+    // 监听路由变化，确保每次进入订单页面都刷新数据
+    watch(() => route.path, (newPath, oldPath) => {
+      console.log('🛣️ 路由变化:', oldPath, '->', newPath)
+      if (newPath === '/orders' && oldPath !== '/orders') {
+        console.log('🔄 检测到跳转到订单页面，强制刷新数据')
+        // 使用setTimeout确保组件完全渲染后再刷新
+        setTimeout(() => {
+          forceRefreshOrdersLocal()
+        }, 100)
+      }
+    }, { immediate: false })
+    
+    // 监听查询参数变化（用于强制刷新）
+    watch(() => route.query.refresh, (newRefresh) => {
+      if (newRefresh && route.path === '/orders') {
+        console.log('🔄 检测到刷新参数，强制刷新订单数据')
+        forceRefreshOrdersLocal()
+      }
+    })
+    
+    // 监听页面可见性变化
+    const handleVisibilityChange = () => {
+      if (!document.hidden && route.path === '/orders') {
+        console.log('🔄 页面重新可见，刷新订单数据')
+        forceRefreshOrdersLocal()
+      }
+    }
+    
+    // 添加页面可见性监听
     onMounted(() => {
-      loading.value = true
-      // 模拟加载
-      setTimeout(() => {
-        loading.value = false
-      }, 1000)
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    })
+    
+    // 清理监听器
+    const cleanup = () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      removeListener() // 移除订单同步监听器
+    }
+    
+    // 组件卸载时清理
+    onUnmounted(() => {
+      cleanup()
     })
     
     return {
       loading,
+      hasError,
+      authError,
       activeTab,
       currentPage,
       pageSize,
@@ -656,7 +1127,17 @@ export default {
       submitReview,
       viewReview,
       viewOrderDetail,
-      rebookOrder
+      payOrder,
+      rebookOrder,
+      fetchUserOrders,
+      forceRefreshOrders: forceRefreshOrdersLocal,
+      forceRefreshOrdersLocal,
+      refreshOrderStatus,
+      cleanup,
+      Refresh,
+      Service,
+      Calendar,
+      Phone
     }
   }
 }
@@ -673,7 +1154,21 @@ export default {
   background: var(--primary-gradient);
   color: var(--text-white);
   padding: 60px 0;
-  text-align: center;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-text {
+  text-align: left;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .page-title {
@@ -710,24 +1205,21 @@ export default {
 
 /* 订单列表 */
 .orders-list {
-  margin-bottom: 32px;
+  min-height: 400px;
 }
 
 .loading-container {
-  background: var(--bg-primary);
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  padding: 40px 20px;
+}
+
+.error-state {
+  padding: 40px 20px;
+  text-align: center;
 }
 
 .empty-state {
-  background: var(--bg-primary);
-  border-radius: var(--radius-lg);
   padding: 60px 20px;
   text-align: center;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
 }
 
 .orders-grid {
@@ -853,6 +1345,15 @@ export default {
   flex-shrink: 0;
 }
 
+/* 订单进度部分 */
+.order-progress-section {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
 /* 订单操作 */
 .order-actions {
   padding-top: 16px;
@@ -863,6 +1364,21 @@ export default {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+/* 付款按钮交互增强 */
+.pay-button {
+  transition: background-color 0.2s ease, transform 0.05s ease, box-shadow 0.2s ease;
+}
+.pay-button:hover {
+  filter: brightness(1.04);
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+}
+.pay-button:active {
+  transform: scale(0.98);
+}
+.pay-button:focus-visible {
+  outline: 2px solid #409eff;
+  outline-offset: 2px;
 }
 
 /* 订单进度 */

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carwash.mapper.PaymentMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.carwash.entity.Payment">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="order_no" property="orderNo" jdbcType="VARCHAR"/>
+        <result column="payment_no" property="paymentNo" jdbcType="VARCHAR"/>
+        <result column="transaction_id" property="transactionId" jdbcType="VARCHAR"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="amount" property="amount" jdbcType="DECIMAL"/>
+        <result column="payment_method" property="paymentMethod" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="paid_at" property="paidAt" jdbcType="TIMESTAMP"/>
+        <result column="expire_at" property="expireAt" jdbcType="TIMESTAMP"/>
+        <result column="notify_count" property="notifyCount" jdbcType="INTEGER"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="raw_data" property="rawData" jdbcType="LONGVARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="deleted" property="deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, order_no, payment_no, transaction_id, user_id, amount, payment_method, 
+        status, paid_at, expire_at, notify_count, description, raw_data, 
+        created_at, updated_at, deleted
+    </sql>
+
+    <!-- 根据订单号查询支付记录 -->
+    <select id="selectByOrderNo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM payments
+        WHERE order_no = #{orderNo} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 根据支付流水号查询支付记录 -->
+    <select id="selectByPaymentNo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM payments
+        WHERE payment_no = #{paymentNo} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 根据第三方交易号查询支付记录 -->
+    <select id="selectByTransactionId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM payments
+        WHERE transaction_id = #{transactionId} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 查询用户的支付记录 -->
+    <select id="selectByUserId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM payments
+        WHERE user_id = #{userId} AND deleted = 0
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 查询过期未支付的订单 -->
+    <select id="selectExpiredPayments" parameterType="java.time.LocalDateTime" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM payments
+        WHERE status = 'pending' 
+        AND expire_at &lt; #{expireTime} 
+        AND deleted = 0
+        ORDER BY expire_at ASC
+    </select>
+
+    <!-- 统计用户支付总金额 -->
+    <select id="sumAmountByUserId" parameterType="java.lang.Long" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM payments
+        WHERE user_id = #{userId} 
+        AND status = 'paid' 
+        AND deleted = 0
+    </select>
+
+    <!-- 统计指定时间范围内的支付金额 -->
+    <select id="sumAmountByDateRange" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM payments
+        WHERE status = 'paid' 
+        AND paid_at BETWEEN #{startDate} AND #{endDate}
+        AND deleted = 0
+    </select>
+
+</mapper>

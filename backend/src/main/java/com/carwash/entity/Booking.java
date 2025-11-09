@@ -146,9 +146,188 @@ public class Booking {
     private LocalDateTime updatedAt;
 
     /**
-     * 是否删除：0-未删除, 1-已删除
+     * 逻辑删除标记：0-未删除，1-已删除
      */
     @TableLogic
     @TableField("deleted")
     private Integer deleted;
+
+    // Getter methods
+    public Long getUserId() {
+        return userId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
+    }
+
+    public void setCancelledAt(LocalDateTime cancelledAt) {
+        this.cancelledAt = cancelledAt;
+    }
+
+    // Additional getter methods
+    public Long getId() {
+        return id;
+    }
+
+    public Long getServiceId() {
+        return serviceId;
+    }
+
+    public Long getTimeSlotId() {
+        return timeSlotId;
+    }
+
+    public LocalDate getBookingDate() {
+        return bookingDate;
+    }
+
+    public String getBookingTime() {
+        return bookingTime;
+    }
+
+    public String getCarNumber() {
+        return carNumber;
+    }
+
+    public String getCarModel() {
+        return carModel;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Integer getDeleted() {
+        return deleted;
+    }
+
+    // Additional setter methods
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public void setServiceId(Long serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public void setTimeSlotId(Long timeSlotId) {
+        this.timeSlotId = timeSlotId;
+    }
+
+    public void setBookingDate(LocalDate bookingDate) {
+        this.bookingDate = bookingDate;
+    }
+
+    public void setBookingTime(String bookingTime) {
+        this.bookingTime = bookingTime;
+    }
+
+    public void setCarNumber(String carNumber) {
+        this.carNumber = carNumber;
+    }
+
+    public void setCarModel(String carModel) {
+        this.carModel = carModel;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setDeleted(Integer deleted) {
+        this.deleted = deleted;
+    }
 }

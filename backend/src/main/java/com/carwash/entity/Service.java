@@ -90,4 +90,102 @@ public class Service {
     @TableLogic
     @TableField("deleted")
     private Integer deleted;
+
+    // Getter methods
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public Integer getDuration() {
+        return duration;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Integer getDeleted() {
+        return deleted;
+    }
+
+    // Setter methods
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public void setDuration(Integer duration) {
+        this.duration = duration;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setDeleted(Integer deleted) {
+        this.deleted = deleted;
+    }
 }

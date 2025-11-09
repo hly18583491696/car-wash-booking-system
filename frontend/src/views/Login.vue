@@ -81,6 +81,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import authApi from '../api/auth.js'
+import AuthManager from '../utils/auth.js'
 
 export default {
   name: 'Login',
@@ -113,36 +114,143 @@ export default {
         await loginFormRef.value.validate()
         loading.value = true
         
+        console.log('开始登录流程...')
+        
         // 调用登录API
         try {
           const response = await authApi.login(loginForm.username, loginForm.password)
           
+          console.log('登录API响应:', response)
+          
           if (response.code === 200) {
-            // 保存登录信息
-            localStorage.setItem('token', response.data.token)
-            localStorage.setItem('tokenType', response.data.tokenType || 'Bearer')
-            localStorage.setItem('userRole', response.data.user.role)
-            localStorage.setItem('userInfo', JSON.stringify(response.data.user))
+            // 使用AuthManager处理登录
+            const loginSuccess = AuthManager.login(
+              response.data.user,
+              response.data.token,
+              response.data.tokenType
+            )
             
-            ElMessage.success(response.message)
-            
-            // 根据用户角色跳转
-            if (response.data.user.role === 'admin') {
-              router.push('/admin')
+            if (loginSuccess) {
+              console.log('登录成功，用户信息:', {
+                role: AuthManager.getUserRole(),
+                name: AuthManager.getUserDisplayName(),
+                isAdmin: AuthManager.isAdmin()
+              })
+              
+              // 根据用户角色确定跳转路径
+              const userRole = response.data.user.role
+              let redirectPath = router.currentRoute.value.query.redirect
+              
+              console.log('用户角色:', userRole)
+              
+              // 显示登录成功消息
+              if (userRole === 'admin') {
+                console.log('检测到管理员角色，开始管理员登录流程')
+                console.log('用户信息:', response.data.user)
+                console.log('当前路由:', router.currentRoute.value)
+                console.log('AuthManager状态:', {
+                  isAuthenticated: AuthManager.isAuthenticated(),
+                  isAdmin: AuthManager.isAdmin(),
+                  currentUser: AuthManager.getCurrentUser()
+                })
+                
+                ElMessage.success({
+                  message: `登录成功！欢迎管理员，${response.data.user.realName || response.data.user.username}。正在跳转到管理后台...`,
+                  duration: 3000
+                })
+                
+                // 管理员跳转到前端Vue管理页面
+                setTimeout(async () => {
+                  try {
+                    console.log('开始跳转到前端Vue管理后台...')
+                    console.log('路由器状态:', router)
+                    
+                    // 确保跳转到前端Vue应用的管理页面，而不是后端页面
+                    const targetUrl = window.location.origin + '/admin/dashboard'
+                    console.log('目标URL:', targetUrl)
+                    
+                    // 检查路由是否存在
+                    const route = router.resolve('/admin/dashboard')
+                    console.log('路由解析结果:', route)
+                    
+                    // 使用Vue Router进行前端路由跳转
+                    console.log('执行路由跳转...')
+                    await router.push('/admin/dashboard')
+                    console.log('管理员跳转成功到前端Vue页面')
+                    
+                    // 验证跳转后的状态
+                    setTimeout(() => {
+                      console.log('跳转后当前路由:', router.currentRoute.value)
+                      console.log('跳转后页面URL:', window.location.href)
+                    }, 500)
+                    
+                  } catch (routerError) {
+                    console.error('管理员跳转失败:', routerError)
+                    console.error('错误详情:', routerError.stack)
+                    ElMessage.error('跳转到管理后台失败: ' + routerError.message)
+                    
+                    // 尝试备用跳转路径
+                    try {
+                      console.log('尝试备用路径 /admin')
+                      await router.push('/admin')
+                      console.log('备用路径跳转成功')
+                    } catch (fallbackError) {
+                      console.error('备用路径跳转也失败:', fallbackError)
+                      console.error('备用错误详情:', fallbackError.stack)
+                      ElMessage.error('路由跳转异常，请刷新页面后重试')
+                      
+                      // 最后尝试直接修改URL
+                      console.log('尝试直接修改URL')
+                      window.location.href = '/admin/dashboard'
+                    }
+                  }
+                }, 1500)
+                return
+              }
+              
+              // 普通用户处理逻辑
+              if (!redirectPath) {
+                redirectPath = '/'
+              }
+              
+              ElMessage.success(`登录成功！欢迎，${response.data.user.realName || response.data.user.username}`)
+              
+              console.log('准备跳转到:', redirectPath)
+              
+              // 延迟跳转确保权限信息已更新
+              setTimeout(async () => {
+                try {
+                  console.log('开始跳转到:', redirectPath)
+                  await router.push(redirectPath)
+                  console.log('路由跳转成功')
+                } catch (routerError) {
+                  console.error('路由跳转失败:', routerError)
+                  ElMessage.error(`跳转到 ${redirectPath} 失败，正在跳转到首页`)
+                  // 如果跳转失败，尝试跳转到首页
+                  try {
+                    await router.push('/')
+                    console.log('备用首页跳转成功')
+                  } catch (fallbackError) {
+                    console.error('备用首页跳转也失败:', fallbackError)
+                    ElMessage.error('路由跳转异常，请刷新页面后重试')
+                  }
+                }
+              }, 200)
+              
             } else {
-              router.push('/')
+              ElMessage.error('登录信息保存失败，请重试')
             }
           } else {
-            ElMessage.error(response.message)
+            ElMessage.error(response.message || '登录失败')
           }
         } catch (error) {
-          ElMessage.error(error.message || '登录失败，请重试')
+          console.error('登录API调用失败:', error)
+          ElMessage.error(error.message || '登录失败，请检查网络连接')
         }
-        
-        loading.value = false
         
       } catch (error) {
         console.error('表单验证失败:', error)
+      } finally {
         loading.value = false
       }
     }

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录功能详细调试</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input {
+            width: 300px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 登录功能详细调试</h1>
+    
+    <!-- 1. 后端连接测试 -->
+    <div class="container">
+        <h2 class="section-title">1. 后端连接测试</h2>
+        <button onclick="testBackendConnection()">测试后端连接</button>
+        <div id="backend-result" class="result"></div>
+    </div>
+
+    <!-- 2. 数据库用户查询 -->
+    <div class="container">
+        <h2 class="section-title">2. 数据库用户查询</h2>
+        <div class="form-group">
+            <label for="query-username">用户名:</label>
+            <input type="text" id="query-username" value="admin" placeholder="输入要查询的用户名">
+        </div>
+        <button onclick="queryUser()">查询用户</button>
+        <div id="query-result" class="result"></div>
+    </div>
+
+    <!-- 3. 登录测试 -->
+    <div class="container">
+        <h2 class="section-title">3. 登录测试</h2>
+        <div class="form-group">
+            <label for="login-username">用户名:</label>
+            <input type="text" id="login-username" value="admin" placeholder="用户名">
+        </div>
+        <div class="form-group">
+            <label for="login-password">密码:</label>
+            <input type="password" id="login-password" value="admin123" placeholder="密码">
+        </div>
+        <button onclick="testLogin()">测试登录</button>
+        <button onclick="testLoginWithDebug()">详细调试登录</button>
+        <div id="login-result" class="result"></div>
+    </div>
+
+    <!-- 4. 认证状态检查 -->
+    <div class="container">
+        <h2 class="section-title">4. 认证状态检查</h2>
+        <button onclick="checkAuthStatus()">检查认证状态</button>
+        <button onclick="testProtectedApi()">测试受保护API</button>
+        <div id="auth-result" class="result"></div>
+    </div>
+
+    <!-- 5. 支付记录页面测试 -->
+    <div class="container">
+        <h2 class="section-title">5. 支付记录页面测试</h2>
+        <button onclick="testPaymentRecords()">测试支付记录API</button>
+        <button onclick="goToPaymentRecords()">跳转到支付记录页面</button>
+        <div id="payment-result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        
+        // 设置axios默认配置
+        axios.defaults.timeout = 10000;
+        
+        // 添加请求拦截器
+        axios.interceptors.request.use(config => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        function logStep(elementId, step, message) {
+            const element = document.getElementById(elementId);
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'step';
+            stepDiv.innerHTML = `<strong>步骤 ${step}:</strong> ${message}`;
+            element.appendChild(stepDiv);
+        }
+
+        // 1. 测试后端连接
+        async function testBackendConnection() {
+            log('backend-result', '正在测试后端连接...', 'info');
+            
+            try {
+                const response = await axios.get(`${API_BASE}/test/health`);
+                log('backend-result', `✅ 后端连接成功\n响应: ${JSON.stringify(response.data, null, 2)}`, 'success');
+            } catch (error) {
+                log('backend-result', `❌ 后端连接失败\n错误: ${error.message}\n详情: ${JSON.stringify(error.response?.data, null, 2)}`, 'error');
+            }
+        }
+
+        // 2. 查询用户
+        async function queryUser() {
+            const username = document.getElementById('query-username').value;
+            log('query-result', `正在查询用户: ${username}...`, 'info');
+            
+            try {
+                // 尝试通过检查用户名API查询
+                const response = await axios.get(`${API_BASE}/auth/check-username?username=${username}`);
+                const userExists = !response.data.data; // API返回true表示用户名可用，false表示已存在
+                
+                if (userExists) {
+                    log('query-result', `✅ 用户 "${username}" 存在于数据库中\n响应: ${JSON.stringify(response.data, null, 2)}`, 'success');
+                } else {
+                    log('query-result', `❌ 用户 "${username}" 不存在于数据库中\n响应: ${JSON.stringify(response.data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                log('query-result', `❌ 查询用户失败\n错误: ${error.message}\n详情: ${JSON.stringify(error.response?.data, null, 2)}`, 'error');
+            }
+        }
+
+        // 3. 测试登录
+        async function testLogin() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            log('login-result', `正在测试登录: ${username}/${password}...`, 'info');
+            
+            try {
+                const response = await axios.post(`${API_BASE}/auth/login`, {
+                    username: username,
+                    password: password
+                });
+                
+                // 保存token
+                if (response.data.data && response.data.data.token) {
+                    localStorage.setItem('token', response.data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(response.data.data));
+                }
+                
+                log('login-result', `✅ 登录成功!\n响应: ${JSON.stringify(response.data, null, 2)}`, 'success');
+            } catch (error) {
+                log('login-result', `❌ 登录失败\n错误: ${error.message}\n状态码: ${error.response?.status}\n详情: ${JSON.stringify(error.response?.data, null, 2)}`, 'error');
+            }
+        }
+
+        // 3.1 详细调试登录
+        async function testLoginWithDebug() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            const resultElement = document.getElementById('login-result');
+            resultElement.innerHTML = '';
+            resultElement.className = 'result info';
+            
+            logStep('login-result', 1, `开始登录调试 - 用户名: ${username}, 密码: ${password}`);
+            
+            try {
+                logStep('login-result', 2, '发送登录请求...');
+                
+                const startTime = Date.now();
+                const response = await axios.post(`${API_BASE}/auth/login`, {
+                    username: username,
+                    password: password
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const endTime = Date.now();
+                
+                logStep('login-result', 3, `请求完成，耗时: ${endTime - startTime}ms`);
+                logStep('login-result', 4, `响应状态: ${response.status}`);
+                logStep('login-result', 5, `响应数据: ${JSON.stringify(response.data, null, 2)}`);
+                
+                if (response.data.data && response.data.data.token) {
+                    localStorage.setItem('token', response.data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(response.data.data));
+                    logStep('login-result', 6, '✅ Token已保存到localStorage');
+                } else {
+                    logStep('login-result', 6, '⚠️ 响应中没有token');
+                }
+                
+            } catch (error) {
+                logStep('login-result', 'ERROR', `登录失败: ${error.message}`);
+                if (error.response) {
+                    logStep('login-result', 'ERROR', `状态码: ${error.response.status}`);
+                    logStep('login-result', 'ERROR', `响应头: ${JSON.stringify(error.response.headers, null, 2)}`);
+                    logStep('login-result', 'ERROR', `响应数据: ${JSON.stringify(error.response.data, null, 2)}`);
+                }
+            }
+        }
+
+        // 4. 检查认证状态
+        async function checkAuthStatus() {
+            log('auth-result', '正在检查认证状态...', 'info');
+            
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            
+            let status = `Token: ${token ? '存在' : '不存在'}\n`;
+            status += `用户信息: ${userInfo ? '存在' : '不存在'}\n`;
+            
+            if (token) {
+                status += `Token内容: ${token.substring(0, 50)}...\n`;
+            }
+            
+            if (userInfo) {
+                status += `用户信息: ${userInfo}\n`;
+            }
+            
+            log('auth-result', status, token ? 'success' : 'error');
+        }
+
+        async function testProtectedApi() {
+            log('auth-result', '正在测试受保护的API...', 'info');
+            
+            try {
+                const response = await axios.get(`${API_BASE}/user/info`);
+                log('auth-result', `✅ 受保护API访问成功\n响应: ${JSON.stringify(response.data, null, 2)}`, 'success');
+            } catch (error) {
+                log('auth-result', `❌ 受保护API访问失败\n错误: ${error.message}\n详情: ${JSON.stringify(error.response?.data, null, 2)}`, 'error');
+            }
+        }
+
+        // 5. 测试支付记录
+        async function testPaymentRecords() {
+            log('payment-result', '正在测试支付记录API...', 'info');
+            
+            try {
+                // 尝试访问支付记录API
+                const response = await axios.get(`${API_BASE}/admin/payment-records`);
+                log('payment-result', `✅ 支付记录API访问成功\n响应: ${JSON.stringify(response.data, null, 2)}`, 'success');
+            } catch (error) {
+                log('payment-result', `❌ 支付记录API访问失败\n错误: ${error.message}\n状态码: ${error.response?.status}\n详情: ${JSON.stringify(error.response?.data, null, 2)}`, 'error');
+            }
+        }
+
+        function goToPaymentRecords() {
+            window.open('http://localhost:3000/admin/payment-records', '_blank');
+        }
+
+        // 页面加载时自动检查状态
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

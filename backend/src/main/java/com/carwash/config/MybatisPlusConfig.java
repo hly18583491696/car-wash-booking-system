@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import com.carwash.utils.TimeUtils;
 
 /**
  * MyBatis Plus配置类
@@ -50,15 +51,20 @@ public class MybatisPlusConfig {
 
         @Override
         public void insertFill(MetaObject metaObject) {
-            // 插入时自动填充创建时间和更新时间
-            this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-            this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+            // 插入时自动填充创建时间和更新时间 - 使用统一时间工具
+            LocalDateTime now = TimeUtils.now();
+            this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, now);
+            this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, now);
+            this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, now);
+            this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
         }
 
         @Override
         public void updateFill(MetaObject metaObject) {
-            // 更新时自动填充更新时间
-            this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+            // 更新时自动填充更新时间 - 使用统一时间工具
+            LocalDateTime now = TimeUtils.now();
+            this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, now);
+            this.strictUpdateFill(metaObject, "updatedAt", LocalDateTime.class, now);
         }
     }
 }

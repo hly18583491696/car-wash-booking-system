@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员访问测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success {
+            color: #67C23A;
+            font-weight: bold;
+        }
+        .info {
+            color: #409EFF;
+            font-weight: bold;
+        }
+        .warning {
+            color: #E6A23C;
+            font-weight: bold;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-left: 4px solid #409EFF;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 管理员身份登录系统修复验证</h1>
+    
+    <div class="test-section">
+        <h2>✅ 修复内容总结</h2>
+        <div class="step">
+            <strong>1. 路由守卫优化</strong>
+            <p>修改了路由守卫逻辑，管理员登录后不再强制跳转到管理后台，可以访问普通用户页面</p>
+        </div>
+        
+        <div class="step">
+            <strong>2. 登录跳转逻辑调整</strong>
+            <p>管理员登录后默认跳转到首页，而不是直接跳转到管理后台</p>
+        </div>
+        
+        <div class="step">
+            <strong>3. 双向导航支持</strong>
+            <p>在普通用户界面为管理员添加了管理后台入口，在管理后台添加了返回用户界面的选项</p>
+        </div>
+        
+        <div class="step">
+            <strong>4. 用户体验优化</strong>
+            <p>添加了明显的视觉提示和快速切换按钮</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        
+        <div class="step">
+            <strong>步骤 1：管理员登录</strong>
+            <p>1. 访问 <a href="http://localhost:3000/login" target="_blank">登录页面</a></p>
+            <p>2. 使用管理员账户登录：</p>
+            <ul>
+                <li>用户名：<code>admin</code></li>
+                <li>密码：<code>admin123</code></li>
+            </ul>
+            <p class="info">✓ 预期结果：登录成功后跳转到首页，而不是管理后台</p>
+        </div>
+        
+        <div class="step">
+            <strong>步骤 2：验证普通用户页面访问</strong>
+            <p>登录后验证可以正常访问以下页面：</p>
+            <ul>
+                <li><a href="http://localhost:3000/" target="_blank">首页</a> - 应该显示管理后台入口按钮</li>
+                <li><a href="http://localhost:3000/services" target="_blank">服务项目</a></li>
+                <li><a href="http://localhost:3000/stores" target="_blank">洗车店查询</a></li>
+                <li><a href="http://localhost:3000/appointment" target="_blank">立即预约</a></li>
+                <li><a href="http://localhost:3000/orders" target="_blank">我的订单</a></li>
+            </ul>
+            <p class="success">✓ 预期结果：所有页面都可以正常访问</p>
+        </div>
+        
+        <div class="step">
+            <strong>步骤 3：验证管理后台访问</strong>
+            <p>通过以下方式进入管理后台：</p>
+            <ul>
+                <li>点击首页的"管理后台"按钮</li>
+                <li>点击导航栏用户菜单中的"管理后台"选项</li>
+                <li>直接访问 <a href="http://localhost:3000/admin" target="_blank">管理后台</a></li>
+            </ul>
+            <p class="success">✓ 预期结果：可以正常进入管理后台</p>
+        </div>
+        
+        <div class="step">
+            <strong>步骤 4：验证双向切换</strong>
+            <p>在管理后台中：</p>
+            <ul>
+                <li>点击右上角用户菜单</li>
+                <li>选择"返回用户界面"</li>
+            </ul>
+            <p class="success">✓ 预期结果：成功返回到普通用户界面</p>
+        </div>
+        
+        <div class="step">
+            <strong>步骤 5：验证预约管理功能</strong>
+            <p>在管理后台的预约管理页面：</p>
+            <ul>
+                <li>尝试确认订单状态</li>
+                <li>检查前端是否有响应</li>
+                <li>验证后端数据是否同步更新</li>
+            </ul>
+            <p class="success">✓ 预期结果：订单状态更新功能正常工作</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 关键修复点</h2>
+        
+        <div class="step">
+            <strong>路由守卫修复</strong>
+            <p>文件：<code>frontend/src/router/index.js</code></p>
+            <p>修改了已登录用户访问登录页面的重定向逻辑，不再强制管理员跳转到管理后台</p>
+        </div>
+        
+        <div class="step">
+            <strong>登录逻辑修复</strong>
+            <p>文件：<code>frontend/src/views/Login.vue</code></p>
+            <p>调整了登录成功后的跳转逻辑，管理员默认跳转到首页</p>
+        </div>
+        
+        <div class="step">
+            <strong>导航增强</strong>
+            <p>文件：<code>frontend/src/views/Home.vue</code></p>
+            <p>为管理员在首页添加了明显的管理后台入口按钮</p>
+        </div>
+        
+        <div class="step">
+            <strong>管理后台增强</strong>
+            <p>文件：<code>frontend/src/views/Admin.vue</code> 和 <code>AdminScript.js</code></p>
+            <p>添加了返回用户界面的选项</p>
+        </div>
+        
+        <div class="step">
+            <strong>API修复</strong>
+            <p>文件：<code>frontend/src/api/order.js</code></p>
+            <p>添加了 <code>updateBookingStatus</code> 方法的兼容性支持</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🚀 预期效果</h2>
+        <p class="success">✓ 管理员登录后可以自由访问普通用户页面和管理后台</p>
+        <p class="success">✓ 提供了便捷的双向切换功能</p>
+        <p class="success">✓ 保持了良好的用户体验</p>
+        <p class="success">✓ 修复了预约管理功能中的订单确认问题</p>
+        <p class="info">现在管理员拥有完整的系统访问权限，可以根据需要在不同界面间自由切换！</p>
+    </div>
+</body>
+</html>

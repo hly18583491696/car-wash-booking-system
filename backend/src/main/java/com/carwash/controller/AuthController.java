@@ -7,7 +7,8 @@ import com.carwash.dto.RegisterRequest;
 import com.carwash.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,11 +21,12 @@ import jakarta.validation.Valid;
  * @author CarWash Team
  * @version 1.0.0
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "认证管理", description = "用户注册、登录等认证相关接口")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private UserService userService;

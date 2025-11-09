@@ -102,6 +102,7 @@
 <script>
 import { ref, onMounted, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
+import statisticsApi from '@/api/statistics.js'
 
 export default {
   name: 'Dashboard',
@@ -121,33 +122,33 @@ export default {
         id: 1,
         icon: 'Calendar',
         label: '今日预约',
-        value: '156',
+        value: '0',
         color: 'var(--primary-gradient)',
-        trend: 12.5
+        trend: 0
       },
       {
         id: 2,
         icon: 'Money',
         label: '今日收入',
-        value: '¥8,420',
+        value: '¥0',
         color: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-        trend: 8.3
+        trend: 0
       },
       {
         id: 3,
         icon: 'User',
         label: '活跃用户',
-        value: '2,341',
+        value: '0',
         color: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-        trend: -2.1
+        trend: 0
       },
       {
         id: 4,
         icon: 'Star',
         label: '平均评分',
-        value: '4.8',
+        value: '0.0',
         color: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
-        trend: 5.2
+        trend: 0
       }
     ])
     
@@ -158,180 +159,358 @@ export default {
     let satisfactionChartInstance = null
     
     // 初始化预约趋势图
-    const initTrendChart = () => {
+    const initTrendChart = async () => {
       if (!trendChart.value) return
       
-      trendChartInstance = echarts.init(trendChart.value)
-      
-      const option = {
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'cross'
-          }
-        },
-        legend: {
-          data: ['预约数量', '完成数量']
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        xAxis: {
-          type: 'category',
-          data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-        },
-        yAxis: {
-          type: 'value'
-        },
-        series: [
-          {
-            name: '预约数量',
-            type: 'line',
-            smooth: true,
-            data: [45, 52, 38, 65, 72, 89, 94],
-            itemStyle: {
-              color: 'var(--primary-color)'
-            },
-            areaStyle: {
-              color: {
-                type: 'linear',
-                x: 0,
-                y: 0,
-                x2: 0,
-                y2: 1,
-                colorStops: [{
-                  offset: 0, color: 'var(--primary-color)'
-                }, {
-                  offset: 1, color: 'var(--primary-light)'
-                }]
-              }
+      try {
+        const response = await statisticsApi.getBookingTrend({
+          period: trendPeriod.value
+        })
+        
+        trendChartInstance = echarts.init(trendChart.value)
+        
+        const option = {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'cross'
             }
           },
-          {
-            name: '完成数量',
-            type: 'line',
-            smooth: true,
-            data: [42, 48, 35, 61, 68, 85, 90],
-            itemStyle: {
-              color: 'var(--success-color)'
+          legend: {
+            data: ['预约数量', '完成数量']
+          },
+          grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+          },
+          xAxis: {
+            type: 'category',
+            data: response.data?.labels || ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+          },
+          yAxis: {
+            type: 'value'
+          },
+          series: [
+            {
+              name: '预约数量',
+              type: 'line',
+              smooth: true,
+              data: response.data?.bookingCounts || [45, 52, 38, 65, 72, 89, 94],
+              itemStyle: {
+                color: 'var(--primary-color)'
+              },
+              areaStyle: {
+                color: {
+                  type: 'linear',
+                  x: 0,
+                  y: 0,
+                  x2: 0,
+                  y2: 1,
+                  colorStops: [{
+                    offset: 0, color: 'var(--primary-color)'
+                  }, {
+                    offset: 1, color: 'var(--primary-light)'
+                  }]
+                }
+              }
+            },
+            {
+              name: '完成数量',
+              type: 'line',
+              smooth: true,
+              data: response.data?.completedCounts || [42, 48, 35, 61, 68, 85, 90],
+              itemStyle: {
+                color: 'var(--success-color)'
+              }
             }
-          }
-        ]
+          ]
+        }
+        
+        trendChartInstance.setOption(option)
+      } catch (error) {
+        console.error('加载趋势数据失败:', error)
+        // 使用默认数据作为后备
+        trendChartInstance = echarts.init(trendChart.value)
+        const option = {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'cross'
+            }
+          },
+          legend: {
+            data: ['预约数量', '完成数量']
+          },
+          grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+          },
+          xAxis: {
+            type: 'category',
+            data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+          },
+          yAxis: {
+            type: 'value'
+          },
+          series: [
+            {
+              name: '预约数量',
+              type: 'line',
+              smooth: true,
+              data: [45, 52, 38, 65, 72, 89, 94],
+              itemStyle: {
+                color: 'var(--primary-color)'
+              },
+              areaStyle: {
+                color: {
+                  type: 'linear',
+                  x: 0,
+                  y: 0,
+                  x2: 0,
+                  y2: 1,
+                  colorStops: [{
+                    offset: 0, color: 'var(--primary-color)'
+                  }, {
+                    offset: 1, color: 'var(--primary-light)'
+                  }]
+                }
+              }
+            },
+            {
+              name: '完成数量',
+              type: 'line',
+              smooth: true,
+              data: [42, 48, 35, 61, 68, 85, 90],
+              itemStyle: {
+                color: 'var(--success-color)'
+              }
+            }
+          ]
+        }
+        trendChartInstance.setOption(option)
       }
-      
-      trendChartInstance.setOption(option)
     }
     
     // 初始化服务类型分布图
-    const initServiceChart = () => {
+    const initServiceChart = async () => {
       if (!serviceChart.value) return
       
-      serviceChartInstance = echarts.init(serviceChart.value)
-      
-      const option = {
-        tooltip: {
-          trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)'
-        },
-        legend: {
-          orient: 'vertical',
-          left: 'left'
-        },
-        series: [
-          {
-            name: '服务类型',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            avoidLabelOverlap: false,
-            label: {
-              show: false,
-              position: 'center'
-            },
-            emphasis: {
+      try {
+        const response = await statisticsApi.getServiceDistribution()
+        
+        serviceChartInstance = echarts.init(serviceChart.value)
+        
+        const option = {
+          tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} ({d}%)'
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'left'
+          },
+          series: [
+            {
+              name: '服务类型',
+              type: 'pie',
+              radius: ['40%', '70%'],
+              avoidLabelOverlap: false,
               label: {
-                show: true,
-                fontSize: '18',
-                fontWeight: 'bold'
-              }
-            },
-            labelLine: {
-              show: false
-            },
-            data: [
-              { value: 335, name: '基础洗车' },
-              { value: 310, name: '精洗套餐' },
-              { value: 234, name: '内饰清洁' },
-              { value: 135, name: '打蜡服务' },
-              { value: 154, name: '镀膜服务' }
-            ]
-          }
-        ]
+                show: false,
+                position: 'center'
+              },
+              emphasis: {
+                label: {
+                  show: true,
+                  fontSize: '18',
+                  fontWeight: 'bold'
+                }
+              },
+              labelLine: {
+                show: false
+              },
+              data: response.data || [
+                { value: 335, name: '基础洗车' },
+                { value: 310, name: '精洗套餐' },
+                { value: 234, name: '内饰清洁' },
+                { value: 135, name: '打蜡服务' },
+                { value: 154, name: '镀膜服务' }
+              ]
+            }
+          ]
+        }
+        
+        serviceChartInstance.setOption(option)
+      } catch (error) {
+        console.error('加载服务分布数据失败:', error)
+        // 使用默认数据作为后备
+        serviceChartInstance = echarts.init(serviceChart.value)
+        const option = {
+          tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} ({d}%)'
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'left'
+          },
+          series: [
+            {
+              name: '服务类型',
+              type: 'pie',
+              radius: ['40%', '70%'],
+              avoidLabelOverlap: false,
+              label: {
+                show: false,
+                position: 'center'
+              },
+              emphasis: {
+                label: {
+                  show: true,
+                  fontSize: '18',
+                  fontWeight: 'bold'
+                }
+              },
+              labelLine: {
+                show: false
+              },
+              data: [
+                { value: 335, name: '基础洗车' },
+                { value: 310, name: '精洗套餐' },
+                { value: 234, name: '内饰清洁' },
+                { value: 135, name: '打蜡服务' },
+                { value: 154, name: '镀膜服务' }
+              ]
+            }
+          ]
+        }
+        serviceChartInstance.setOption(option)
       }
-      
-      serviceChartInstance.setOption(option)
     }
     
     // 初始化收入统计图
-    const initRevenueChart = () => {
+    const initRevenueChart = async () => {
       if (!revenueChart.value) return
       
-      revenueChartInstance = echarts.init(revenueChart.value)
-      
-      const option = {
-        tooltip: {
-          trigger: 'axis'
-        },
-        legend: {
-          data: ['收入', '成本', '利润']
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        xAxis: {
-          type: 'category',
-          data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
-        },
-        yAxis: {
-          type: 'value',
-          axisLabel: {
-            formatter: '¥{value}'
-          }
-        },
-        series: [
-          {
-            name: '收入',
-            type: 'bar',
-            data: [45000, 52000, 38000, 65000, 72000, 89000, 94000, 87000, 76000, 82000, 91000, 98000],
-            itemStyle: {
-              color: 'var(--primary-color)'
+      try {
+        const response = await statisticsApi.getRevenueStatistics({
+          type: revenueType.value
+        })
+        
+        revenueChartInstance = echarts.init(revenueChart.value)
+        
+        const option = {
+          tooltip: {
+            trigger: 'axis'
+          },
+          legend: {
+            data: ['收入', '成本', '利润']
+          },
+          grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+          },
+          xAxis: {
+            type: 'category',
+            data: response.data?.labels || ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: {
+              formatter: '¥{value}'
             }
           },
-          {
-            name: '成本',
-            type: 'bar',
-            data: [25000, 28000, 22000, 35000, 38000, 45000, 48000, 44000, 38000, 42000, 46000, 49000],
-            itemStyle: {
-              color: 'var(--warning-color)'
+          series: [
+            {
+              name: '收入',
+              type: 'bar',
+              data: response.data?.revenue || [45000, 52000, 38000, 65000, 72000, 89000, 94000, 87000, 76000, 82000, 91000, 98000],
+              itemStyle: {
+                color: 'var(--primary-color)'
+              }
+            },
+            {
+              name: '成本',
+              type: 'bar',
+              data: response.data?.cost || [25000, 28000, 22000, 35000, 38000, 45000, 48000, 44000, 38000, 42000, 46000, 49000],
+              itemStyle: {
+                color: 'var(--warning-color)'
+              }
+            },
+            {
+              name: '利润',
+              type: 'line',
+              data: response.data?.profit || [20000, 24000, 16000, 30000, 34000, 44000, 46000, 43000, 38000, 40000, 45000, 49000],
+              itemStyle: {
+                color: 'var(--success-color)'
+              }
+            }
+          ]
+        }
+        
+        revenueChartInstance.setOption(option)
+      } catch (error) {
+        console.error('加载收入统计数据失败:', error)
+        // 使用默认数据作为后备
+        revenueChartInstance = echarts.init(revenueChart.value)
+        const option = {
+          tooltip: {
+            trigger: 'axis'
+          },
+          legend: {
+            data: ['收入', '成本', '利润']
+          },
+          grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+          },
+          xAxis: {
+            type: 'category',
+            data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: {
+              formatter: '¥{value}'
             }
           },
-          {
-            name: '利润',
-            type: 'line',
-            data: [20000, 24000, 16000, 30000, 34000, 44000, 46000, 43000, 38000, 40000, 45000, 49000],
-            itemStyle: {
-              color: 'var(--success-color)'
+          series: [
+            {
+              name: '收入',
+              type: 'bar',
+              data: [45000, 52000, 38000, 65000, 72000, 89000, 94000, 87000, 76000, 82000, 91000, 98000],
+              itemStyle: {
+                color: 'var(--primary-color)'
+              }
+            },
+            {
+              name: '成本',
+              type: 'bar',
+              data: [25000, 28000, 22000, 35000, 38000, 45000, 48000, 44000, 38000, 42000, 46000, 49000],
+              itemStyle: {
+                color: 'var(--warning-color)'
+              }
+            },
+            {
+              name: '利润',
+              type: 'line',
+              data: [20000, 24000, 16000, 30000, 34000, 44000, 46000, 43000, 38000, 40000, 45000, 49000],
+              itemStyle: {
+                color: 'var(--success-color)'
+              }
             }
-          }
-        ]
+          ]
+        }
+        revenueChartInstance.setOption(option)
       }
-      
-      revenueChartInstance.setOption(option)
     }
     
     // 初始化热力图
@@ -472,7 +651,69 @@ export default {
       }, 100)
     }
     
+    // 加载统计数据
+    const loadStatistics = async () => {
+      try {
+        const response = await statisticsApi.getOverview()
+        if (response && response.data) {
+          const data = response.data
+          
+          // 更新统计卡片数据
+          statsData.value[0].value = data.todayBookings?.toString() || '0'
+          statsData.value[1].value = `¥${data.todayRevenue || '0'}`
+          statsData.value[2].value = data.activeUsers?.toString() || '0'
+          statsData.value[3].value = data.averageRating?.toString() || '0.0'
+          
+          // 更新趋势数据
+          statsData.value[0].trend = data.bookingTrend || 0
+          statsData.value[1].trend = data.revenueTrend || 0
+          statsData.value[2].trend = data.userTrend || 0
+          statsData.value[3].trend = data.ratingTrend || 0
+        }
+      } catch (error) {
+        console.error('加载统计数据失败:', error)
+        // 使用默认数据作为后备
+        statsData.value = [
+          {
+            id: 1,
+            icon: 'Calendar',
+            label: '今日预约',
+            value: '0',
+            color: 'var(--primary-gradient)',
+            trend: 0
+          },
+          {
+            id: 2,
+            icon: 'Money',
+            label: '今日收入',
+            value: '¥0',
+            color: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            trend: 0
+          },
+          {
+            id: 3,
+            icon: 'User',
+            label: '活跃用户',
+            value: '0',
+            color: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+            trend: 0
+          },
+          {
+            id: 4,
+            icon: 'Star',
+            label: '平均评分',
+            value: '0.0',
+            color: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+            trend: 0
+          }
+        ]
+      }
+    }
+
     onMounted(() => {
+      // 加载统计数据
+      loadStatistics()
+      
       nextTick(() => {
         initTrendChart()
         initServiceChart()
@@ -493,8 +734,8 @@ export default {
     
     // 监听筛选条件变化
     watch([trendPeriod, revenueType], () => {
-      // 这里可以根据筛选条件重新加载数据
-      console.log('筛选条件变化:', trendPeriod.value, revenueType.value)
+      // 根据筛选条件重新加载数据
+      loadStatistics()
     })
     
     return {

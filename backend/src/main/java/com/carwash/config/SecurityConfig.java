@@ -79,13 +79,19 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/services/list").permitAll()
                 .requestMatchers("/api/time-slots/available").permitAll()
+                .requestMatchers("/api/bookings").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
+                .requestMatchers("/api/debug/**").permitAll()
+                
+                // 支付回调接口（第三方支付平台回调，无需认证）
+                .requestMatchers("/api/payment/callback/**").permitAll()
                 
                 // Swagger文档接口
                 .requestMatchers("/doc.html", "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()
                 
-                // 管理员接口
+                // 管理员接口和页面
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/backend-admin/**").hasRole("ADMIN")
                 
                 // 其他接口需要认证
                 .anyRequest().authenticated()

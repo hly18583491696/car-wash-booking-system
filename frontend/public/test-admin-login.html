@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h3 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            color: #28a745;
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .info {
+            color: #17a2b8;
+            background-color: #d1ecf1;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .result {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 管理员登录测试页面</h1>
+    
+    <div class="test-section">
+        <h3>📋 测试信息</h3>
+        <div class="info">
+            <strong>默认管理员账号:</strong><br>
+            用户名: admin<br>
+            密码: admin123<br>
+            角色: admin
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔗 后端连接测试</h3>
+        <button onclick="testBackendConnection()">测试后端连接</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔑 管理员登录测试</h3>
+        <div class="form-group">
+            <label for="username">用户名:</label>
+            <input type="text" id="username" value="admin">
+        </div>
+        <div class="form-group">
+            <label for="password">密码:</label>
+            <input type="password" id="password" value="admin123">
+        </div>
+        <button onclick="testAdminLogin()">测试管理员登录</button>
+        <button onclick="clearAuthData()">清除认证数据</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 当前认证状态</h3>
+        <button onclick="checkAuthStatus()">检查认证状态</button>
+        <div id="auth-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>💳 支付记录页面访问测试</h3>
+        <button onclick="testPaymentRecordsAccess()">测试支付记录页面访问</button>
+        <button onclick="goToPaymentRecords()">直接跳转到支付记录页面</button>
+        <div id="payment-access-result"></div>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        // 配置axios
+        axios.defaults.baseURL = 'http://localhost:8080';
+        axios.defaults.timeout = 10000;
+
+        // 测试后端连接
+        async function testBackendConnection() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = '<div class="info">正在测试后端连接...</div>';
+            
+            try {
+                const response = await axios.get('/api/test/hello');
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ 后端连接成功<br>
+                        响应: ${JSON.stringify(response.data, null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 后端连接失败<br>
+                        错误: ${error.message}<br>
+                        状态码: ${error.response?.status || 'N/A'}
+                    </div>
+                `;
+            }
+        }
+
+        // 测试管理员登录
+        async function testAdminLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('login-result');
+            
+            resultDiv.innerHTML = '<div class="info">正在测试登录...</div>';
+            
+            try {
+                const response = await axios.post('/auth/login', {
+                    username: username,
+                    password: password
+                });
+                
+                if (response.data.success) {
+                    // 保存认证信息到localStorage
+                    const userData = response.data.data;
+                    localStorage.setItem('token', userData.token);
+                    localStorage.setItem('userInfo', JSON.stringify(userData.user));
+                    localStorage.setItem('isLoggedIn', 'true');
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ 登录成功！<br>
+                            用户: ${userData.user.username}<br>
+                            角色: ${userData.user.role}<br>
+                            Token: ${userData.token.substring(0, 20)}...
+                        </div>
+                        <div class="result">
+                            <strong>完整响应:</strong>
+                            <pre>${JSON.stringify(response.data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 登录失败<br>
+                            消息: ${response.data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 登录请求失败<br>
+                        错误: ${error.message}<br>
+                        状态码: ${error.response?.status || 'N/A'}<br>
+                        响应: ${error.response?.data ? JSON.stringify(error.response.data, null, 2) : 'N/A'}
+                    </div>
+                `;
+            }
+        }
+
+        // 检查认证状态
+        function checkAuthStatus() {
+            const resultDiv = document.getElementById('auth-status');
+            
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            
+            if (token && userInfo) {
+                const user = JSON.parse(userInfo);
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ 用户已登录<br>
+                        用户名: ${user.username}<br>
+                        角色: ${user.role}<br>
+                        状态: ${isLoggedIn}<br>
+                        Token: ${token.substring(0, 20)}...
+                    </div>
+                    <div class="result">
+                        <strong>用户信息:</strong>
+                        <pre>${JSON.stringify(user, null, 2)}</pre>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 用户未登录<br>
+                        Token: ${token || '无'}<br>
+                        UserInfo: ${userInfo || '无'}<br>
+                        IsLoggedIn: ${isLoggedIn || '无'}
+                    </div>
+                `;
+            }
+        }
+
+        // 清除认证数据
+        function clearAuthData() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('isLoggedIn');
+            
+            document.getElementById('auth-status').innerHTML = `
+                <div class="info">🧹 认证数据已清除</div>
+            `;
+        }
+
+        // 测试支付记录页面访问
+        function testPaymentRecordsAccess() {
+            const resultDiv = document.getElementById('payment-access-result');
+            
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            
+            if (!token || !userInfo) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ 无法访问支付记录页面<br>
+                        原因: 用户未登录<br>
+                        建议: 请先登录
+                    </div>
+                `;
+                return;
+            }
+            
+            const user = JSON.parse(userInfo);
+            resultDiv.innerHTML = `
+                <div class="success">
+                    ✅ 认证检查通过<br>
+                    用户: ${user.username}<br>
+                    角色: ${user.role}<br>
+                    可以访问支付记录页面
+                </div>
+            `;
+        }
+
+        // 直接跳转到支付记录页面
+        function goToPaymentRecords() {
+            window.open('http://localhost:3000/payment-records', '_blank');
+        }
+
+        // 页面加载时自动检查状态
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

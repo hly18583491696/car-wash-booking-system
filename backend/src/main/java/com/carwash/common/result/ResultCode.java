@@ -53,13 +53,24 @@ public enum ResultCode {
     ORDER_NOT_FOUND(4001, "订单不存在"),
     ORDER_STATUS_ERROR(4002, "订单状态错误"),
     ORDER_CANNOT_CANCEL(4003, "订单无法取消"),
+    INVALID_STATUS_TRANSITION(4004, "无效的状态转换"),
+    ORDER_ALREADY_PAID(4005, "订单已支付"),
+    
+    // 支付相关
+    PAYMENT_NOT_FOUND(5001, "支付记录不存在"),
+    PAYMENT_STATUS_ERROR(5002, "支付状态错误"),
+    PAYMENT_AMOUNT_ERROR(5003, "支付金额错误"),
+    PAYMENT_FAILED(5004, "支付失败"),
+    REFUND_AMOUNT_ERROR(5005, "退款金额错误"),
+    REFUND_FAILED(5006, "退款失败"),
+    PERMISSION_DENIED(5007, "权限不足"),
     
     // 系统相关
-    SYSTEM_ERROR(5000, "系统内部错误"),
-    DATABASE_ERROR(5001, "数据库操作失败"),
-    NETWORK_ERROR(5002, "网络连接异常"),
-    FILE_UPLOAD_ERROR(5003, "文件上传失败"),
-    FILE_DOWNLOAD_ERROR(5004, "文件下载失败");
+    SYSTEM_ERROR(6000, "系统内部错误"),
+    DATABASE_ERROR(6001, "数据库操作失败"),
+    NETWORK_ERROR(6002, "网络连接异常"),
+    FILE_UPLOAD_ERROR(6003, "文件上传失败"),
+    FILE_DOWNLOAD_ERROR(6004, "文件下载失败");
 
     private final Integer code;
     private final String message;

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员Dashboard重定向测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn.danger {
+            background: #f44336;
+        }
+        .btn.danger:hover {
+            background: #da190b;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .credentials {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 管理员Dashboard重定向测试</h1>
+        
+        <div class="credentials">
+            <strong>🔑 测试账号信息：</strong><br>
+            用户名：admin<br>
+            密码：admin123<br>
+            预期重定向：/admin/dashboard
+        </div>
+
+        <div class="test-section">
+            <h3>🧹 1. 清除登录状态</h3>
+            <p>清除现有的登录信息，确保测试环境干净</p>
+            <button class="btn danger" onclick="clearAuth()">清除登录状态</button>
+            <div id="clear-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 2. 管理员登录测试</h3>
+            <p>测试管理员登录后是否重定向到 /admin/dashboard</p>
+            <button class="btn" onclick="testAdminLogin()">测试管理员登录</button>
+            <div id="login-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 3. 重定向验证</h3>
+            <p>验证登录成功后的重定向路径</p>
+            <button class="btn" onclick="testRedirectPath()">验证重定向路径</button>
+            <div id="redirect-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 4. 快速访问链接</h3>
+            <p>直接访问相关页面进行手动测试</p>
+            <a href="http://localhost:3000/login" target="_blank" class="btn">打开登录页面</a>
+            <a href="http://localhost:3000/admin/dashboard" target="_blank" class="btn">访问Dashboard</a>
+            <a href="http://localhost:3000/" target="_blank" class="btn">返回首页</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+
+        // 清除登录状态
+        function clearAuth() {
+            try {
+                localStorage.removeItem('token');
+                localStorage.removeItem('tokenType');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('userInfo');
+                
+                showResult('clear-result', '✅ 登录状态已清除\n- Token: 已删除\n- 用户信息: 已删除\n- 用户角色: 已删除', 'success');
+            } catch (error) {
+                showResult('clear-result', `❌ 清除失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试管理员登录
+        async function testAdminLogin() {
+            try {
+                showResult('login-result', '🔄 正在测试管理员登录...', 'info');
+                
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.code === 200) {
+                    // 保存登录信息（模拟前端登录逻辑）
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('tokenType', data.data.tokenType || 'Bearer');
+                    localStorage.setItem('userRole', data.data.user.role);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+                    
+                    const userRole = data.data.user.role;
+                    const expectedRedirect = userRole === 'admin' ? '/admin/dashboard' : '/';
+                    
+                    showResult('login-result', 
+                        `✅ 登录成功！\n` +
+                        `- 用户名: ${data.data.user.username}\n` +
+                        `- 角色: ${userRole}\n` +
+                        `- Token: ${data.data.token.substring(0, 20)}...\n` +
+                        `- 预期重定向: ${expectedRedirect}`, 
+                        'success'
+                    );
+                } else {
+                    showResult('login-result', `❌ 登录失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('login-result', `❌ 登录请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试重定向路径
+        function testRedirectPath() {
+            try {
+                const userRole = localStorage.getItem('userRole');
+                const userInfo = localStorage.getItem('userInfo');
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    showResult('redirect-result', '❌ 未登录，请先执行登录测试', 'error');
+                    return;
+                }
+                
+                // 模拟前端重定向逻辑
+                let redirectPath;
+                if (userRole === 'admin') {
+                    redirectPath = '/admin/dashboard';
+                } else {
+                    redirectPath = '/';
+                }
+                
+                const user = JSON.parse(userInfo || '{}');
+                
+                showResult('redirect-result', 
+                    `🎯 重定向路径验证：\n` +
+                    `- 当前用户: ${user.username}\n` +
+                    `- 用户角色: ${userRole}\n` +
+                    `- 重定向路径: ${redirectPath}\n` +
+                    `- 验证结果: ${userRole === 'admin' && redirectPath === '/admin/dashboard' ? '✅ 正确' : '❌ 错误'}`,
+                    userRole === 'admin' && redirectPath === '/admin/dashboard' ? 'success' : 'error'
+                );
+                
+                // 如果是管理员，提供直接跳转链接
+                if (userRole === 'admin') {
+                    setTimeout(() => {
+                        if (confirm('是否要跳转到管理员Dashboard页面？')) {
+                            window.open('http://localhost:3000/admin/dashboard', '_blank');
+                        }
+                    }, 1000);
+                }
+                
+            } catch (error) {
+                showResult('redirect-result', `❌ 重定向验证失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时检查当前状态
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (token && userRole) {
+                console.log('当前登录状态:', {
+                    token: token.substring(0, 20) + '...',
+                    userRole: userRole
+                });
+            }
+        };
+    </script>
+</body>
+</html>

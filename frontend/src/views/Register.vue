@@ -22,6 +22,15 @@
             />
           </el-form-item>
           
+          <el-form-item prop="realName">
+            <el-input
+              v-model="registerForm.realName"
+              placeholder="请输入真实姓名"
+              prefix-icon="UserFilled"
+              size="large"
+            />
+          </el-form-item>
+          
           <el-form-item prop="phone">
             <el-input
               v-model="registerForm.phone"
@@ -29,6 +38,28 @@
               prefix-icon="Phone"
               size="large"
             />
+          </el-form-item>
+          
+          <el-form-item prop="smsCode">
+            <div class="sms-code-container">
+              <el-input
+                v-model="registerForm.smsCode"
+                placeholder="请输入验证码"
+                prefix-icon="Message"
+                size="large"
+                class="sms-input"
+              />
+              <el-button 
+                type="primary" 
+                size="large"
+                :disabled="smsCodeDisabled"
+                :loading="smsCodeLoading"
+                @click="sendSmsCode"
+                class="sms-btn"
+              >
+                {{ smsCodeText }}
+              </el-button>
+            </div>
           </el-form-item>
           
           <el-form-item prop="email">
@@ -101,13 +132,19 @@ export default {
     const router = useRouter()
     const registerFormRef = ref()
     const loading = ref(false)
+    const smsCodeLoading = ref(false)
+    const smsCodeDisabled = ref(false)
+    const smsCodeText = ref('获取验证码')
+    const countdown = ref(0)
     
     const registerForm = reactive({
       username: '',
+      realName: '',
       phone: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      smsCode: ''
     })
     
     const validateConfirmPassword = (rule, value, callback) => {
@@ -117,11 +154,74 @@ export default {
         callback()
       }
     }
+
+    // 发送短信验证码
+    const sendSmsCode = async () => {
+      // 验证手机号
+      if (!registerForm.phone) {
+        ElMessage.error('请先输入手机号')
+        return
+      }
+      
+      if (!/^1[3-9]\d{9}$/.test(registerForm.phone)) {
+        ElMessage.error('请输入正确的手机号')
+        return
+      }
+
+      try {
+        smsCodeLoading.value = true
+        
+        const response = await fetch('http://localhost:8080/api/sms/send-register-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: `phone=${encodeURIComponent(registerForm.phone)}`
+        })
+        
+        const result = await response.json()
+        
+        if (result.code === 200) {
+          ElMessage.success('验证码发送成功')
+          startCountdown()
+        } else {
+          ElMessage.error(result.message || '验证码发送失败')
+        }
+        
+      } catch (error) {
+        console.error('发送验证码失败:', error)
+        ElMessage.error('发送验证码失败，请检查网络连接')
+      } finally {
+        smsCodeLoading.value = false
+      }
+    }
+
+    // 开始倒计时
+    const startCountdown = () => {
+      countdown.value = 60
+      smsCodeDisabled.value = true
+      smsCodeText.value = `${countdown.value}s后重新获取`
+      
+      const timer = setInterval(() => {
+        countdown.value--
+        if (countdown.value > 0) {
+          smsCodeText.value = `${countdown.value}s后重新获取`
+        } else {
+          clearInterval(timer)
+          smsCodeDisabled.value = false
+          smsCodeText.value = '获取验证码'
+        }
+      }, 1000)
+    }
     
     const registerRules = {
       username: [
         { required: true, message: '请输入用户名', trigger: 'blur' },
         { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' }
+      ],
+      realName: [
+        { required: true, message: '请输入真实姓名', trigger: 'blur' },
+        { max: 50, message: '真实姓名长度不能超过50个字符', trigger: 'blur' }
       ],
       phone: [
         { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -138,6 +238,10 @@ export default {
       confirmPassword: [
         { required: true, message: '请确认密码', trigger: 'blur' },
         { validator: validateConfirmPassword, trigger: 'blur' }
+      ],
+      smsCode: [
+        { required: true, message: '请输入验证码', trigger: 'blur' },
+        { pattern: /^\d{6}$/, message: '验证码必须是6位数字', trigger: 'blur' }
       ]
     }
     
@@ -148,16 +252,36 @@ export default {
         await registerFormRef.value.validate()
         loading.value = true
         
-        // TODO: 调用注册API
-        // 模拟注册请求
-        setTimeout(() => {
+        // 调用注册API
+        const response = await fetch('http://localhost:8080/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: registerForm.username,
+            realName: registerForm.realName,
+            phone: registerForm.phone,
+            email: registerForm.email,
+            password: registerForm.password,
+            confirmPassword: registerForm.confirmPassword,
+            smsCode: registerForm.smsCode
+          })
+        })
+        
+        const result = await response.json()
+        
+        if (result.code === 200) {
           ElMessage.success('注册成功！请登录')
           router.push('/login')
-          loading.value = false
-        }, 1500)
+        } else {
+          ElMessage.error(result.message || '注册失败，请重试')
+        }
         
       } catch (error) {
-        console.error('表单验证失败:', error)
+        console.error('注册失败:', error)
+        ElMessage.error('注册失败，请检查网络连接')
+      } finally {
         loading.value = false
       }
     }
@@ -167,7 +291,11 @@ export default {
       registerForm,
       registerRules,
       loading,
-      handleRegister
+      smsCodeLoading,
+      smsCodeDisabled,
+      smsCodeText,
+      handleRegister,
+      sendSmsCode
     }
   }
 }
@@ -214,6 +342,20 @@ export default {
 
 .register-form {
   margin-bottom: 20px;
+}
+
+.sms-code-container {
+  display: flex;
+  gap: 10px;
+}
+
+.sms-input {
+  flex: 1;
+}
+
+.sms-btn {
+  width: 120px;
+  flex-shrink: 0;
 }
 
 .register-btn {

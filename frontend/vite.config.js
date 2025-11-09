@@ -32,5 +32,13 @@ export default defineConfig({
         assetFileNames: '[ext]/[name]-[hash].[ext]'
       }
     }
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: 'tests/setup.js',
+    coverage: {
+      reporter: ['text', 'html']
+    }
   }
 })

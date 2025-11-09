@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #409EFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #337ecc;
+        }
+        .success {
+            color: #67C23A;
+            font-weight: bold;
+        }
+        .error {
+            color: #F56C6C;
+            font-weight: bold;
+        }
+        .info {
+            color: #909399;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 登录功能测试</h1>
+        
+        <div class="test-section">
+            <h3>1. 后端连接测试</h3>
+            <button onclick="testBackendConnection()">测试后端连接</button>
+            <div id="backendResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. 登录API测试</h3>
+            <div>
+                <input type="text" id="username" placeholder="用户名" value="admin">
+                <input type="password" id="password" placeholder="密码" value="admin123">
+                <button onclick="testLogin()">测试登录</button>
+            </div>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 当前认证状态</h3>
+            <button onclick="checkAuthStatus()">检查认证状态</button>
+            <button onclick="clearAuth()">清除认证信息</button>
+            <div id="authResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 支付记录页面访问测试</h3>
+            <button onclick="testPaymentRecordsAccess()">测试支付记录访问</button>
+            <div id="paymentResult" class="result"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        // 配置axios
+        const api = axios.create({
+            baseURL: 'http://localhost:8080/api',
+            timeout: 10000
+        });
+
+        // 请求拦截器
+        api.interceptors.request.use(config => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            console.log('Request:', config.method?.toUpperCase(), config.url, config.data || config.params);
+            return config;
+        });
+
+        // 响应拦截器
+        api.interceptors.response.use(
+            response => {
+                console.log('Response:', response.config.url, response.data);
+                return response.data;
+            },
+            error => {
+                console.error('Error:', error);
+                return Promise.reject(error);
+            }
+        );
+
+        // 测试后端连接
+        async function testBackendConnection() {
+            const resultDiv = document.getElementById('backendResult');
+            resultDiv.innerHTML = '<span class="info">正在测试后端连接...</span>';
+            
+            try {
+                const response = await api.get('/test/health');
+                if (response.code === 200) {
+                    resultDiv.innerHTML = `<span class="success">✅ 后端连接正常</span><br>响应: ${JSON.stringify(response, null, 2)}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ 后端响应异常</span><br>响应: ${JSON.stringify(response, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 后端连接失败</span><br>错误: ${error.message}`;
+            }
+        }
+
+        // 测试登录
+        async function testLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            resultDiv.innerHTML = '<span class="info">正在测试登录...</span>';
+            
+            try {
+                const response = await api.post('/auth/login', {
+                    username,
+                    password
+                });
+                
+                if (response.code === 200) {
+                    // 保存登录信息
+                    localStorage.setItem('token', response.data.token);
+                    localStorage.setItem('tokenType', response.data.tokenType || 'Bearer');
+                    localStorage.setItem('user', JSON.stringify(response.data.user));
+                    
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ 登录成功</span><br>
+                        用户: ${response.data.user.realName || response.data.user.username}<br>
+                        角色: ${response.data.user.role}<br>
+                        Token: ${response.data.token.substring(0, 20)}...
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ 登录失败</span><br>消息: ${response.message}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 登录API调用失败</span><br>错误: ${error.message}`;
+            }
+        }
+
+        // 检查认证状态
+        function checkAuthStatus() {
+            const resultDiv = document.getElementById('authResult');
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                try {
+                    const userData = JSON.parse(user);
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ 用户已登录</span><br>
+                        用户名: ${userData.username}<br>
+                        真实姓名: ${userData.realName || '未设置'}<br>
+                        角色: ${userData.role}<br>
+                        Token: ${token.substring(0, 20)}...
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">❌ 用户数据解析失败</span><br>错误: ${error.message}`;
+                }
+            } else {
+                resultDiv.innerHTML = '<span class="error">❌ 用户未登录</span>';
+            }
+        }
+
+        // 清除认证信息
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('tokenType');
+            localStorage.removeItem('user');
+            document.getElementById('authResult').innerHTML = '<span class="info">认证信息已清除</span>';
+        }
+
+        // 测试支付记录页面访问
+        function testPaymentRecordsAccess() {
+            const resultDiv = document.getElementById('paymentResult');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                resultDiv.innerHTML = '<span class="error">❌ 未登录，无法访问支付记录</span>';
+                return;
+            }
+            
+            // 模拟路由守卫逻辑
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                resultDiv.innerHTML = `
+                    <span class="success">✅ 认证通过，可以访问支付记录页面</span><br>
+                    <a href="http://localhost:3000/#/payment-records" target="_blank">
+                        <button>打开支付记录页面</button>
+                    </a>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 用户信息解析失败</span><br>错误: ${error.message}`;
+            }
+        }
+
+        // 页面加载时检查状态
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

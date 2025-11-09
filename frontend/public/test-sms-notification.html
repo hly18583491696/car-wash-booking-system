@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试订单状态变更短信通知</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .test-button {
+            background-color: #28a745;
+        }
+        .test-button:hover {
+            background-color: #1e7e34;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 订单状态变更短信通知测试</h1>
+        
+        <!-- 用户登录 -->
+        <div class="section">
+            <h3>1. 用户登录</h3>
+            <div class="form-group">
+                <label for="username">用户名:</label>
+                <input type="text" id="username" value="admin" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label for="password">密码:</label>
+                <input type="password" id="password" value="123456" placeholder="请输入密码">
+            </div>
+            <button onclick="loginUser()">登录</button>
+            <div id="loginResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 创建测试订单 -->
+        <div class="section">
+            <h3>2. 创建测试订单</h3>
+            <div class="form-group">
+                <label for="phone">手机号:</label>
+                <input type="text" id="phone" value="13800138000" placeholder="请输入手机号">
+            </div>
+            <div class="form-group">
+                <label for="realName">客户姓名:</label>
+                <input type="text" id="realName" value="张三" placeholder="请输入客户姓名">
+            </div>
+            <div class="form-group">
+                <label for="serviceId">服务ID:</label>
+                <input type="number" id="serviceId" value="1" placeholder="请输入服务ID">
+            </div>
+            <div class="form-group">
+                <label for="timeSlotId">时间段ID:</label>
+                <input type="number" id="timeSlotId" value="1" placeholder="请输入时间段ID">
+            </div>
+            <button onclick="createTestOrder()">创建测试订单</button>
+            <div id="createResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 更新订单状态 -->
+        <div class="section">
+            <h3>3. 更新订单状态（触发短信通知）</h3>
+            <div class="form-group">
+                <label for="orderId">订单ID:</label>
+                <input type="number" id="orderId" placeholder="请输入订单ID">
+            </div>
+            <div class="form-group">
+                <label for="newStatus">新状态:</label>
+                <select id="newStatus">
+                    <option value="CONFIRMED">已确认</option>
+                    <option value="IN_PROGRESS">进行中</option>
+                    <option value="COMPLETED">已完成</option>
+                    <option value="CANCELLED">已取消</option>
+                </select>
+            </div>
+            <button onclick="updateOrderStatus()" class="test-button">更新订单状态</button>
+            <div id="updateResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 查看通知配置 -->
+        <div class="section">
+            <h3>4. 查看通知配置</h3>
+            <button onclick="checkNotificationConfig()">查看当前配置</button>
+            <div id="configResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 测试说明 -->
+        <div class="section">
+            <h3>📋 测试说明</h3>
+            <div class="info result">
+测试步骤：
+1. 首先使用admin/123456登录系统获取认证token
+2. 创建一个测试订单，确保用户有有效的手机号
+3. 更新订单状态，系统会自动发送短信通知
+4. 查看后端控制台日志，确认短信发送情况
+
+预期结果：
+- 用户登录成功，获取到JWT token
+- 订单创建成功
+- 订单状态更新成功
+- 后端日志显示短信发送成功
+- 如果配置关闭，会显示跳过发送的日志
+
+注意事项：
+- 当前使用模拟短信发送，成功率为99%
+- 可以通过application.yml配置开关控制
+- 只有用户有手机号时才会发送短信
+- 需要先登录获取有效的JWT token
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        
+        // 获取JWT Token（如果需要）
+        function getAuthToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        // 用户登录
+        async function loginUser() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showResult('loginResult', '请输入用户名和密码', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data?.token) {
+                        localStorage.setItem('token', data.data.token);
+                        showResult('loginResult', `登录成功！\n用户: ${data.data.user?.realName || username}\n手机: ${data.data.user?.phone || '未设置'}\nToken已保存`, 'success');
+                        
+                        // 如果用户有手机号，自动填充到测试表单
+                        if (data.data.user?.phone) {
+                            document.getElementById('phone').value = data.data.user.phone;
+                        }
+                        if (data.data.user?.realName) {
+                            document.getElementById('realName').value = data.data.user.realName;
+                        }
+                    } else {
+                        throw new Error(data.message || '登录失败');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || '登录请求失败');
+                }
+
+            } catch (error) {
+                showResult('loginResult', `登录失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 创建测试订单
+        async function createTestOrder() {
+            const token = getAuthToken();
+            if (!token) {
+                showResult('createResult', '请先登录获取认证token', 'error');
+                return;
+            }
+
+            const phone = document.getElementById('phone').value;
+            const realName = document.getElementById('realName').value;
+            const serviceId = document.getElementById('serviceId').value;
+            const timeSlotId = document.getElementById('timeSlotId').value;
+            
+            if (!phone || !realName || !serviceId || !timeSlotId) {
+                showResult('createResult', '请填写所有必填字段', 'error');
+                return;
+            }
+
+            try {
+                // 直接创建订单
+                const bookingResponse = await fetch(`${API_BASE}/bookings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        serviceId: parseInt(serviceId),
+                        timeSlotId: parseInt(timeSlotId),
+                        customerName: realName,
+                        customerPhone: phone,
+                        notes: '测试订单 - 短信通知功能测试'
+                    })
+                });
+
+                if (bookingResponse.ok) {
+                    const bookingData = await bookingResponse.json();
+                    const orderId = bookingData.data?.id;
+                    document.getElementById('orderId').value = orderId;
+                    showResult('createResult', `订单创建成功！\n订单ID: ${orderId}\n客户: ${realName}\n手机: ${phone}`, 'success');
+                } else {
+                    const errorData = await bookingResponse.json();
+                    throw new Error(errorData.message || '订单创建失败');
+                }
+
+            } catch (error) {
+                showResult('createResult', `创建测试订单失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新订单状态
+        async function updateOrderStatus() {
+            const orderId = document.getElementById('orderId').value;
+            const newStatus = document.getElementById('newStatus').value;
+            
+            if (!orderId || !newStatus) {
+                showResult('updateResult', '请填写订单ID和新状态', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/bookings/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('updateResult', `订单状态更新成功！\n订单ID: ${orderId}\n新状态: ${newStatus}\n\n请查看后端控制台日志确认短信发送情况`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || '状态更新失败');
+                }
+
+            } catch (error) {
+                showResult('updateResult', `更新订单状态失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 查看通知配置
+        async function checkNotificationConfig() {
+            try {
+                // 这里可以添加获取配置的API调用
+                // 目前显示配置文件中的默认配置
+                const configInfo = `当前通知配置（来自application.yml）：
+
+notification:
+  sms:
+    enabled: true
+    order-status-enabled: true
+    verification-enabled: true
+  email:
+    enabled: false
+    order-status-enabled: false
+  wechat:
+    enabled: false
+    order-status-enabled: false
+  in-app:
+    enabled: true
+    order-status-enabled: true
+
+说明：
+- SMS通知已启用，包括订单状态通知
+- 邮件通知已禁用
+- 微信通知已禁用
+- 站内消息已启用`;
+
+                showResult('configResult', configInfo, 'info');
+
+            } catch (error) {
+                showResult('configResult', `获取配置失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+
+        // 页面加载时的初始化
+        window.onload = function() {
+            console.log('订单状态变更短信通知测试页面已加载');
+        };
+    </script>
+</body>
+</html>

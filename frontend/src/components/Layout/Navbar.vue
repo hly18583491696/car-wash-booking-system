@@ -34,6 +34,10 @@
             <el-icon><List /></el-icon>
             <span>我的订单</span>
           </router-link>
+          <router-link to="/payment-records" class="nav-link">
+            <el-icon><CreditCard /></el-icon>
+            <span>支付记录</span>
+          </router-link>
 
         </nav>
       </div>
@@ -55,13 +59,13 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item v-if="isAdmin" command="admin">
-                  <el-icon><DataBoard /></el-icon>
-                  管理后台
-                </el-dropdown-item>
                 <el-dropdown-item command="profile">
                   <el-icon><User /></el-icon>
                   个人中心
+                </el-dropdown-item>
+                <el-dropdown-item command="payment-records">
+                  <el-icon><CreditCard /></el-icon>
+                  支付记录
                 </el-dropdown-item>
                 <el-dropdown-item command="settings">
                   <el-icon><Setting /></el-icon>
@@ -103,6 +107,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ThemeToggle from '../ThemeToggle.vue'
+import AuthManager from '../../utils/auth.js'
 
 export default {
   name: 'Navbar',
@@ -113,21 +118,11 @@ export default {
     const router = useRouter()
     const mobileMenuOpen = ref(false)
     
-    // 用户信息
-    const userInfo = ref({
-      name: '用户名',
-      avatar: ''
-    })
-    
-    // 登录状态
-    const isLoggedIn = computed(() => {
-      return localStorage.getItem('token') !== null
-    })
+    // 使用 AuthManager 进行一致的登录状态检测
+    const isLoggedIn = computed(() => AuthManager.isAuthenticated())
+    const userInfo = computed(() => AuthManager.getCurrentUser())
 
-    // 管理员状态
-    const isAdmin = computed(() => {
-      return localStorage.getItem('userRole') === 'admin'
-    })
+
     
     // 切换移动端菜单
     const toggleMobileMenu = () => {
@@ -137,11 +132,11 @@ export default {
     // 处理用户菜单命令
     const handleUserCommand = async (command) => {
       switch (command) {
-        case 'admin':
-          router.push('/admin')
-          break
         case 'profile':
           router.push('/profile')
+          break
+        case 'payment-records':
+          router.push('/payment-records')
           break
         case 'settings':
           router.push('/settings')
@@ -154,14 +149,15 @@ export default {
               type: 'warning'
             })
             
-            // 清除登录信息
-            localStorage.removeItem('token')
-            localStorage.removeItem('tokenType')
-            localStorage.removeItem('userRole')
-            localStorage.removeItem('userInfo')
-            
-            ElMessage.success('已退出登录')
-            router.push('/login')
+            // 使用 AuthManager 清除登录信息
+            try {
+              AuthManager.logout()
+              ElMessage.success('已退出登录')
+              router.push('guest')
+            } catch (error) {
+              console.error('退出登录失败:', error)
+              ElMessage.error('退出登录失败')
+            }
           } catch {
             // 用户取消
           }
@@ -169,19 +165,11 @@ export default {
       }
     }
     
-    // 初始化用户信息
+    // 初始化
     onMounted(() => {
-      const storedUserInfo = localStorage.getItem('userInfo')
-      if (storedUserInfo) {
-        try {
-          const parsed = JSON.parse(storedUserInfo)
-          userInfo.value = {
-            name: parsed.username || parsed.name || '用户',
-            avatar: parsed.avatar || ''
-          }
-        } catch (error) {
-          console.error('解析用户信息失败:', error)
-        }
+      console.log('Navbar已加载，用户登录状态:', isLoggedIn.value)
+      if (isLoggedIn.value) {
+        console.log('当前用户信息:', userInfo.value)
       }
     })
     
@@ -189,7 +177,6 @@ export default {
       mobileMenuOpen,
       userInfo,
       isLoggedIn,
-      isAdmin,
       toggleMobileMenu,
       handleUserCommand
     }

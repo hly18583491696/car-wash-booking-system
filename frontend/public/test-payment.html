@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付系统测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }
+
+        .section h3 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #2980b9, #1f5f8b);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .payment-method {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 洗车服务支付系统测试</h1>
+
+        <!-- 1. 登录认证 -->
+        <div class="section">
+            <h3>1. 用户认证</h3>
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="username" value="admin" placeholder="输入用户名">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="password" value="123456" placeholder="输入密码">
+            </div>
+            <button onclick="login()">登录</button>
+            <button onclick="checkAuthStatus()">检查认证状态</button>
+            <div id="auth-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 2. 创建支付订单 -->
+        <div class="section">
+            <h3>2. 创建支付订单</h3>
+            <div class="form-group">
+                <label>订单号:</label>
+                <input type="text" id="orderNo" value="" placeholder="自动生成">
+            </div>
+            <div class="form-group">
+                <label>支付金额:</label>
+                <input type="number" id="amount" value="50.00" step="0.01" placeholder="输入支付金额">
+            </div>
+            <div class="form-group">
+                <label>支付方式:</label>
+                <div class="payment-methods">
+                    <div class="payment-method" data-method="wechat" onclick="selectPaymentMethod('wechat')">
+                        <div>💚 微信支付</div>
+                    </div>
+                    <div class="payment-method" data-method="alipay" onclick="selectPaymentMethod('alipay')">
+                        <div>💙 支付宝</div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>支付描述:</label>
+                <input type="text" id="description" value="洗车服务费用" placeholder="输入支付描述">
+            </div>
+            <button onclick="createPayment()">创建支付订单</button>
+            <div id="payment-result" class="result" style="display:none;"></div>
+            <div id="qr-code" class="qr-placeholder" style="display:none;">
+                二维码显示区域
+            </div>
+        </div>
+
+        <!-- 3. 查询支付状态 -->
+        <div class="section">
+            <h3>3. 查询支付状态</h3>
+            <div class="form-group">
+                <label>支付单号:</label>
+                <input type="text" id="queryPaymentNo" placeholder="输入支付单号">
+            </div>
+            <button onclick="queryPaymentStatus()">查询支付状态</button>
+            <button onclick="simulatePaymentSuccess()">模拟支付成功</button>
+            <div id="status-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 4. 退款测试 -->
+        <div class="section">
+            <h3>4. 退款测试</h3>
+            <div class="form-group">
+                <label>支付单号:</label>
+                <input type="text" id="refundPaymentNo" placeholder="输入要退款的支付单号">
+            </div>
+            <div class="form-group">
+                <label>退款金额:</label>
+                <input type="number" id="refundAmount" value="50.00" step="0.01" placeholder="输入退款金额">
+            </div>
+            <div class="form-group">
+                <label>退款原因:</label>
+                <textarea id="refundReason" placeholder="输入退款原因">用户申请退款</textarea>
+            </div>
+            <button onclick="processRefund()">申请退款</button>
+            <div id="refund-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 5. 支付记录查询 -->
+        <div class="section">
+            <h3>5. 支付记录查询</h3>
+            <button onclick="getUserPaymentRecords()">获取用户支付记录</button>
+            <button onclick="getAllPaymentRecords()">获取所有支付记录(管理员)</button>
+            <div id="records-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let selectedPaymentMethod = '';
+        let currentPaymentNo = '';
+        
+        // 设置axios默认配置
+        axios.defaults.timeout = 10000;
+        
+        // 添加请求拦截器
+        axios.interceptors.request.use(config => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        function generateOrderNo() {
+            return 'ORDER' + Date.now() + Math.floor(Math.random() * 1000);
+        }
+
+        // 1. 登录功能
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                log('auth-result', '请输入用户名和密码', 'error');
+                return;
+            }
+
+            try {
+                const response = await axios.post(`${API_BASE}/auth/login`, {
+                    username: username,
+                    password: password
+                });
+
+                if (response.data.code === 200) {
+                    const token = response.data.data.token;
+                    localStorage.setItem('token', token);
+                    log('auth-result', `✅ 登录成功\nToken: ${token.substring(0, 50)}...`, 'success');
+                } else {
+                    log('auth-result', `❌ 登录失败: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                log('auth-result', `❌ 登录失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                log('auth-result', '❌ 未找到认证令牌，请先登录', 'error');
+                return;
+            }
+
+            try {
+                const response = await axios.get(`${API_BASE}/user/info`);
+                if (response.data.code === 200) {
+                    log('auth-result', `✅ 认证有效\n用户信息: ${JSON.stringify(response.data.data, null, 2)}`, 'success');
+                } else {
+                    log('auth-result', `❌ 认证失败: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                log('auth-result', `❌ 认证检查失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 2. 选择支付方式
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            // 更新UI
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-method="${method}"]`).classList.add('selected');
+        }
+
+        // 3. 创建支付订单
+        async function createPayment() {
+            if (!selectedPaymentMethod) {
+                log('payment-result', '❌ 请选择支付方式', 'error');
+                return;
+            }
+
+            const orderNo = document.getElementById('orderNo').value || generateOrderNo();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value;
+
+            if (!amount || amount <= 0) {
+                log('payment-result', '❌ 请输入有效的支付金额', 'error');
+                return;
+            }
+
+            try {
+                const response = await axios.post(`${API_BASE}/payment/create`, {
+                    orderNo: orderNo,
+                    amount: amount,
+                    paymentMethod: selectedPaymentMethod,
+                    description: description
+                });
+
+                if (response.data.code === 200) {
+                    const paymentData = response.data.data;
+                    currentPaymentNo = paymentData.paymentNo;
+                    
+                    // 更新查询字段
+                    document.getElementById('queryPaymentNo').value = currentPaymentNo;
+                    document.getElementById('refundPaymentNo').value = currentPaymentNo;
+                    document.getElementById('orderNo').value = orderNo;
+                    
+                    // 显示二维码区域
+                    const qrElement = document.getElementById('qr-code');
+                    qrElement.style.display = 'block';
+                    qrElement.innerHTML = `
+                        <div>支付二维码</div>
+                        <div style="font-size: 12px; margin-top: 10px;">
+                            支付方式: ${selectedPaymentMethod === 'wechat' ? '微信支付' : '支付宝'}<br>
+                            支付单号: ${currentPaymentNo}
+                        </div>
+                    `;
+                    
+                    log('payment-result', `✅ 支付订单创建成功\n${JSON.stringify(paymentData, null, 2)}`, 'success');
+                } else {
+                    log('payment-result', `❌ 创建支付订单失败: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                log('payment-result', `❌ 创建支付订单失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 4. 查询支付状态
+        async function queryPaymentStatus() {
+            const paymentNo = document.getElementById('queryPaymentNo').value;
+            if (!paymentNo) {
+                log('status-result', '❌ 请输入支付单号', 'error');
+                return;
+            }
+
+            try {
+                const response = await axios.get(`${API_BASE}/payment/status/${paymentNo}`);
+                if (response.data.code === 200) {
+                    log('status-result', `✅ 查询成功\n${JSON.stringify(response.data.data, null, 2)}`, 'success');
+                } else {
+                    log('status-result', `❌ 查询失败: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                log('status-result', `❌ 查询失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 5. 模拟支付成功
+        async function simulatePaymentSuccess() {
+            const paymentNo = document.getElementById('queryPaymentNo').value;
+            if (!paymentNo) {
+                log('status-result', '❌ 请先创建支付订单', 'error');
+                return;
+            }
+
+            try {
+                // 模拟支付回调
+                const callbackData = {
+                    out_trade_no: paymentNo,
+                    trade_status: 'TRADE_SUCCESS',
+                    total_amount: document.getElementById('amount').value,
+                    trade_no: 'MOCK_' + Date.now()
+                };
+
+                const response = await axios.post(`${API_BASE}/payment/callback/${selectedPaymentMethod}`, callbackData);
+                log('status-result', `✅ 模拟支付成功\n回调响应: ${response.data}`, 'success');
+                
+                // 再次查询状态
+                setTimeout(() => {
+                    queryPaymentStatus();
+                }, 1000);
+            } catch (error) {
+                log('status-result', `❌ 模拟支付失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 6. 申请退款
+        async function processRefund() {
+            const paymentNo = document.getElementById('refundPaymentNo').value;
+            const amount = parseFloat(document.getElementById('refundAmount').value);
+            const reason = document.getElementById('refundReason').value;
+
+            if (!paymentNo || !amount || !reason) {
+                log('refund-result', '❌ 请填写完整的退款信息', 'error');
+                return;
+            }
+
+            try {
+                const response = await axios.post(`${API_BASE}/payment/refund`, {
+                    paymentNo: paymentNo,
+                    amount: amount,
+                    reason: reason
+                });
+
+                if (response.data.code === 200) {
+                    log('refund-result', `✅ 退款申请成功\n${JSON.stringify(response.data.data, null, 2)}`, 'success');
+                } else {
+                    log('refund-result', `❌ 退款申请失败: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                log('refund-result', `❌ 退款申请失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 7. 获取支付记录
+        async function getUserPaymentRecords() {
+            try {
+                const response = await axios.get(`${API_BASE}/payment/user/payments`);
+                if (response.data.code === 200) {
+                    log('records-result', `✅ 用户支付记录\n${JSON.stringify(response.data.data, null, 2)}`, 'success');
+                } else {
+                    log('records-result', `❌ 获取支付记录失败: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                log('records-result', `❌ 获取支付记录失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function getAllPaymentRecords() {
+            try {
+                const response = await axios.get(`${API_BASE}/payment/admin/records`);
+                if (response.data.code === 200) {
+                    log('records-result', `✅ 所有支付记录\n${JSON.stringify(response.data.data, null, 2)}`, 'success');
+                } else {
+                    log('records-result', `❌ 获取支付记录失败: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                log('records-result', `❌ 获取支付记录失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时自动生成订单号
+        window.onload = function() {
+            document.getElementById('orderNo').value = generateOrderNo();
+        };
+    </script>
+</body>
+</html>

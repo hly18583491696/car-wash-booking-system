@@ -79,4 +79,86 @@ public class TimeSlot {
     @TableLogic
     @TableField("deleted")
     private Integer deleted;
+
+    // Getter methods
+    public Long getId() {
+        return id;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public Integer getMaxBookings() {
+        return maxBookings;
+    }
+
+    public Integer getCurrentBookings() {
+        return currentBookings;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Integer getDeleted() {
+        return deleted;
+    }
+
+    // Setter methods
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public void setMaxBookings(Integer maxBookings) {
+        this.maxBookings = maxBookings;
+    }
+
+    public void setCurrentBookings(Integer currentBookings) {
+        this.currentBookings = currentBookings;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setDeleted(Integer deleted) {
+        this.deleted = deleted;
+    }
 }

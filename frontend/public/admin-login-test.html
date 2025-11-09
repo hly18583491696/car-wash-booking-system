@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录测试 - 404问题诊断</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #409EFF;
+        }
+        .success { color: #67C23A; font-weight: bold; }
+        .error { color: #F56C6C; font-weight: bold; }
+        .warning { color: #E6A23C; font-weight: bold; }
+        .info { color: #409EFF; font-weight: bold; }
+        button {
+            background: #409EFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #66b1ff; }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: 200px;
+        }
+        .result {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 管理员登录404问题诊断工具</h1>
+    
+    <div class="test-section">
+        <h3>📋 问题描述</h3>
+        <p>管理员登录后台系统时遇到"页面未找到"的错误，需要全面排查以下方面：</p>
+        <ul>
+            <li>✅ 后台登录页面的URL地址配置</li>
+            <li>✅ 服务器路由配置和管理员后台路由规则</li>
+            <li>🔍 用户权限系统和管理员访问权限</li>
+            <li>✅ 前端页面资源部署</li>
+            <li>✅ 服务器错误日志分析</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🔗 1. 后端连接测试</h3>
+        <button onclick="testBackendConnection()">测试后端连接</button>
+        <div id="backend-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔑 2. 管理员登录测试</h3>
+        <div>
+            <label>用户名: </label>
+            <input type="text" id="username" value="admin" placeholder="输入用户名">
+        </div>
+        <div>
+            <label>密码: </label>
+            <input type="password" id="password" value="admin123" placeholder="输入密码">
+        </div>
+        <button onclick="testAdminLogin()">测试管理员登录</button>
+        <button onclick="clearAuthData()">清除认证数据</button>
+        <div id="login-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 3. 当前认证状态检查</h3>
+        <button onclick="checkAuthStatus()">检查认证状态</button>
+        <div id="auth-status" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 4. 路由访问测试</h3>
+        <button onclick="testRouteAccess()">测试所有路由访问</button>
+        <div id="route-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔐 5. 权限API测试</h3>
+        <button onclick="testAdminAPIs()">测试管理员API权限</button>
+        <div id="api-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🚀 6. 直接访问测试</h3>
+        <div class="step">
+            <p><strong>测试链接：</strong></p>
+            <p><a href="http://localhost:3000/login" target="_blank">登录页面</a></p>
+            <p><a href="http://localhost:3000/admin" target="_blank">管理员后台</a> (需要先登录)</p>
+            <p><a href="http://localhost:3000/" target="_blank">首页</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        
+        // 测试后端连接
+        async function testBackendConnection() {
+            const result = document.getElementById('backend-result');
+            result.textContent = '正在测试后端连接...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/debug/health`);
+                const data = await response.json();
+                
+                result.innerHTML = `<span class="success">✅ 后端连接成功</span>
+状态码: ${response.status}
+响应数据: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ 后端连接失败</span>
+错误信息: ${error.message}
+请确保后端服务器运行在 http://localhost:8080`;
+            }
+        }
+
+        // 测试管理员登录
+        async function testAdminLogin() {
+            const result = document.getElementById('login-result');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            result.textContent = '正在测试管理员登录...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // 保存认证信息
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.userInfo));
+                    localStorage.setItem('userRole', data.data.userInfo.role);
+                    
+                    result.innerHTML = `<span class="success">✅ 登录成功</span>
+用户信息: ${JSON.stringify(data.data.userInfo, null, 2)}
+Token: ${data.data.token.substring(0, 50)}...
+角色: ${data.data.userInfo.role}`;
+                } else {
+                    result.innerHTML = `<span class="error">❌ 登录失败</span>
+状态码: ${response.status}
+错误信息: ${data.message || '未知错误'}
+响应数据: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ 登录请求失败</span>
+错误信息: ${error.message}`;
+            }
+        }
+
+        // 检查认证状态
+        function checkAuthStatus() {
+            const result = document.getElementById('auth-status');
+            
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            const userRole = localStorage.getItem('userRole');
+            
+            let status = '';
+            
+            if (token) {
+                status += `<span class="success">✅ Token存在</span>\n`;
+                status += `Token: ${token.substring(0, 50)}...\n\n`;
+            } else {
+                status += `<span class="error">❌ Token不存在</span>\n\n`;
+            }
+            
+            if (userInfo) {
+                status += `<span class="success">✅ 用户信息存在</span>\n`;
+                try {
+                    const user = JSON.parse(userInfo);
+                    status += `用户信息: ${JSON.stringify(user, null, 2)}\n\n`;
+                } catch (e) {
+                    status += `<span class="error">❌ 用户信息格式错误</span>\n${userInfo}\n\n`;
+                }
+            } else {
+                status += `<span class="error">❌ 用户信息不存在</span>\n\n`;
+            }
+            
+            if (userRole) {
+                status += `<span class="success">✅ 用户角色: ${userRole}</span>\n`;
+                if (userRole === 'admin') {
+                    status += `<span class="info">🔑 管理员权限确认</span>\n`;
+                }
+            } else {
+                status += `<span class="error">❌ 用户角色不存在</span>\n`;
+            }
+            
+            result.innerHTML = status;
+        }
+
+        // 测试路由访问
+        async function testRouteAccess() {
+            const result = document.getElementById('route-result');
+            result.textContent = '正在测试路由访问...';
+            
+            const routes = [
+                { path: '/', name: '首页' },
+                { path: '/login', name: '登录页面' },
+                { path: '/admin', name: '管理员后台' },
+                { path: '/services', name: '服务页面' },
+                { path: '/orders', name: '订单页面' }
+            ];
+            
+            let testResults = '';
+            
+            for (const route of routes) {
+                try {
+                    const response = await fetch(`http://localhost:3000${route.path}`, {
+                        method: 'HEAD'
+                    });
+                    
+                    if (response.ok) {
+                        testResults += `<span class="success">✅ ${route.name} (${route.path})</span>\n`;
+                    } else {
+                        testResults += `<span class="error">❌ ${route.name} (${route.path}) - 状态码: ${response.status}</span>\n`;
+                    }
+                } catch (error) {
+                    testResults += `<span class="error">❌ ${route.name} (${route.path}) - 错误: ${error.message}</span>\n`;
+                }
+            }
+            
+            result.innerHTML = testResults;
+        }
+
+        // 测试管理员API
+        async function testAdminAPIs() {
+            const result = document.getElementById('api-result');
+            result.textContent = '正在测试管理员API权限...';
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                result.innerHTML = `<span class="error">❌ 请先登录</span>`;
+                return;
+            }
+            
+            const apis = [
+                { url: '/user/admin/list', name: '获取用户列表' },
+                { url: '/services', name: '获取服务列表' },
+                { url: '/bookings/admin/list', name: '获取预约列表' }
+            ];
+            
+            let testResults = '';
+            
+            for (const api of apis) {
+                try {
+                    const response = await fetch(`${API_BASE}${api.url}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        testResults += `<span class="success">✅ ${api.name}</span>\n`;
+                        testResults += `响应: ${JSON.stringify(data, null, 2)}\n\n`;
+                    } else {
+                        testResults += `<span class="error">❌ ${api.name} - 状态码: ${response.status}</span>\n`;
+                        const errorData = await response.text();
+                        testResults += `错误响应: ${errorData}\n\n`;
+                    }
+                } catch (error) {
+                    testResults += `<span class="error">❌ ${api.name} - 错误: ${error.message}</span>\n\n`;
+                }
+            }
+            
+            result.innerHTML = testResults;
+        }
+
+        // 清除认证数据
+        function clearAuthData() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('userRole');
+            
+            document.getElementById('login-result').innerHTML = '<span class="info">🧹 认证数据已清除</span>';
+            document.getElementById('auth-status').innerHTML = '';
+        }
+
+        // 页面加载时自动检查状态
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

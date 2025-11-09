@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Token 调试工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .token-display {
+            word-break: break-all;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            background-color: #f8f9fa;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 200px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 JWT Token 调试工具</h1>
+        
+        <!-- 步骤1: 获取Token -->
+        <div class="section">
+            <h3>步骤1: 获取JWT Token</h3>
+            <div>
+                <input type="text" id="username" placeholder="用户名" value="admin">
+                <input type="password" id="password" placeholder="密码" value="admin123">
+                <button onclick="getToken()">获取Token</button>
+            </div>
+            <div id="tokenResult" class="step" style="display:none;">
+                <div class="step-title">获取到的Token:</div>
+                <div class="token-display" id="tokenDisplay"></div>
+            </div>
+        </div>
+
+        <!-- 步骤2: 解析Token -->
+        <div class="section">
+            <h3>步骤2: 解析JWT Token</h3>
+            <button onclick="parseToken()">解析Token</button>
+            <div id="parseResult" class="step" style="display:none;">
+                <div class="step-title">Token解析结果:</div>
+                <pre id="parseDisplay"></pre>
+            </div>
+        </div>
+
+        <!-- 步骤3: 验证Token格式 -->
+        <div class="section">
+            <h3>步骤3: 验证Token格式</h3>
+            <button onclick="validateTokenFormat()">验证格式</button>
+            <div id="formatResult" class="step" style="display:none;">
+                <div class="step-title">格式验证结果:</div>
+                <pre id="formatDisplay"></pre>
+            </div>
+        </div>
+
+        <!-- 步骤4: 测试API调用 -->
+        <div class="section">
+            <h3>步骤4: 测试API调用</h3>
+            <button onclick="testApiCall()">测试支付记录API</button>
+            <div id="apiResult" class="step" style="display:none;">
+                <div class="step-title">API调用结果:</div>
+                <pre id="apiDisplay"></pre>
+            </div>
+        </div>
+
+        <!-- 步骤5: 检查请求头 -->
+        <div class="section">
+            <h3>步骤5: 检查请求头格式</h3>
+            <button onclick="checkHeaders()">检查请求头</button>
+            <div id="headerResult" class="step" style="display:none;">
+                <div class="step-title">请求头检查结果:</div>
+                <pre id="headerDisplay"></pre>
+            </div>
+        </div>
+
+        <!-- 调试日志 -->
+        <div class="section">
+            <h3>调试日志</h3>
+            <button onclick="clearLog()">清空日志</button>
+            <pre id="debugLog"></pre>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = '';
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('debugLog');
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logElement.textContent += logEntry;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[JWT Debug] ${logEntry}`);
+        }
+
+        function clearLog() {
+            document.getElementById('debugLog').textContent = '';
+        }
+
+        async function getToken() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            log(`开始获取Token，用户名: ${username}`);
+            
+            try {
+                const response = await axios.post('http://localhost:8080/api/auth/login', {
+                    username: username,
+                    password: password
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log('登录API调用成功');
+                log(`响应状态: ${response.status}`);
+                log(`响应数据: ${JSON.stringify(response.data, null, 2)}`);
+                
+                if (response.data && response.data.data && response.data.data.token) {
+                    currentToken = response.data.data.token;
+                    document.getElementById('tokenDisplay').textContent = currentToken;
+                    document.getElementById('tokenResult').style.display = 'block';
+                    document.getElementById('tokenResult').className = 'step success';
+                    log(`Token获取成功: ${currentToken.substring(0, 50)}...`);
+                } else {
+                    throw new Error('响应中没有找到token');
+                }
+                
+            } catch (error) {
+                log(`Token获取失败: ${error.message}`, 'error');
+                if (error.response) {
+                    log(`错误响应: ${JSON.stringify(error.response.data, null, 2)}`, 'error');
+                }
+                document.getElementById('tokenResult').style.display = 'block';
+                document.getElementById('tokenResult').className = 'step error';
+                document.getElementById('tokenDisplay').textContent = `错误: ${error.message}`;
+            }
+        }
+
+        function parseToken() {
+            if (!currentToken) {
+                log('请先获取Token', 'warning');
+                return;
+            }
+            
+            log('开始解析Token');
+            
+            try {
+                // JWT token由三部分组成，用.分隔
+                const parts = currentToken.split('.');
+                if (parts.length !== 3) {
+                    throw new Error(`Token格式错误，应该有3部分，实际有${parts.length}部分`);
+                }
+                
+                // 解析header
+                const header = JSON.parse(atob(parts[0]));
+                log('Header解析成功');
+                
+                // 解析payload
+                const payload = JSON.parse(atob(parts[1]));
+                log('Payload解析成功');
+                
+                // 显示解析结果
+                const parseResult = {
+                    header: header,
+                    payload: payload,
+                    signature: parts[2],
+                    tokenLength: currentToken.length,
+                    parts: parts.length
+                };
+                
+                document.getElementById('parseDisplay').textContent = JSON.stringify(parseResult, null, 2);
+                document.getElementById('parseResult').style.display = 'block';
+                document.getElementById('parseResult').className = 'step success';
+                
+                log(`Token解析成功，用户: ${payload.sub}, 过期时间: ${new Date(payload.exp * 1000).toLocaleString()}`);
+                
+            } catch (error) {
+                log(`Token解析失败: ${error.message}`, 'error');
+                document.getElementById('parseResult').style.display = 'block';
+                document.getElementById('parseResult').className = 'step error';
+                document.getElementById('parseDisplay').textContent = `解析错误: ${error.message}`;
+            }
+        }
+
+        function validateTokenFormat() {
+            if (!currentToken) {
+                log('请先获取Token', 'warning');
+                return;
+            }
+            
+            log('开始验证Token格式');
+            
+            const validations = [];
+            
+            // 检查是否为空
+            if (!currentToken || currentToken.trim() === '') {
+                validations.push({ check: 'Token非空检查', result: 'FAIL', message: 'Token为空' });
+            } else {
+                validations.push({ check: 'Token非空检查', result: 'PASS', message: `Token长度: ${currentToken.length}` });
+            }
+            
+            // 检查是否包含三个部分
+            const parts = currentToken.split('.');
+            if (parts.length === 3) {
+                validations.push({ check: 'Token结构检查', result: 'PASS', message: '包含3个部分' });
+            } else {
+                validations.push({ check: 'Token结构检查', result: 'FAIL', message: `包含${parts.length}个部分，应该是3个` });
+            }
+            
+            // 检查Base64编码
+            try {
+                atob(parts[0]);
+                validations.push({ check: 'Header Base64检查', result: 'PASS', message: 'Header可以正确解码' });
+            } catch (e) {
+                validations.push({ check: 'Header Base64检查', result: 'FAIL', message: 'Header解码失败' });
+            }
+            
+            try {
+                atob(parts[1]);
+                validations.push({ check: 'Payload Base64检查', result: 'PASS', message: 'Payload可以正确解码' });
+            } catch (e) {
+                validations.push({ check: 'Payload Base64检查', result: 'FAIL', message: 'Payload解码失败' });
+            }
+            
+            // 检查是否包含Bearer前缀
+            const hasBearer = currentToken.startsWith('Bearer ');
+            if (hasBearer) {
+                validations.push({ check: 'Bearer前缀检查', result: 'WARNING', message: 'Token包含Bearer前缀，这可能导致问题' });
+            } else {
+                validations.push({ check: 'Bearer前缀检查', result: 'PASS', message: 'Token不包含Bearer前缀' });
+            }
+            
+            document.getElementById('formatDisplay').textContent = JSON.stringify(validations, null, 2);
+            document.getElementById('formatResult').style.display = 'block';
+            
+            const hasFailures = validations.some(v => v.result === 'FAIL');
+            document.getElementById('formatResult').className = hasFailures ? 'step error' : 'step success';
+            
+            log(`格式验证完成，${validations.filter(v => v.result === 'PASS').length}项通过，${validations.filter(v => v.result === 'FAIL').length}项失败`);
+        }
+
+        async function testApiCall() {
+            if (!currentToken) {
+                log('请先获取Token', 'warning');
+                return;
+            }
+            
+            log('开始测试API调用');
+            
+            try {
+                // 测试不同的Authorization header格式
+                const testCases = [
+                    { name: '标准Bearer格式', header: `Bearer ${currentToken}` },
+                    { name: '直接Token格式', header: currentToken },
+                    { name: '小写bearer格式', header: `bearer ${currentToken}` }
+                ];
+                
+                const results = [];
+                
+                for (const testCase of testCases) {
+                    log(`测试: ${testCase.name}`);
+                    
+                    try {
+                        const response = await axios.get('http://localhost:8080/api/payment/records', {
+                            headers: {
+                                'Authorization': testCase.header,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        results.push({
+                            testCase: testCase.name,
+                            status: response.status,
+                            success: true,
+                            data: response.data
+                        });
+                        
+                        log(`${testCase.name} - 成功: ${response.status}`);
+                        
+                    } catch (error) {
+                        results.push({
+                            testCase: testCase.name,
+                            status: error.response ? error.response.status : 'Network Error',
+                            success: false,
+                            error: error.response ? error.response.data : error.message
+                        });
+                        
+                        log(`${testCase.name} - 失败: ${error.response ? error.response.status : error.message}`, 'error');
+                    }
+                }
+                
+                document.getElementById('apiDisplay').textContent = JSON.stringify(results, null, 2);
+                document.getElementById('apiResult').style.display = 'block';
+                
+                const hasSuccess = results.some(r => r.success);
+                document.getElementById('apiResult').className = hasSuccess ? 'step success' : 'step error';
+                
+            } catch (error) {
+                log(`API测试失败: ${error.message}`, 'error');
+                document.getElementById('apiResult').style.display = 'block';
+                document.getElementById('apiResult').className = 'step error';
+                document.getElementById('apiDisplay').textContent = `测试错误: ${error.message}`;
+            }
+        }
+
+        function checkHeaders() {
+            if (!currentToken) {
+                log('请先获取Token', 'warning');
+                return;
+            }
+            
+            log('检查请求头格式');
+            
+            const headerChecks = [
+                {
+                    name: '标准Authorization头',
+                    header: `Bearer ${currentToken}`,
+                    description: '标准的JWT Bearer token格式'
+                },
+                {
+                    name: '直接Token',
+                    header: currentToken,
+                    description: '直接使用token，不加Bearer前缀'
+                },
+                {
+                    name: '小写Bearer',
+                    header: `bearer ${currentToken}`,
+                    description: '使用小写的bearer前缀'
+                }
+            ];
+            
+            const results = headerChecks.map(check => ({
+                ...check,
+                length: check.header.length,
+                startsWithBearer: check.header.toLowerCase().startsWith('bearer '),
+                tokenPart: check.header.toLowerCase().startsWith('bearer ') ? 
+                    check.header.substring(7) : check.header
+            }));
+            
+            document.getElementById('headerDisplay').textContent = JSON.stringify(results, null, 2);
+            document.getElementById('headerResult').style.display = 'block';
+            document.getElementById('headerResult').className = 'step info';
+            
+            log('请求头格式检查完成');
+        }
+
+        // 页面加载时的初始化
+        window.onload = function() {
+            log('JWT调试工具已加载');
+            log('请按步骤进行调试：1.获取Token -> 2.解析Token -> 3.验证格式 -> 4.测试API -> 5.检查请求头');
+        };
+    </script>
+</body>
+</html>

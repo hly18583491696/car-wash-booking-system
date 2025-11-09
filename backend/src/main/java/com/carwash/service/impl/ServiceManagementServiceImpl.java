@@ -10,7 +10,8 @@ import com.carwash.dto.ServiceResponse;
 import com.carwash.entity.Service;
 import com.carwash.mapper.ServiceMapper;
 import com.carwash.service.ServiceManagementService;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +25,10 @@ import java.util.stream.Collectors;
  * @author CarWash Team
  * @version 1.0.0
  */
-@Slf4j
 @org.springframework.stereotype.Service
 public class ServiceManagementServiceImpl implements ServiceManagementService {
+
+    private static final Logger log = LoggerFactory.getLogger(ServiceManagementServiceImpl.class);
 
     @Autowired
     private ServiceMapper serviceMapper;
@@ -168,5 +170,63 @@ public class ServiceManagementServiceImpl implements ServiceManagementService {
         }
 
         log.info("服务状态更新成功，服务ID: {}", serviceId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void permanentlyDeleteService(Long serviceId) {
+        log.info("永久删除服务项目（硬删除），服务ID: {}", serviceId);
+
+        // 验证服务ID
+        if (serviceId == null) {
+            log.error("服务ID为空");
+            throw new BusinessException(ResultCode.PARAM_ERROR, "服务ID不能为空");
+        }
+
+        // 检查服务是否存在（包括已软删除的服务）
+        Service service = serviceMapper.selectById(serviceId);
+        if (service == null) {
+            log.error("服务不存在，服务ID: {}", serviceId);
+            throw new BusinessException(ResultCode.SERVICE_NOT_FOUND, "服务不存在");
+        }
+
+        String serviceName = service.getName();
+        log.info("服务硬删除前状态 - 服务ID: {}, 服务名称: {}, deleted: {}, 状态: {}", 
+            serviceId, serviceName, service.getDeleted(), service.getStatus());
+
+        // 执行硬删除，从数据库中完全移除记录
+        log.info("执行数据库删除操作");
+        int result = serviceMapper.deleteById(serviceId);
+        log.info("数据库删除结果: {}", result);
+        
+        if (result <= 0) {
+            log.error("硬删除服务失败，数据库操作失败，服务ID: {}, 影响行数: {}", serviceId, result);
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "硬删除服务失败，数据库操作失败");
+        }
+
+        // 验证删除结果，确认记录不再存在
+        log.info("验证数据库删除结果");
+        Service deletedService = serviceMapper.selectById(serviceId);
+        
+        if (deletedService != null) {
+            log.error("验证失败：删除后服务仍然存在，服务ID: {}", serviceId);
+            
+            // 尝试重新删除一次
+            log.info("尝试重新删除服务");
+            int retryResult = serviceMapper.deleteById(serviceId);
+            
+            if (retryResult <= 0) {
+                throw new BusinessException(ResultCode.SYSTEM_ERROR, "重试硬删除服务失败");
+            }
+            
+            // 再次验证
+            Service finalService = serviceMapper.selectById(serviceId);
+            if (finalService != null) {
+                throw new BusinessException(ResultCode.SYSTEM_ERROR, 
+                    "数据库删除验证失败，记录仍然存在");
+            }
+        }
+
+        log.info("服务硬删除成功，服务ID: {}, 服务名称: {}, 记录已从数据库中完全移除", serviceId, serviceName);
     }
 }

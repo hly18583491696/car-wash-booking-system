@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试删除订单功能</title>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #409EFF;
+      padding-bottom: 10px;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+    
+    .section h2 {
+      color: #409EFF;
+      margin-top: 0;
+    }
+    
+    button {
+      background: #409EFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+      transition: all 0.3s;
+    }
+    
+    button:hover {
+      background: #66B1FF;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+    }
+    
+    button.danger {
+      background: #F56C6C;
+    }
+    
+    button.danger:hover {
+      background: #F78989;
+    }
+    
+    button.success {
+      background: #67C23A;
+    }
+    
+    button.success:hover {
+      background: #85CE61;
+    }
+    
+    input, select {
+      padding: 8px 12px;
+      border: 1px solid #DCDFE6;
+      border-radius: 4px;
+      font-size: 14px;
+      margin: 5px;
+    }
+    
+    .log {
+      background: #2d2d2d;
+      color: #f0f0f0;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    
+    .log-entry {
+      margin: 5px 0;
+      line-height: 1.6;
+    }
+    
+    .log-entry.success { color: #67C23A; }
+    .log-entry.error { color: #F56C6C; }
+    .log-entry.info { color: #409EFF; }
+    .log-entry.warning { color: #E6A23C; }
+    
+    .booking-list {
+      display: grid;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .booking-item {
+      background: white;
+      border: 1px solid #EBEEF5;
+      padding: 15px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+    
+    .booking-item:hover {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      transform: translateX(5px);
+    }
+    
+    .booking-info {
+      flex: 1;
+    }
+    
+    .booking-info h3 {
+      margin: 0 0 10px 0;
+      color: #303133;
+    }
+    
+    .booking-info p {
+      margin: 5px 0;
+      color: #606266;
+      font-size: 14px;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .status.pending { background: #FDF6EC; color: #E6A23C; }
+    .status.confirmed { background: #E1F3D8; color: #67C23A; }
+    .status.completed { background: #D9ECFF; color: #409EFF; }
+    .status.cancelled { background: #FEF0F0; color: #F56C6C; }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #409EFF;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      color: #606266;
+      font-size: 14px;
+    }
+    
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #303133;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 删除订单功能测试</h1>
+    
+    <div class="section">
+      <h2>📊 数据统计</h2>
+      <div class="stats">
+        <div class="stat-card">
+          <h3>总订单数</h3>
+          <div class="value" id="totalCount">0</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #67C23A;">
+          <h3>数据库中的订单</h3>
+          <div class="value" id="dbCount">0</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #F56C6C;">
+          <h3>已删除的订单</h3>
+          <div class="value" id="deletedCount">0</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>🔧 操作控制</h2>
+      <button class="success" onclick="loadBookings()">📥 加载订单列表</button>
+      <button onclick="checkDatabaseStatus()">🔍 检查数据库状态</button>
+      <button class="danger" onclick="clearLogs()">🗑️ 清空日志</button>
+    </div>
+    
+    <div class="section">
+      <h2>📋 订单列表</h2>
+      <div id="bookingList" class="booking-list">
+        <p style="color: #909399;">点击"加载订单列表"查看数据</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>📝 操作日志</h2>
+      <div id="logContainer" class="log">
+        <div class="log-entry info">等待操作...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:8080'
+    let bookings = []
+    
+    // 日志记录
+    function log(message, type = 'info') {
+      const logContainer = document.getElementById('logContainer')
+      const timestamp = new Date().toLocaleTimeString()
+      const entry = document.createElement('div')
+      entry.className = `log-entry ${type}`
+      entry.textContent = `[${timestamp}] ${message}`
+      logContainer.appendChild(entry)
+      logContainer.scrollTop = logContainer.scrollHeight
+      console.log(`[${type.toUpperCase()}] ${message}`)
+    }
+    
+    function clearLogs() {
+      document.getElementById('logContainer').innerHTML = '<div class="log-entry info">日志已清空</div>'
+      log('日志已清空', 'info')
+    }
+    
+    // 获取Token
+    function getToken() {
+      const token = localStorage.getItem('token')
+      const tokenType = localStorage.getItem('tokenType') || 'Bearer'
+      return token ? `${tokenType} ${token}` : null
+    }
+    
+    // 加载订单列表
+    async function loadBookings() {
+      log('开始加载订单列表...', 'info')
+      
+      try {
+        const token = getToken()
+        if (!token) {
+          log('未找到认证Token，请先登录', 'error')
+          alert('请先在主页面登录')
+          return
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/bookings/admin/all`, {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        log(`请求状态: ${response.status} ${response.statusText}`, 'info')
+        
+        const result = await response.json()
+        log(`响应数据: ${JSON.stringify(result)}`, 'info')
+        
+        if (result.code === 200) {
+          bookings = result.data || []
+          log(`成功加载 ${bookings.length} 条订单`, 'success')
+          displayBookings()
+          updateStats()
+        } else {
+          log(`加载失败: ${result.message}`, 'error')
+        }
+      } catch (error) {
+        log(`加载订单异常: ${error.message}`, 'error')
+        console.error(error)
+      }
+    }
+    
+    // 显示订单列表
+    function displayBookings() {
+      const container = document.getElementById('bookingList')
+      
+      if (bookings.length === 0) {
+        container.innerHTML = '<p style="color: #909399;">暂无订单数据</p>'
+        return
+      }
+      
+      container.innerHTML = bookings.map(booking => `
+        <div class="booking-item">
+          <div class="booking-info">
+            <h3>订单 #${booking.id} - ${booking.serviceName || '未知服务'}</h3>
+            <p><strong>订单号:</strong> ${booking.orderNo}</p>
+            <p><strong>状态:</strong> <span class="status ${booking.status}">${booking.status}</span></p>
+            <p><strong>预约时间:</strong> ${booking.bookingDate} ${booking.bookingTime}</p>
+            <p><strong>金额:</strong> ¥${booking.totalPrice}</p>
+          </div>
+          <div>
+            <button class="danger" onclick="deleteBooking(${booking.id}, '${booking.orderNo}')">
+              🗑️ 删除
+            </button>
+          </div>
+        </div>
+      `).join('')
+    }
+    
+    // 删除订单
+    async function deleteBooking(bookingId, orderNo) {
+      if (!confirm(`确定要删除订单 ${orderNo} 吗？删除后不可恢复！`)) {
+        log('用户取消删除', 'warning')
+        return
+      }
+      
+      log(`开始删除订单 ID: ${bookingId}, 订单号: ${orderNo}`, 'info')
+      
+      try {
+        const token = getToken()
+        if (!token) {
+          log('未找到认证Token', 'error')
+          return
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        log(`删除请求状态: ${response.status} ${response.statusText}`, 'info')
+        
+        const result = await response.json()
+        log(`删除响应: ${JSON.stringify(result)}`, 'info')
+        
+        if (result.code === 200) {
+          log(`✅ 订单删除成功: ${orderNo}`, 'success')
+          
+          // 重新加载订单列表
+          log('重新加载订单列表...', 'info')
+          await loadBookings()
+          
+          // 检查数据库状态
+          await checkDatabaseStatus()
+        } else {
+          log(`删除失败: ${result.message}`, 'error')
+          alert(`删除失败: ${result.message}`)
+        }
+      } catch (error) {
+        log(`删除订单异常: ${error.message}`, 'error')
+        console.error(error)
+        alert(`删除失败: ${error.message}`)
+      }
+    }
+    
+    // 检查数据库状态
+    async function checkDatabaseStatus() {
+      log('检查数据库状态...', 'info')
+      
+      try {
+        const token = getToken()
+        if (!token) {
+          log('未找到认证Token', 'error')
+          return
+        }
+        
+        // 这里可以调用一个专门的检查接口
+        // 暂时使用同步检查接口
+        const response = await fetch(`${API_BASE_URL}/bookings/admin/sync-check`, {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        const result = await response.json()
+        
+        if (result.code === 200) {
+          const data = result.data
+          log(`数据库检查结果:`, 'success')
+          log(`- 总订单数: ${data.totalBookings}`, 'info')
+          log(`- 状态分布: ${JSON.stringify(data.statusDistribution)}`, 'info')
+          log(`- 同步时间: ${data.lastSyncTime}`, 'info')
+        } else {
+          log(`数据库检查失败: ${result.message}`, 'error')
+        }
+      } catch (error) {
+        log(`数据库检查异常: ${error.message}`, 'error')
+        console.error(error)
+      }
+    }
+    
+    // 更新统计
+    function updateStats() {
+      document.getElementById('totalCount').textContent = bookings.length
+      document.getElementById('dbCount').textContent = bookings.length
+      // 已删除的订单不会在列表中显示，所以这里为0
+      document.getElementById('deletedCount').textContent = '0'
+    }
+    
+    // 页面加载时自动加载订单
+    window.onload = function() {
+      log('页面加载完成', 'success')
+      log('准备加载订单列表...', 'info')
+      setTimeout(() => {
+        loadBookings()
+      }, 500)
+    }
+  </script>
+</body>
+</html>

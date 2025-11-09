@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约状态更新测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-button {
+            background: #409eff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .test-button:hover {
+            background: #337ecc;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #f0f9ff; border-left: 4px solid #10b981; }
+        .warning { background: #fffbeb; border-left: 4px solid #f59e0b; }
+        .info { background: #f8fafc; border-left: 4px solid #6b7280; }
+        .error { background: #fef2f2; border-left: 4px solid #ef4444; }
+        
+        .status-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            min-width: 100px;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-completed { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .arrow {
+            font-size: 20px;
+            color: #6c757d;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-confirm { background: #007bff; color: white; }
+        .btn-start { background: #28a745; color: white; }
+        .btn-complete { background: #ffc107; color: black; }
+        .btn-cancel { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🔄 预约状态更新功能测试</h1>
+    
+    <div class="test-card">
+        <h2>📋 问题描述</h2>
+        <div class="status error">
+            <strong>❌ 原问题:</strong> 后台预约管理页面处理订单信息后状态没有更新
+        </div>
+        
+        <div class="status success">
+            <strong>✅ 修复方案:</strong>
+            <ul>
+                <li>修复AdminScript.js中的预约操作方法</li>
+                <li>添加实际的API调用</li>
+                <li>实现本地状态同步更新</li>
+                <li>添加缓存清理机制</li>
+                <li>增强错误处理和调试信息</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>🔄 订单状态流程</h2>
+        <div class="status-flow">
+            <div class="status-item status-pending">
+                <div><strong>待确认</strong></div>
+                <div>pending</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="status-item status-confirmed">
+                <div><strong>已确认</strong></div>
+                <div>confirmed</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="status-item status-processing">
+                <div><strong>进行中</strong></div>
+                <div>processing</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="status-item status-completed">
+                <div><strong>已完成</strong></div>
+                <div>completed</div>
+            </div>
+        </div>
+        
+        <div class="status info">
+            <strong>📝 状态转换规则:</strong>
+            <ul>
+                <li><strong>待确认 → 已确认:</strong> 点击"确认"按钮</li>
+                <li><strong>已确认 → 进行中:</strong> 点击"开始服务"按钮</li>
+                <li><strong>进行中 → 已完成:</strong> 点击"完成服务"按钮</li>
+                <li><strong>待确认/已确认 → 已取消:</strong> 点击"取消"按钮</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>🧪 测试步骤</h2>
+        <ol>
+            <li><strong>启动服务</strong>
+                <br><a href="http://localhost:3001/admin" target="_blank" class="test-button">访问管理后台</a>
+                <br><small>确保前后端服务都已启动</small>
+            </li>
+            
+            <li><strong>进入预约管理</strong>
+                <br>在管理后台中点击"预约管理"标签页
+            </li>
+            
+            <li><strong>查看预约列表</strong>
+                <br>观察当前的预约订单和它们的状态
+            </li>
+            
+            <li><strong>测试状态更新</strong>
+                <br>对不同状态的订单执行相应操作：
+                <ul>
+                    <li>对"待确认"订单点击<span class="action-btn btn-confirm">确认</span></li>
+                    <li>对"已确认"订单点击<span class="action-btn btn-start">开始服务</span></li>
+                    <li>对"进行中"订单点击<span class="action-btn btn-complete">完成服务</span></li>
+                    <li>对"待确认/已确认"订单点击<span class="action-btn btn-cancel">取消</span></li>
+                </ul>
+            </li>
+            
+            <li><strong>验证状态更新</strong>
+                <br>检查操作后订单状态是否立即更新
+                <br>打开浏览器开发者工具查看控制台日志
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-card">
+        <h2>🔍 调试信息</h2>
+        <div class="status info">
+            <strong>在浏览器控制台中查看以下调试信息:</strong>
+            <table>
+                <tr>
+                    <th>操作</th>
+                    <th>预期日志</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>确认预约</td>
+                    <td>🔄 确认预约，订单ID: xxx<br>✅ 预约确认成功，状态已更新</td>
+                    <td>API调用成功，本地状态更新</td>
+                </tr>
+                <tr>
+                    <td>开始服务</td>
+                    <td>🔄 开始服务，订单ID: xxx<br>✅ 服务开始成功，状态已更新</td>
+                    <td>状态从confirmed变为processing</td>
+                </tr>
+                <tr>
+                    <td>完成服务</td>
+                    <td>🔄 完成服务，订单ID: xxx<br>✅ 服务完成成功，状态已更新</td>
+                    <td>状态从processing变为completed</td>
+                </tr>
+                <tr>
+                    <td>取消预约</td>
+                    <td>🔄 取消预约，订单ID: xxx<br>✅ 预约取消成功，状态已更新</td>
+                    <td>状态变为cancelled</td>
+                </tr>
+                <tr>
+                    <td>本地更新</td>
+                    <td>📝 本地状态已更新: xxx -> status</td>
+                    <td>本地数据同步更新</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>🔧 已修复的问题</h2>
+        <div class="status success">
+            <strong>✅ 修复内容:</strong>
+            <table>
+                <tr>
+                    <th>问题</th>
+                    <th>修复方案</th>
+                    <th>效果</th>
+                </tr>
+                <tr>
+                    <td>AdminScript.js中方法只显示消息</td>
+                    <td>添加实际API调用</td>
+                    <td>真正更新后端数据</td>
+                </tr>
+                <tr>
+                    <td>本地状态不更新</td>
+                    <td>实现updateBookingStatusLocal方法</td>
+                    <td>UI立即反映状态变化</td>
+                </tr>
+                <tr>
+                    <td>缓存数据过期</td>
+                    <td>操作后清理相关缓存</td>
+                    <td>确保数据一致性</td>
+                </tr>
+                <tr>
+                    <td>缺少取消功能</td>
+                    <td>添加cancelBooking方法和按钮</td>
+                    <td>完整的状态管理</td>
+                </tr>
+                <tr>
+                    <td>错误处理不完善</td>
+                    <td>增强错误处理和用户提示</td>
+                    <td>更好的用户体验</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>⚠️ 故障排除</h2>
+        <div class="status warning">
+            <strong>如果状态仍然没有更新，请检查:</strong>
+            <ul>
+                <li><strong>网络请求:</strong> 开发者工具 → Network 查看API请求是否成功</li>
+                <li><strong>后端服务:</strong> 确保后端服务正常运行并能处理状态更新请求</li>
+                <li><strong>权限问题:</strong> 确认当前用户有管理员权限</li>
+                <li><strong>数据格式:</strong> 检查API返回的数据格式是否正确</li>
+                <li><strong>控制台错误:</strong> 查看是否有JavaScript错误</li>
+            </ul>
+        </div>
+        
+        <div class="status info">
+            <strong>🔍 调试技巧:</strong>
+            <ul>
+                <li>打开浏览器开发者工具（F12）</li>
+                <li>切换到Console标签查看日志</li>
+                <li>切换到Network标签查看API请求</li>
+                <li>在操作前后刷新页面对比数据变化</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>📞 技术支持</h2>
+        <p>如果问题仍然存在，请提供以下信息：</p>
+        <ul>
+            <li>具体的操作步骤</li>
+            <li>浏览器控制台的错误信息</li>
+            <li>Network标签中的API请求响应</li>
+            <li>订单的初始状态和期望状态</li>
+        </ul>
+    </div>
+
+    <script>
+        // 简单的状态检查
+        function checkServices() {
+            console.log('🔍 检查服务状态...');
+            
+            // 检查前端服务
+            fetch('http://localhost:3001/')
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ 前端服务正常');
+                        document.getElementById('frontend-status').textContent = '✅ 正常';
+                    }
+                })
+                .catch(error => {
+                    console.log('❌ 前端服务异常:', error);
+                    document.getElementById('frontend-status').textContent = '❌ 异常';
+                });
+        }
+        
+        // 页面加载时检查服务状态
+        window.onload = function() {
+            setTimeout(checkServices, 1000);
+        };
+    </script>
+</body>
+</html>

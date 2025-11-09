@@ -12,10 +12,12 @@
 </template>
 
 <script>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import BackToTop from './components/BackToTop.vue'
 import FloatingActionButton from './components/FloatingActionButton.vue'
 import NotificationSystem from './components/NotificationSystem.vue'
+import { useWebSocket } from '@/composables/useWebSocket'
+import { useUserStore } from '@/stores/user'
 
 export default {
   name: 'App',
@@ -25,6 +27,9 @@ export default {
     NotificationSystem
   },
   setup() {
+    const userStore = useUserStore()
+    const { initWebSocket, disconnectWebSocket, cleanup } = useWebSocket()
+    
     // 简化的主题类名，暂时使用默认主题
     const themeClass = computed(() => {
       return 'theme-blue'
@@ -40,6 +45,28 @@ export default {
       window.addEventListener('error', (event) => {
         console.error('全局错误:', event.error)
       })
+      
+      // 如果用户已登录，初始化WebSocket连接
+      if (userStore.isLoggedIn) {
+        initWebSocket()
+      }
+      
+      // 监听用户登录状态变化
+      userStore.$subscribe((mutation, state) => {
+        if (state.isLoggedIn) {
+          // 用户登录时连接WebSocket
+          initWebSocket()
+        } else {
+          // 用户登出时断开WebSocket
+          disconnectWebSocket()
+        }
+      })
+    })
+    
+    // 组件卸载时清理WebSocket
+    onUnmounted(() => {
+      cleanup()
+      disconnectWebSocket()
     })
     
     return {

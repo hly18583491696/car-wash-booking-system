@@ -63,4 +63,34 @@ public interface UserService {
      * 检查邮箱是否存在
      */
     boolean existsByEmail(String email);
+
+    /**
+     * 获取所有用户列表（管理员专用）
+     */
+    java.util.List<UserInfoResponse> getAllUsers();
+
+    /**
+     * 更新用户状态（管理员专用）
+     */
+    void updateUserStatus(Long userId, Integer status);
+
+    /**
+     * 删除用户（管理员专用）
+     */
+    void deleteUser(Long userId);
+
+    /**
+     * 获取用户总数
+     */
+    long getUserCount();
+
+    /**
+     * 获取活跃用户数
+     */
+    long getActiveUserCount();
+
+    /**
+     * 获取管理员用户数
+     */
+    long getAdminUserCount();
 }

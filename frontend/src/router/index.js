@@ -1,34 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { nextTick } from 'vue'
 
-// 导入页面组件
+// 懒加载组件
 const Home = () => import('../views/Home.vue')
-const Login = () => import('../views/Login.vue')
-const Register = () => import('../views/Register.vue')
-
+const GuestHome = () => import('../views/GuestHome.vue')
 const Services = () => import('../views/Services.vue')
-const Stores = () => import('../views/Stores.vue')
-
 const Appointment = () => import('../views/Appointment.vue')
 const Orders = () => import('../views/Orders.vue')
 const Profile = () => import('../views/Profile.vue')
-const NotFound = () => import('../views/NotFound.vue')
+const Payment = () => import('../views/Payment.vue')
+const PaymentRecords = () => import('../views/PaymentRecords.vue')
+const Stores = () => import('../views/Stores.vue')
+const Debug = () => import('../views/Debug.vue')
+const AdminTest = () => import('../views/AdminTest.vue')
+const Login = () => import('../views/Login.vue')
+const Register = () => import('../views/Register.vue')
 const Admin = () => import('../views/Admin.vue')
+const NotFound = () => import('../views/NotFound.vue')
 
-// 导入布局组件
+// 布局组件
 const Layout = () => import('../components/Layout/Layout.vue')
 
 const routes = [
-  // API测试路由（独立页面）
-  {
-    path: '/api-test',
-    name: 'ApiTest',
-    component: () => import('../views/ApiTest.vue'),
-    meta: {
-      title: 'API测试',
-      requiresAuth: false
-    }
-  },
   {
     path: '/',
     component: Layout,
@@ -39,7 +33,7 @@ const routes = [
         component: Home,
         meta: {
           title: '首页',
-          requiresAuth: false
+          requiresAuth: true
         }
       },
       {
@@ -78,6 +72,24 @@ const routes = [
           requiresAuth: true
         }
       },
+      {
+        path: 'payment/:orderNo?',
+        name: 'Payment',
+        component: Payment,
+        meta: {
+          title: '支付',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'payment-records',
+        name: 'PaymentRecords',
+        component: PaymentRecords,
+        meta: {
+          title: '支付记录',
+          requiresAuth: true
+        }
+      },
 
       {
         path: 'stores',
@@ -86,6 +98,36 @@ const routes = [
         meta: {
           title: '洗车店',
           requiresAuth: false
+        }
+      },
+      {
+        path: 'debug',
+        name: 'Debug',
+        component: Debug,
+        meta: {
+          title: '调试页面',
+          requiresAuth: false
+        }
+      },
+      {
+        path: 'admin-test',
+        name: 'AdminTest',
+        component: AdminTest,
+        meta: {
+          title: '管理员测试',
+          requiresAuth: true,
+          requiresAdmin: true
+        }
+      },
+      // 访客首页 - 在Layout下
+      {
+        path: 'guest',
+        name: 'GuestHome',
+        component: GuestHome,
+        meta: {
+          title: '欢迎使用洗车预约系统',
+          requiresAuth: false,
+          guestOnly: true
         }
       },
 
@@ -122,6 +164,16 @@ const routes = [
     }
   },
   {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: Admin,
+    meta: {
+      title: '管理员后台',
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
     path: '/404',
     name: 'NotFound',
     component: NotFound,
@@ -148,42 +200,150 @@ const router = createRouter({
   }
 })
 
-// 路由守卫
-router.beforeEach((to, from, next) => {
+// 导入权限管理工具
+import AuthManager from '../utils/auth.js'
+import RouteLogger from '../utils/routeLogger.js'
+
+// 增强的路由守卫
+router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   if (to.meta.title) {
     document.title = `${to.meta.title} - 汽车洗车服务预约系统`
   }
   
-  // 检查认证状态
-  const token = localStorage.getItem('token')
-  const userRole = localStorage.getItem('userRole')
-  const isAuthenticated = !!token
+  const isAuthenticated = AuthManager.isAuthenticated()
+  const userRole = AuthManager.getUserRole()
+  const userInfo = AuthManager.getCurrentUser()
   
-  // 如果页面需要认证但用户未登录
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    ElMessage.warning('请先登录')
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
+  // 记录认证状态检查
+  RouteLogger.logAuthCheck(to.path, isAuthenticated, userInfo)
+  
+  console.log('路由导航:', {
+    to: to.path,
+    from: from.path,
+    isAuth: isAuthenticated,
+    role: userRole,
+    requiresAuth: to.meta.requiresAuth,
+    requiresAdmin: to.meta.requiresAdmin,
+    hideForAuth: to.meta.hideForAuth,
+    guestOnly: to.meta.guestOnly
+  })
+  
+  try {
+    // 1. 处理首页访问逻辑
+    if (to.path === '/') {
+      if (!isAuthenticated) {
+        // 未登录用户跳转到访客首页
+        RouteLogger.logAuthRedirect('/', 'guest', 'not_authenticated')
+        next('guest')
+        return
+      } else if (userRole === 'admin') {
+        // 管理员跳转到管理后台
+        RouteLogger.logAuthRedirect('/', '/admin', 'admin_redirect')
+        next('/admin')
+        return
+      }
+      // 已登录的普通用户可以访问首页
+    }
+
+    // 2. 处理访客页面访问
+    if (to.meta.guestOnly && isAuthenticated) {
+      const redirectPath = userRole === 'admin' ? '/admin' : '/'
+      RouteLogger.logAuthRedirect(to.path, redirectPath, 'already_authenticated')
+      next(redirectPath)
+      return
+    }
+
+    // 3. 处理需要认证的页面
+    if (to.meta.requiresAuth && !isAuthenticated) {
+      RouteLogger.logAuthRedirect(to.path, 'guest', 'authentication_required')
+      next({
+        path: 'guest',
+        query: { redirect: to.fullPath, reason: 'login_required' }
+      })
+      return
+    }
+
+    // 4. 处理需要管理员权限的页面
+    if (to.meta.requiresAdmin && (!isAuthenticated || !AuthManager.isAdmin())) {
+      const redirectPath = isAuthenticated ? '/' : 'guest'
+      const reason = !isAuthenticated ? 'not_authenticated' : 'insufficient_permission'
+      
+      RouteLogger.logPermissionDenied(to.path, 'admin', userInfo)
+      RouteLogger.logAuthRedirect(to.path, redirectPath, reason)
+      
+      next({
+        path: redirectPath,
+        query: { redirect: to.fullPath, reason: 'admin_required' }
+      })
+      return
+    }
+
+    // 5. 处理登录/注册页面的访问
+    if (to.meta.hideForAuth && isAuthenticated) {
+      const redirectPath = userRole === 'admin' ? '/admin' : '/'
+      RouteLogger.logAuthRedirect(to.path, redirectPath, 'already_authenticated')
+      next(redirectPath)
+      return
+    }
+
+    // 6. 检查Token是否即将过期
+    if (isAuthenticated && AuthManager.isTokenExpiring()) {
+      try {
+        await AuthManager.refreshToken()
+        RouteLogger.log({
+          type: 'token_refresh',
+          path: to.path,
+          success: true
+        })
+      } catch (error) {
+        console.error('Token刷新失败:', error)
+        AuthManager.logout()
+        RouteLogger.logAuthRedirect(to.path, 'guest', 'token_refresh_failed')
+        next({
+          path: 'guest',
+          query: { redirect: to.fullPath, reason: 'session_expired' }
+        })
+        return
+      }
+    }
+
+    // 记录守卫执行成功
+    RouteLogger.logGuardExecution(from.path, to.path, 'allow', to.meta)
+    next()
+    
+  } catch (error) {
+    console.error('路由权限检查失败:', error)
+    
+    // 记录错误
+    RouteLogger.log({
+      type: 'guard_error',
+      from: from.path,
+      to: to.path,
+      error: error.message
     })
-    return
+    
+    const redirectPath = isAuthenticated ? (userRole === 'admin' ? '/admin' : '/') : 'guest'
+    
+    RouteLogger.logAuthRedirect(to.path, redirectPath, 'guard_error')
+    next({
+      path: redirectPath,
+      query: { redirect: to.fullPath, reason: 'system_error' }
+    })
+  }
+})
+
+// 路由后置守卫 - 用于页面加载完成后的处理
+router.afterEach((to, from) => {
+  // 记录页面访问日志
+  if (AuthManager.isAuthenticated()) {
+    console.log(`用户 ${AuthManager.getUserDisplayName()} 访问了页面: ${to.path}`)
   }
   
-  // 如果页面需要管理员权限但用户不是管理员
-  if (to.meta.requiresAdmin && userRole !== 'admin') {
-    ElMessage.error('您没有权限访问此页面')
-    next('/')
-    return
-  }
-  
-  // 如果用户已登录但访问登录/注册页面
-  if (to.meta.hideForAuth && isAuthenticated) {
-    next('/')
-    return
-  }
-  
-  next()
+  // 滚动到顶部
+  nextTick(() => {
+    window.scrollTo(0, 0)
+  })
 })
 
 // 路由错误处理

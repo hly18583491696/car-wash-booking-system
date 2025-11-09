@@ -8,7 +8,8 @@ import com.carwash.dto.ServiceResponse;
 import com.carwash.service.ServiceManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,11 +23,12 @@ import java.util.List;
  * @author CarWash Team
  * @version 1.0.0
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/services")
 @Tag(name = "服务管理", description = "洗车服务项目管理相关接口")
 public class ServiceController {
+
+    private static final Logger log = LoggerFactory.getLogger(ServiceController.class);
 
     @Autowired
     private ServiceManagementService serviceManagementService;
@@ -121,6 +123,18 @@ public class ServiceController {
         log.info("删除服务项目请求，服务ID: {}", id);
         serviceManagementService.deleteService(id);
         return Result.success("服务删除成功");
+    }
+
+    /**
+     * 永久删除服务项目（管理员）
+     */
+    @DeleteMapping("/{id}/permanent")
+    @Operation(summary = "永久删除服务", description = "完全从数据库中移除服务数据，此操作不可恢复")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<Void> permanentlyDeleteService(@PathVariable Long id) {
+        log.info("硬删除服务项目请求，服务ID: {}", id);
+        serviceManagementService.permanentlyDeleteService(id);
+        return Result.success("服务已永久删除");
     }
 
     /**

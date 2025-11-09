@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录重定向测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn.success {
+            background: #27ae60;
+        }
+        .btn.danger {
+            background: #e74c3c;
+        }
+        .btn.warning {
+            background: #f39c12;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background: #27ae60; }
+        .status-error { background: #e74c3c; }
+        .status-warning { background: #f39c12; }
+        .status-info { background: #3498db; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 管理员登录重定向测试</h1>
+            <p>验证管理员登录后自动重定向到后台管理页面的完整流程</p>
+        </div>
+        
+        <div class="content">
+            <!-- 测试指标 -->
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">登录响应时间</div>
+                    <div class="metric-value" id="loginTime">-</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">重定向时间</div>
+                    <div class="metric-value" id="redirectTime">-</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">总耗时</div>
+                    <div class="metric-value" id="totalTime">-</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">测试状态</div>
+                    <div class="metric-value" id="testStatus">待开始</div>
+                </div>
+            </div>
+
+            <!-- 1. 完整流程测试 -->
+            <div class="test-section">
+                <h3>🚀 完整登录重定向流程测试</h3>
+                <p>测试管理员登录后是否能在3秒内成功重定向到 /admin 页面</p>
+                <button class="btn" onclick="testCompleteFlow()">开始完整流程测试</button>
+                <button class="btn warning" onclick="testNonAdminFlow()">测试普通用户流程</button>
+                <div class="progress">
+                    <div class="progress-bar" id="flowProgress"></div>
+                </div>
+                <div id="flowResult" class="result info" style="display: none;"></div>
+            </div>
+
+            <!-- 2. 权限验证测试 -->
+            <div class="test-section">
+                <h3>🛡️ 权限验证测试</h3>
+                <p>验证只有管理员角色可以访问后台管理页面</p>
+                <button class="btn" onclick="testAdminPermission()">测试管理员权限</button>
+                <button class="btn danger" onclick="testUnauthorizedAccess()">测试未授权访问</button>
+                <div id="permissionResult" class="result info" style="display: none;"></div>
+            </div>
+
+            <!-- 3. 会话状态测试 -->
+            <div class="test-section">
+                <h3>💾 会话状态持久化测试</h3>
+                <p>验证登录后的会话状态是否正确保持</p>
+                <button class="btn" onclick="testSessionPersistence()">测试会话持久化</button>
+                <button class="btn warning" onclick="testTokenRefresh()">测试Token刷新</button>
+                <div id="sessionResult" class="result info" style="display: none;"></div>
+            </div>
+
+            <!-- 4. 性能测试 -->
+            <div class="test-section">
+                <h3>⚡ 性能测试</h3>
+                <p>测试登录重定向是否在3秒内完成</p>
+                <button class="btn" onclick="testPerformance()">开始性能测试</button>
+                <button class="btn success" onclick="runBenchmark()">运行基准测试</button>
+                <div id="performanceResult" class="result info" style="display: none;"></div>
+            </div>
+
+            <!-- 5. URL路径验证 -->
+            <div class="test-section">
+                <h3>🔗 URL路径验证</h3>
+                <p>确保重定向后的URL包含 /admin 路径标识</p>
+                <button class="btn" onclick="testUrlPath()">验证URL路径</button>
+                <div id="urlResult" class="result info" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        const FRONTEND_BASE = 'http://localhost:5173';
+        
+        let testMetrics = {
+            loginTime: 0,
+            redirectTime: 0,
+            totalTime: 0,
+            status: 'idle'
+        };
+
+        // 更新指标显示
+        function updateMetrics() {
+            document.getElementById('loginTime').textContent = testMetrics.loginTime + 'ms';
+            document.getElementById('redirectTime').textContent = testMetrics.redirectTime + 'ms';
+            document.getElementById('totalTime').textContent = testMetrics.totalTime + 'ms';
+            document.getElementById('testStatus').textContent = testMetrics.status;
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        // 更新进度条
+        function updateProgress(percentage) {
+            document.getElementById('flowProgress').style.width = percentage + '%';
+        }
+
+        // 1. 完整流程测试
+        async function testCompleteFlow() {
+            const startTime = Date.now();
+            testMetrics.status = '测试中...';
+            updateMetrics();
+            updateProgress(0);
+
+            try {
+                showResult('flowResult', '🔄 开始完整流程测试...\n', 'info');
+                
+                // 步骤1: 清除现有登录状态
+                updateProgress(10);
+                localStorage.removeItem('token');
+                localStorage.removeItem('userInfo');
+                showResult('flowResult', '🔄 开始完整流程测试...\n✅ 步骤1: 清除现有登录状态', 'info');
+
+                // 步骤2: 执行管理员登录
+                updateProgress(30);
+                const loginStart = Date.now();
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`登录失败: ${loginResponse.status}`);
+                }
+
+                const loginData = await loginResponse.json();
+                testMetrics.loginTime = Date.now() - loginStart;
+                
+                showResult('flowResult', `🔄 开始完整流程测试...\n✅ 步骤1: 清除现有登录状态\n✅ 步骤2: 管理员登录成功 (${testMetrics.loginTime}ms)\n   - Token: ${loginData.data.token.substring(0, 20)}...\n   - 用户角色: ${loginData.data.user.role}`, 'info');
+
+                // 步骤3: 保存登录信息
+                updateProgress(50);
+                localStorage.setItem('token', loginData.data.token);
+                localStorage.setItem('userInfo', JSON.stringify(loginData.data.user));
+
+                // 步骤4: 模拟重定向
+                updateProgress(70);
+                const redirectStart = Date.now();
+                
+                // 检查是否应该重定向到管理页面
+                const userRole = loginData.data.user.role;
+                const shouldRedirectToAdmin = userRole === 'admin';
+                
+                if (shouldRedirectToAdmin) {
+                    // 模拟重定向延迟（实际应用中的200ms延迟）
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    testMetrics.redirectTime = Date.now() - redirectStart;
+                    
+                    // 步骤5: 验证管理员API访问
+                    updateProgress(90);
+                    const adminApiResponse = await fetch(`${API_BASE}/user/admin/list`, {
+                        headers: {
+                            'Authorization': `Bearer ${loginData.data.token}`
+                        }
+                    });
+
+                    if (!adminApiResponse.ok) {
+                        throw new Error(`管理员API访问失败: ${adminApiResponse.status}`);
+                    }
+
+                    const adminData = await adminApiResponse.json();
+                    
+                    updateProgress(100);
+                    testMetrics.totalTime = Date.now() - startTime;
+                    testMetrics.status = '测试通过';
+                    
+                    const finalMessage = `🔄 开始完整流程测试...\n✅ 步骤1: 清除现有登录状态\n✅ 步骤2: 管理员登录成功 (${testMetrics.loginTime}ms)\n✅ 步骤3: 保存登录信息到localStorage\n✅ 步骤4: 重定向到管理页面 (${testMetrics.redirectTime}ms)\n✅ 步骤5: 验证管理员API访问权限\n\n🎉 测试结果:\n- 总耗时: ${testMetrics.totalTime}ms\n- 是否在3秒内完成: ${testMetrics.totalTime < 3000 ? '✅ 是' : '❌ 否'}\n- 重定向目标: /admin\n- 权限验证: ✅ 通过\n- 获取到 ${adminData.data.length} 个用户记录`;
+                    
+                    showResult('flowResult', finalMessage, 'success');
+                } else {
+                    throw new Error('用户角色不是管理员，无法重定向到管理页面');
+                }
+
+            } catch (error) {
+                testMetrics.status = '测试失败';
+                showResult('flowResult', `❌ 测试失败: ${error.message}`, 'error');
+                updateProgress(0);
+            }
+            
+            updateMetrics();
+        }
+
+        // 2. 测试普通用户流程
+        async function testNonAdminFlow() {
+            try {
+                showResult('flowResult', '🔄 测试普通用户登录流程...', 'info');
+                
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'user',
+                        password: 'user123'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`普通用户登录失败: ${loginResponse.status}`);
+                }
+
+                const loginData = await loginResponse.json();
+                const userRole = loginData.data.user.role;
+                const shouldRedirectToAdmin = userRole === 'admin';
+                
+                showResult('flowResult', `✅ 普通用户登录测试:\n- 用户名: ${loginData.data.user.username}\n- 角色: ${userRole}\n- 应重定向到管理页面: ${shouldRedirectToAdmin ? '是' : '否'}\n- 预期重定向目标: ${shouldRedirectToAdmin ? '/admin' : '/'}`, 'success');
+
+            } catch (error) {
+                showResult('flowResult', `❌ 普通用户测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 3. 权限验证测试
+        async function testAdminPermission() {
+            try {
+                showResult('permissionResult', '🔄 测试管理员权限...', 'info');
+                
+                // 先登录获取token
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                const token = loginData.data.token;
+
+                // 测试多个管理员API端点
+                const adminEndpoints = [
+                    { url: '/user/admin/list', name: '用户列表' },
+                    { url: '/booking/admin/all', name: '预约列表' },
+                    { url: '/services/admin/all', name: '服务列表' }
+                ];
+
+                let results = [];
+                for (const endpoint of adminEndpoints) {
+                    try {
+                        const response = await fetch(`${API_BASE}${endpoint.url}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        results.push(`✅ ${endpoint.name}: ${response.ok ? '访问成功' : '访问失败'} (${response.status})`);
+                    } catch (error) {
+                        results.push(`❌ ${endpoint.name}: 请求失败 - ${error.message}`);
+                    }
+                }
+
+                showResult('permissionResult', `管理员权限测试结果:\n${results.join('\n')}`, 'success');
+
+            } catch (error) {
+                showResult('permissionResult', `❌ 权限测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 4. 测试未授权访问
+        async function testUnauthorizedAccess() {
+            try {
+                showResult('permissionResult', '🔄 测试未授权访问...', 'info');
+                
+                // 不提供token或提供无效token
+                const response = await fetch(`${API_BASE}/user/admin/list`, {
+                    headers: {
+                        'Authorization': 'Bearer invalid-token'
+                    }
+                });
+
+                const expectedStatus = 401; // 期望返回401未授权
+                const actualStatus = response.status;
+                
+                showResult('permissionResult', `未授权访问测试:\n- 期望状态码: ${expectedStatus}\n- 实际状态码: ${actualStatus}\n- 测试结果: ${actualStatus === expectedStatus ? '✅ 通过' : '❌ 失败'}`, 
+                    actualStatus === expectedStatus ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('permissionResult', `❌ 未授权访问测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 5. 会话状态测试
+        async function testSessionPersistence() {
+            try {
+                showResult('sessionResult', '🔄 测试会话状态持久化...', 'info');
+                
+                // 登录并保存状态
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                
+                // 保存到localStorage
+                localStorage.setItem('token', loginData.data.token);
+                localStorage.setItem('userInfo', JSON.stringify(loginData.data.user));
+                
+                // 验证保存的数据
+                const savedToken = localStorage.getItem('token');
+                const savedUserInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                
+                // 使用保存的token访问API
+                const apiResponse = await fetch(`${API_BASE}/user/info`, {
+                    headers: {
+                        'Authorization': `Bearer ${savedToken}`
+                    }
+                });
+
+                const apiData = await apiResponse.json();
+                
+                showResult('sessionResult', `会话状态持久化测试:\n✅ Token已保存到localStorage\n✅ 用户信息已保存: ${savedUserInfo.username} (${savedUserInfo.role})\n✅ 使用保存的Token访问API: ${apiResponse.ok ? '成功' : '失败'}\n✅ 获取用户信息: ${apiData.data?.username || '失败'}`, 'success');
+
+            } catch (error) {
+                showResult('sessionResult', `❌ 会话状态测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 6. Token刷新测试
+        async function testTokenRefresh() {
+            showResult('sessionResult', '🔄 Token刷新功能暂未实现，跳过测试', 'info');
+        }
+
+        // 7. 性能测试
+        async function testPerformance() {
+            try {
+                showResult('performanceResult', '🔄 开始性能测试...', 'info');
+                
+                const iterations = 5;
+                let times = [];
+                
+                for (let i = 0; i < iterations; i++) {
+                    const startTime = Date.now();
+                    
+                    // 清除状态
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userInfo');
+                    
+                    // 执行登录
+                    const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: 'admin',
+                            password: 'admin123'
+                        })
+                    });
+
+                    const loginData = await loginResponse.json();
+                    
+                    // 保存状态
+                    localStorage.setItem('token', loginData.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(loginData.data.user));
+                    
+                    // 模拟重定向延迟
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    const totalTime = Date.now() - startTime;
+                    times.push(totalTime);
+                    
+                    showResult('performanceResult', `🔄 性能测试进行中... (${i + 1}/${iterations})\n当前耗时: ${totalTime}ms`, 'info');
+                }
+                
+                const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+                const maxTime = Math.max(...times);
+                const minTime = Math.min(...times);
+                
+                showResult('performanceResult', `性能测试结果 (${iterations}次测试):\n- 平均耗时: ${avgTime.toFixed(2)}ms\n- 最大耗时: ${maxTime}ms\n- 最小耗时: ${minTime}ms\n- 3秒要求: ${maxTime < 3000 ? '✅ 满足' : '❌ 不满足'}\n- 详细数据: [${times.join(', ')}]ms`, 
+                    maxTime < 3000 ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('performanceResult', `❌ 性能测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 8. 基准测试
+        async function runBenchmark() {
+            try {
+                showResult('performanceResult', '🔄 运行基准测试...', 'info');
+                
+                const startTime = Date.now();
+                
+                // 并发登录测试
+                const concurrentLogins = Array(3).fill().map(async (_, index) => {
+                    const response = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: 'admin',
+                            password: 'admin123'
+                        })
+                    });
+                    return { index, time: Date.now() - startTime, ok: response.ok };
+                });
+                
+                const results = await Promise.all(concurrentLogins);
+                const avgConcurrentTime = results.reduce((sum, r) => sum + r.time, 0) / results.length;
+                
+                showResult('performanceResult', `基准测试结果:\n- 并发登录 (3个): 平均 ${avgConcurrentTime.toFixed(2)}ms\n- 所有请求成功: ${results.every(r => r.ok) ? '✅ 是' : '❌ 否'}\n- 详细结果: ${results.map(r => `${r.index + 1}: ${r.time}ms`).join(', ')}`, 'success');
+
+            } catch (error) {
+                showResult('performanceResult', `❌ 基准测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 9. URL路径验证
+        async function testUrlPath() {
+            try {
+                showResult('urlResult', '🔄 验证URL路径...', 'info');
+                
+                // 模拟登录后的重定向逻辑
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                const userRole = loginData.data.user.role;
+                
+                // 根据角色确定重定向路径
+                let redirectPath;
+                if (userRole === 'admin') {
+                    redirectPath = '/admin';
+                } else {
+                    redirectPath = '/';
+                }
+                
+                // 验证路径是否包含/admin
+                const containsAdmin = redirectPath.includes('/admin');
+                const isCorrectAdminPath = userRole === 'admin' && containsAdmin;
+                
+                showResult('urlResult', `URL路径验证:\n- 用户角色: ${userRole}\n- 重定向路径: ${redirectPath}\n- 包含/admin: ${containsAdmin ? '✅ 是' : '❌ 否'}\n- 管理员路径正确: ${isCorrectAdminPath ? '✅ 是' : '❌ 否'}\n- 完整URL: ${FRONTEND_BASE}${redirectPath}`, 
+                    isCorrectAdminPath ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('urlResult', `❌ URL路径验证失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMetrics();
+            showResult('flowResult', '准备就绪，点击按钮开始测试', 'info');
+        });
+    </script>
+</body>
+</html>

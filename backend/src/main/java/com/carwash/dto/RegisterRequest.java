@@ -56,4 +56,69 @@ public class RegisterRequest {
      */
     @Email(message = "邮箱格式不正确")
     private String email;
+
+    /**
+     * 短信验证码
+     */
+    @NotBlank(message = "验证码不能为空")
+    @Pattern(regexp = "^\\d{6}$", message = "验证码必须是6位数字")
+    private String smsCode;
+
+    // Getter methods
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    // Setter methods
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSmsCode() {
+        return smsCode;
+    }
+
+    public void setSmsCode(String smsCode) {
+        this.smsCode = smsCode;
+    }
 }

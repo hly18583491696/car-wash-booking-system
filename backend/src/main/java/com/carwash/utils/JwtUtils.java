@@ -69,11 +69,23 @@ public class JwtUtils {
      * 验证JWT token
      */
     public boolean validateToken(String authToken) {
+        logger.debug("开始验证JWT token，token长度: {}", authToken != null ? authToken.length() : 0);
+        
+        if (authToken == null || authToken.trim().isEmpty()) {
+            logger.warn("JWT token为空或null");
+            return false;
+        }
+        
         try {
-            Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(authToken);
+                .parseClaimsJws(authToken)
+                .getBody();
+            
+            logger.debug("JWT token验证成功，用户: {}, 过期时间: {}", 
+                claims.getSubject(), 
+                claims.getExpiration());
             return true;
         } catch (SecurityException e) {
             logger.error("Invalid JWT signature: {}", e.getMessage());
@@ -85,6 +97,8 @@ public class JwtUtils {
             logger.error("JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
             logger.error("JWT claims string is empty: {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("JWT token验证时发生未知错误: {}", e.getMessage(), e);
         }
         return false;
     }

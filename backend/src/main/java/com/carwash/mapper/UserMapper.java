@@ -52,4 +52,22 @@ public interface UserMapper extends BaseMapper<User> {
      */
     @Select("SELECT COUNT(*) FROM users WHERE email = #{email} AND deleted = 0")
     int countByEmail(@Param("email") String email);
+
+    /**
+     * 统计总用户数
+     */
+    @Select("SELECT COUNT(*) FROM users WHERE deleted = 0")
+    int countTotalUsers();
+
+    /**
+     * 统计今日新增用户数
+     */
+    @Select("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE() AND deleted = 0")
+    int countTodayNewUsers();
+
+    /**
+     * 统计月度新增用户数
+     */
+    @Select("SELECT COUNT(*) FROM users WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE()) AND deleted = 0")
+    int countMonthlyNewUsers();
 }

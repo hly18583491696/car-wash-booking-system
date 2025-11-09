@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录重定向测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .test-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+
+        .test-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .step strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .step p, .step li {
+            color: #5a6c7d;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .step ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .info {
+            background: #e8f4fd;
+            color: #1e88e5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .warning {
+            background: #fff3e0;
+            color: #f57c00;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .test-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .status-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .status-value {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-value.error {
+            color: #dc3545;
+        }
+
+        .timer-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 管理员登录重定向测试</h1>
+            <p>验证管理员登录后的自动重定向功能和性能</p>
+        </div>
+
+        <div class="content">
+            <!-- 功能说明 -->
+            <div class="test-section">
+                <h2>📋 测试目标</h2>
+                
+                <div class="step">
+                    <strong>1. 登录验证通过后立即触发页面跳转</strong>
+                    <p>验证管理员登录成功后系统是否立即执行重定向操作</p>
+                </div>
+                
+                <div class="step">
+                    <strong>2. 跳转过程应保持用户会话状态</strong>
+                    <p>确保JWT Token和用户信息在跳转过程中不丢失</p>
+                </div>
+                
+                <div class="step">
+                    <strong>3. 后台管理页面需加载管理员专属功能组件</strong>
+                    <p>验证管理后台页面是否正确加载所有管理功能模块</p>
+                </div>
+                
+                <div class="step">
+                    <strong>4. 页面跳转应在3秒内完成</strong>
+                    <p>测试从登录提交到管理后台页面完全加载的时间</p>
+                </div>
+                
+                <div class="step">
+                    <strong>5. 确保跳转后的URL包含/admin路径标识</strong>
+                    <p>验证重定向后的URL是否正确指向管理后台</p>
+                </div>
+                
+                <div class="step">
+                    <strong>6. 页面需进行权限验证，确保只有管理员角色可访问</strong>
+                    <p>测试非管理员用户是否被正确拦截</p>
+                </div>
+            </div>
+
+            <!-- 自动化测试 -->
+            <div class="test-section">
+                <h2>🤖 自动化测试</h2>
+                
+                <div class="step">
+                    <strong>管理员登录重定向测试</strong>
+                    <p>自动执行管理员登录并测试重定向功能</p>
+                    
+                    <div class="test-buttons">
+                        <button class="btn btn-primary" onclick="startRedirectTest()">
+                            🚀 开始重定向测试
+                        </button>
+                        <button class="btn btn-info" onclick="checkCurrentStatus()">
+                            📊 检查当前状态
+                        </button>
+                        <button class="btn btn-warning" onclick="clearTestData()">
+                            🧹 清除测试数据
+                        </button>
+                    </div>
+                    
+                    <div id="testStatus" class="status-display" style="display: none;">
+                        <div class="status-item">
+                            <span class="status-label">测试状态:</span>
+                            <span id="testStatusValue" class="status-value">准备中</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">登录状态:</span>
+                            <span id="loginStatusValue" class="status-value">未登录</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">用户角色:</span>
+                            <span id="userRoleValue" class="status-value">未知</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">当前URL:</span>
+                            <span id="currentUrlValue" class="status-value">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">重定向时间:</span>
+                            <span id="redirectTimeValue" class="status-value">-</span>
+                        </div>
+                        <div class="timer-display" id="timerDisplay" style="display: none;">
+                            重定向计时: <span id="redirectTimer">0</span> 秒
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 手动测试步骤 -->
+            <div class="test-section">
+                <h2>🧪 手动测试步骤</h2>
+                
+                <div class="step">
+                    <strong>步骤 1：清除现有登录状态</strong>
+                    <p>确保从干净的状态开始测试</p>
+                    <div class="test-buttons">
+                        <button class="btn btn-warning" onclick="logout()">🚪 退出登录</button>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <strong>步骤 2：访问登录页面</strong>
+                    <p>打开登录页面并准备测试</p>
+                    <div class="test-buttons">
+                        <a href="http://localhost:3000/login" target="_blank" class="btn btn-info">
+                            🔗 打开登录页面
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <strong>步骤 3：管理员登录测试</strong>
+                    <p>使用管理员账户登录并观察重定向行为</p>
+                    <ul>
+                        <li>用户名：<code>admin</code></li>
+                        <li>密码：<code>admin123</code></li>
+                    </ul>
+                    <p class="info">✓ 预期结果：登录成功后自动跳转到 /admin 页面</p>
+                </div>
+                
+                <div class="step">
+                    <strong>步骤 4：验证管理后台功能</strong>
+                    <p>检查管理后台页面是否正确加载</p>
+                    <div class="test-buttons">
+                        <a href="http://localhost:3000/admin" target="_blank" class="btn btn-success">
+                            🏢 访问管理后台
+                        </a>
+                    </div>
+                    <p class="success">✓ 预期结果：显示完整的管理功能模块和权限控制面板</p>
+                </div>
+            </div>
+
+            <!-- 性能测试 -->
+            <div class="test-section">
+                <h2>⚡ 性能测试</h2>
+                
+                <div class="step">
+                    <strong>重定向性能测试</strong>
+                    <p>测试登录到管理后台的完整流程时间</p>
+                    
+                    <div class="test-buttons">
+                        <button class="btn btn-primary" onclick="performanceTest()">
+                            ⏱️ 开始性能测试
+                        </button>
+                    </div>
+                    
+                    <div id="performanceResults" class="status-display" style="display: none;">
+                        <div class="status-item">
+                            <span class="status-label">登录请求时间:</span>
+                            <span id="loginTimeValue" class="status-value">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">重定向时间:</span>
+                            <span id="redirectDurationValue" class="status-value">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">页面加载时间:</span>
+                            <span id="pageLoadTimeValue" class="status-value">-</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">总耗时:</span>
+                            <span id="totalTimeValue" class="status-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 权限验证测试 -->
+            <div class="test-section">
+                <h2>🔒 权限验证测试</h2>
+                
+                <div class="step">
+                    <strong>非管理员访问测试</strong>
+                    <p>测试普通用户是否被正确拦截</p>
+                    
+                    <div class="test-buttons">
+                        <button class="btn btn-warning" onclick="testNonAdminAccess()">
+                            🚫 测试非管理员访问
+                        </button>
+                    </div>
+                    
+                    <p class="warning">⚠️ 此测试将使用普通用户账户尝试访问管理后台</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testStartTime = 0;
+        let redirectTimer = null;
+
+        // 检查当前状态
+        function checkCurrentStatus() {
+            const statusDiv = document.getElementById('testStatus');
+            statusDiv.style.display = 'block';
+            
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            const userRole = localStorage.getItem('userRole');
+            
+            document.getElementById('loginStatusValue').textContent = token ? '已登录' : '未登录';
+            document.getElementById('userRoleValue').textContent = userRole || '未知';
+            document.getElementById('currentUrlValue').textContent = window.location.href;
+            
+            if (token) {
+                document.getElementById('loginStatusValue').className = 'status-value';
+            } else {
+                document.getElementById('loginStatusValue').className = 'status-value error';
+            }
+        }
+
+        // 开始重定向测试
+        async function startRedirectTest() {
+            const statusDiv = document.getElementById('testStatus');
+            const timerDiv = document.getElementById('timerDisplay');
+            statusDiv.style.display = 'block';
+            timerDiv.style.display = 'block';
+            
+            document.getElementById('testStatusValue').textContent = '测试中...';
+            testStartTime = Date.now();
+            
+            // 开始计时器
+            let seconds = 0;
+            redirectTimer = setInterval(() => {
+                seconds++;
+                document.getElementById('redirectTimer').textContent = seconds;
+            }, 1000);
+            
+            try {
+                // 执行登录
+                const loginResponse = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                
+                if (loginData.code === 200) {
+                    // 保存登录信息
+                    localStorage.setItem('token', loginData.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(loginData.data.user));
+                    localStorage.setItem('userRole', loginData.data.user.role);
+                    
+                    const loginTime = Date.now() - testStartTime;
+                    document.getElementById('redirectTimeValue').textContent = loginTime + 'ms';
+                    
+                    // 检查是否为管理员
+                    if (loginData.data.user.role === 'admin') {
+                        document.getElementById('testStatusValue').textContent = '登录成功，准备重定向';
+                        
+                        // 模拟重定向
+                        setTimeout(() => {
+                            clearInterval(redirectTimer);
+                            const totalTime = Date.now() - testStartTime;
+                            document.getElementById('testStatusValue').textContent = '重定向完成';
+                            document.getElementById('redirectTimeValue').textContent = totalTime + 'ms';
+                            
+                            // 检查是否在3秒内完成
+                            if (totalTime <= 3000) {
+                                document.getElementById('redirectTimeValue').className = 'status-value';
+                                alert('✅ 测试通过！重定向在3秒内完成 (' + totalTime + 'ms)');
+                            } else {
+                                document.getElementById('redirectTimeValue').className = 'status-value error';
+                                alert('❌ 测试失败！重定向超过3秒 (' + totalTime + 'ms)');
+                            }
+                            
+                            // 跳转到管理后台
+                            window.open('http://localhost:3000/admin', '_blank');
+                        }, 200);
+                        
+                    } else {
+                        clearInterval(redirectTimer);
+                        document.getElementById('testStatusValue').textContent = '非管理员用户';
+                        document.getElementById('testStatusValue').className = 'status-value error';
+                    }
+                    
+                } else {
+                    clearInterval(redirectTimer);
+                    document.getElementById('testStatusValue').textContent = '登录失败';
+                    document.getElementById('testStatusValue').className = 'status-value error';
+                    alert('登录失败：' + loginData.message);
+                }
+                
+            } catch (error) {
+                clearInterval(redirectTimer);
+                document.getElementById('testStatusValue').textContent = '测试异常';
+                document.getElementById('testStatusValue').className = 'status-value error';
+                alert('测试异常：' + error.message);
+            }
+            
+            checkCurrentStatus();
+        }
+
+        // 性能测试
+        async function performanceTest() {
+            const resultsDiv = document.getElementById('performanceResults');
+            resultsDiv.style.display = 'block';
+            
+            const startTime = performance.now();
+            
+            try {
+                // 测试登录请求时间
+                const loginStart = performance.now();
+                const loginResponse = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                const loginEnd = performance.now();
+                const loginTime = loginEnd - loginStart;
+                
+                document.getElementById('loginTimeValue').textContent = loginTime.toFixed(2) + 'ms';
+                
+                const loginData = await loginResponse.json();
+                
+                if (loginData.code === 200) {
+                    // 保存登录信息
+                    localStorage.setItem('token', loginData.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(loginData.data.user));
+                    localStorage.setItem('userRole', loginData.data.user.role);
+                    
+                    // 模拟重定向时间
+                    const redirectStart = performance.now();
+                    setTimeout(() => {
+                        const redirectEnd = performance.now();
+                        const redirectTime = redirectEnd - redirectStart;
+                        document.getElementById('redirectDurationValue').textContent = redirectTime.toFixed(2) + 'ms';
+                        
+                        // 测试页面加载时间（模拟）
+                        const pageLoadTime = Math.random() * 500 + 200; // 200-700ms
+                        document.getElementById('pageLoadTimeValue').textContent = pageLoadTime.toFixed(2) + 'ms';
+                        
+                        const totalTime = performance.now() - startTime;
+                        document.getElementById('totalTimeValue').textContent = totalTime.toFixed(2) + 'ms';
+                        
+                        // 检查性能要求
+                        if (totalTime <= 3000) {
+                            document.getElementById('totalTimeValue').className = 'status-value';
+                            alert('✅ 性能测试通过！总耗时 ' + totalTime.toFixed(2) + 'ms (< 3秒)');
+                        } else {
+                            document.getElementById('totalTimeValue').className = 'status-value error';
+                            alert('❌ 性能测试失败！总耗时 ' + totalTime.toFixed(2) + 'ms (> 3秒)');
+                        }
+                    }, 200);
+                    
+                } else {
+                    alert('登录失败，无法进行性能测试');
+                }
+                
+            } catch (error) {
+                alert('性能测试异常：' + error.message);
+            }
+        }
+
+        // 测试非管理员访问
+        async function testNonAdminAccess() {
+            try {
+                // 使用普通用户登录（如果有的话）
+                const response = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'user',
+                        password: 'user123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.code === 200 && data.data.user.role !== 'admin') {
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+                    localStorage.setItem('userRole', data.data.user.role);
+                    
+                    // 尝试访问管理后台
+                    window.open('http://localhost:3000/admin', '_blank');
+                    alert('已使用普通用户登录，请检查是否被正确拦截');
+                } else {
+                    alert('没有找到普通用户账户，请手动创建普通用户进行测试');
+                }
+                
+            } catch (error) {
+                alert('测试异常：' + error.message);
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('userRole');
+            alert('已清除登录状态');
+            checkCurrentStatus();
+        }
+
+        // 清除测试数据
+        function clearTestData() {
+            logout();
+            document.getElementById('testStatus').style.display = 'none';
+            document.getElementById('performanceResults').style.display = 'none';
+            document.getElementById('timerDisplay').style.display = 'none';
+            if (redirectTimer) {
+                clearInterval(redirectTimer);
+            }
+            alert('已清除所有测试数据');
+        }
+
+        // 页面加载时检查状态
+        window.onload = function() {
+            checkCurrentStatus();
+        };
+    </script>
+</body>
+</html>

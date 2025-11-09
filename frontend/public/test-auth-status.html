@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>认证状态测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+            background-color: #f8f9fa;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .success {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>认证状态测试</h1>
+        
+        <div id="authStatus"></div>
+        
+        <div>
+            <button onclick="checkAuthStatus()">检查认证状态</button>
+            <button onclick="testPaymentRecords()">测试支付记录访问</button>
+            <button onclick="clearAuth()">清除认证信息</button>
+            <button onclick="mockLogin()">模拟登录</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function checkAuthStatus() {
+            log('=== 检查认证状态 ===');
+            
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            const userRole = localStorage.getItem('userRole');
+            const tokenType = localStorage.getItem('tokenType');
+            
+            log(`Token: ${token ? '存在' : '不存在'}`);
+            log(`UserInfo: ${userInfo ? '存在' : '不存在'}`);
+            log(`UserRole: ${userRole || '未设置'}`);
+            log(`TokenType: ${tokenType || '未设置'}`);
+            
+            if (userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    log(`用户信息: ${JSON.stringify(user, null, 2)}`);
+                } catch (e) {
+                    log(`用户信息解析失败: ${e.message}`);
+                }
+            }
+            
+            updateAuthStatusDisplay();
+        }
+
+        function updateAuthStatusDisplay() {
+            const statusDiv = document.getElementById('authStatus');
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            
+            if (token && userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    statusDiv.innerHTML = `
+                        <div class="status-item success">
+                            <strong>认证状态：已登录</strong><br>
+                            用户名：${user.username || '未知'}<br>
+                            角色：${user.role || localStorage.getItem('userRole') || '未知'}<br>
+                            Token：${token.substring(0, 20)}...
+                        </div>
+                    `;
+                } catch (e) {
+                    statusDiv.innerHTML = `
+                        <div class="status-item error">
+                            <strong>认证状态：异常</strong><br>
+                            Token存在但用户信息解析失败
+                        </div>
+                    `;
+                }
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="status-item error">
+                        <strong>认证状态：未登录</strong><br>
+                        ${!token ? 'Token不存在' : ''}<br>
+                        ${!userInfo ? '用户信息不存在' : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function testPaymentRecords() {
+            log('=== 测试支付记录访问 ===');
+            
+            // 尝试访问支付记录页面
+            const url = 'http://localhost:3000/payment-records';
+            log(`尝试访问: ${url}`);
+            
+            // 在新窗口中打开
+            const newWindow = window.open(url, '_blank');
+            
+            setTimeout(() => {
+                try {
+                    const currentUrl = newWindow.location.href;
+                    log(`实际跳转到: ${currentUrl}`);
+                    
+                    if (currentUrl.includes('/login')) {
+                        log('❌ 跳转到了登录页面');
+                    } else if (currentUrl.includes('/payment-records')) {
+                        log('✅ 成功访问支付记录页面');
+                    } else {
+                        log(`⚠️ 跳转到了其他页面: ${currentUrl}`);
+                    }
+                } catch (e) {
+                    log(`无法检查跳转结果: ${e.message}`);
+                }
+            }, 1000);
+        }
+
+        function clearAuth() {
+            log('=== 清除认证信息 ===');
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('tokenType');
+            log('认证信息已清除');
+            updateAuthStatusDisplay();
+        }
+
+        function mockLogin() {
+            log('=== 模拟登录 ===');
+            
+            const mockUser = {
+                id: 1,
+                username: 'testuser',
+                realName: '测试用户',
+                role: 'user',
+                email: 'test@example.com'
+            };
+            
+            const mockToken = 'mock-jwt-token-' + Date.now();
+            
+            localStorage.setItem('token', mockToken);
+            localStorage.setItem('userInfo', JSON.stringify(mockUser));
+            localStorage.setItem('userRole', 'user');
+            localStorage.setItem('tokenType', 'Bearer');
+            
+            log('模拟登录完成');
+            log(`用户: ${mockUser.realName} (${mockUser.username})`);
+            log(`角色: ${mockUser.role}`);
+            
+            updateAuthStatusDisplay();
+        }
+
+        // 页面加载时检查状态
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

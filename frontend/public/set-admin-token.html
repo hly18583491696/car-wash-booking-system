@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置Admin Token</title>
+</head>
+<body>
+    <h1>设置Admin Token</h1>
+    <button onclick="setToken()">设置Admin Token</button>
+    <button onclick="checkToken()">检查当前Token</button>
+    <button onclick="clearToken()">清除Token</button>
+    <div id="result"></div>
+
+    <script>
+        function setToken() {
+            const token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc2MjE4MTUwOSwiZXhwIjoxNzYyMjY3OTA5fQ.43k5IM64AFjlppK7awPHJcUJgF5vNJEYjxv9EC7UhyInegkb8qI15wZqVpiL6WSrrZuNs4Etrxv3NVg6EnL9rQ";
+            const user = {
+                id: 1,
+                username: "admin",
+                realName: "系统管理员",
+                phone: "13800138000",
+                email: "admin@carwash.com",
+                role: "admin",
+                avatar: "/images/default-avatar.png"
+            };
+            
+            localStorage.setItem('token', token);
+            localStorage.setItem('tokenType', 'Bearer');
+            localStorage.setItem('userRole', 'admin');
+            localStorage.setItem('userInfo', JSON.stringify(user));
+            
+            document.getElementById('result').innerHTML = '<p style="color: green;">Token已设置成功！</p>';
+        }
+        
+        function checkToken() {
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (token && userInfo) {
+                document.getElementById('result').innerHTML = `
+                    <p style="color: blue;">当前Token: ${token.substring(0, 50)}...</p>
+                    <p style="color: blue;">当前用户: ${JSON.parse(userInfo).realName}</p>
+                    <p style="color: blue;">用户角色: ${userRole}</p>
+                `;
+            } else {
+                document.getElementById('result').innerHTML = '<p style="color: red;">未找到Token</p>';
+            }
+        }
+        
+        function clearToken() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('tokenType');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userInfo');
+            document.getElementById('result').innerHTML = '<p style="color: orange;">Token已清除</p>';
+        }
+    </script>
+</body>
+</html>

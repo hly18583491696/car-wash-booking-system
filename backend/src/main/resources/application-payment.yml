@@ -1,0 +1,34 @@
+# 支付配置
+payment:
+  # 微信支付配置
+  wechat:
+    app-id: wx1234567890abcdef  # 微信公众号或小程序的AppID
+    mch-id: 1234567890          # 商户号
+    api-key: your-wechat-api-key-here  # API密钥
+    cert-path: /path/to/wechat/cert.p12  # 证书路径
+    notify-url: http://localhost:8080/api/payment/callback/wechat  # 支付回调地址
+    return-url: http://localhost:3000/payment/result  # 支付完成跳转地址
+  
+  # 安全配置
+  security:
+    rsa-public-key: |
+      -----BEGIN PUBLIC KEY-----
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApExamplePublicKeyReplaceThisLine
+      -----END PUBLIC KEY-----
+    rsa-private-key: |
+      -----BEGIN PRIVATE KEY-----
+      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQClExamplePrivateKeyReplace
+      -----END PRIVATE KEY-----
+    
+  # 支付宝配置
+  alipay:
+    app-id: 2021000000000000    # 支付宝应用ID
+    private-key: your-alipay-private-key-here  # 应用私钥
+    public-key: your-alipay-public-key-here    # 应用公钥
+    alipay-public-key: alipay-public-key-here  # 支付宝公钥
+    sign-type: RSA2             # 签名类型
+    charset: UTF-8              # 字符集
+    format: json                # 数据格式
+    gateway-url: https://openapi.alipay.com/gateway.do  # 支付宝网关地址
+    notify-url: http://localhost:8080/api/payment/callback/alipay  # 支付回调地址
+    return-url: http://localhost:3000/payment/result  # 支付完成跳转地址

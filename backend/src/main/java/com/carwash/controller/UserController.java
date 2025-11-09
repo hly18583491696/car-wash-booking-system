@@ -3,17 +3,16 @@ package com.carwash.controller;
 import com.carwash.common.result.Result;
 import com.carwash.dto.UserInfoResponse;
 import com.carwash.service.UserService;
+import com.carwash.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.List;
 
 /**
  * 用户控制器
@@ -67,17 +66,42 @@ public class UserController {
     }
 
     /**
+     * 获取所有用户列表（管理员专用）
+     */
+    @GetMapping("/admin/list")
+    @Operation(summary = "获取用户列表", description = "管理员获取所有用户列表")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<List<UserInfoResponse>> getAllUsers() {
+        List<UserInfoResponse> users = userService.getAllUsers();
+        return Result.success(users);
+    }
+
+    /**
+     * 更新用户状态（管理员专用）
+     */
+    @PutMapping("/admin/{userId}/status")
+    @Operation(summary = "更新用户状态", description = "管理员更新用户状态")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<Void> updateUserStatus(@PathVariable Long userId, @RequestParam Integer status) {
+        userService.updateUserStatus(userId, status);
+        return Result.success("用户状态更新成功");
+    }
+
+    /**
+     * 删除用户（管理员专用）
+     */
+    @DeleteMapping("/admin/{userId}")
+    @Operation(summary = "删除用户", description = "管理员删除用户")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Result<Void> deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return Result.success("用户删除成功");
+    }
+
+    /**
      * 获取当前登录用户ID
      */
     private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String username = userDetails.getUsername();
-            
-            // 根据用户名查询用户ID
-            return userService.findByUsernameOrPhone(username).getId();
-        }
-        throw new RuntimeException("无法获取当前用户信息");
+        return SecurityUtils.getCurrentUserId();
     }
 }

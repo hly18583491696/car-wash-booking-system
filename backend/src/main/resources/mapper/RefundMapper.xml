@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carwash.mapper.RefundMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.carwash.entity.Refund">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="payment_id" property="paymentId" jdbcType="BIGINT"/>
+        <result column="refund_no" property="refundNo" jdbcType="VARCHAR"/>
+        <result column="refund_id" property="refundId" jdbcType="VARCHAR"/>
+        <result column="amount" property="amount" jdbcType="DECIMAL"/>
+        <result column="reason" property="reason" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="refunded_at" property="refundedAt" jdbcType="TIMESTAMP"/>
+        <result column="raw_data" property="rawData" jdbcType="LONGVARCHAR"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+        <result column="deleted" property="deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, payment_id, refund_no, refund_id, amount, reason, status, 
+        refunded_at, raw_data, created_at, updated_at, deleted
+    </sql>
+
+    <!-- 根据退款单号查询退款记录 -->
+    <select id="selectByRefundNo" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM refunds
+        WHERE refund_no = #{refundNo} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 根据支付记录ID查询退款记录 -->
+    <select id="selectByPaymentId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM refunds
+        WHERE payment_id = #{paymentId} AND deleted = 0
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据第三方退款单号查询退款记录 -->
+    <select id="selectByRefundId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Base_Column_List"/>
+        FROM refunds
+        WHERE refund_id = #{refundId} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 统计支付记录的退款总金额 -->
+    <select id="sumRefundAmountByPaymentId" parameterType="java.lang.Long" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM refunds
+        WHERE payment_id = #{paymentId} 
+        AND status = 'success' 
+        AND deleted = 0
+    </select>
+
+    <!-- 统计指定时间范围内的退款金额 -->
+    <select id="sumRefundAmountByDateRange" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM refunds
+        WHERE status = 'success' 
+        AND refunded_at BETWEEN #{startDate} AND #{endDate}
+        AND deleted = 0
+    </select>
+
+</mapper>

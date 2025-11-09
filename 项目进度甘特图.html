@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汽车洗车服务预约系统 - 项目进度甘特图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-card .unit {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .chart-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .chart-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #ganttChart {
+            width: 100%;
+            height: 800px;
+        }
+        
+        #progressChart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        #riskChart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .milestone-list {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-left: 4px solid #4facfe;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .milestone-item.completed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .milestone-item.in-progress {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .milestone-item.pending {
+            border-left-color: #6c757d;
+            background: #f8f9fa;
+        }
+        
+        .milestone-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .status-completed { background: #28a745; }
+        .status-in-progress { background: #ffc107; }
+        .status-pending { background: #6c757d; }
+        
+        .risk-alerts {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .risk-alert {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .risk-level {
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.8em;
+            margin-right: 15px;
+        }
+        
+        .risk-high { background: #e74c3c; }
+        .risk-medium { background: #f39c12; }
+        .risk-low { background: #27ae60; }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .legend { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 汽车洗车服务预约系统</h1>
+            <p>项目进度甘特图 & 里程碑分析</p>
+        </div>
+        
+        <div class="content">
+            <!-- 项目统计 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>项目总进度</h3>
+                    <div class="value">75%</div>
+                    <div class="unit">核心功能已完成</div>
+                </div>
+                <div class="stat-card">
+                    <h3>已完成模块</h3>
+                    <div class="value">8</div>
+                    <div class="unit">个功能模块</div>
+                </div>
+                <div class="stat-card">
+                    <h3>待开发功能</h3>
+                    <div class="value">10</div>
+                    <div class="unit">个扩展功能</div>
+                </div>
+                <div class="stat-card">
+                    <h3>预计完成时间</h3>
+                    <div class="value">6</div>
+                    <div class="unit">个月</div>
+                </div>
+            </div>
+            
+            <!-- 甘特图 -->
+            <div class="chart-container">
+                <div class="chart-title">📊 项目开发甘特图</div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #28a745;"></div>
+                        <span>已完成</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffc107;"></div>
+                        <span>进行中</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6c757d;"></div>
+                        <span>待开始</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e74c3c;"></div>
+                        <span>风险项</span>
+                    </div>
+                </div>
+                <div id="ganttChart"></div>
+            </div>
+            
+            <!-- 进度分析 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="chart-container">
+                    <div class="chart-title">📈 模块完成进度</div>
+                    <div id="progressChart"></div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">⚠️ 风险评估分布</div>
+                    <div id="riskChart"></div>
+                </div>
+            </div>
+            
+            <!-- 关键里程碑 -->
+            <div class="milestone-list">
+                <div class="chart-title">🎯 关键里程碑</div>
+                <div class="milestone-item completed">
+                    <div class="milestone-status status-completed"></div>
+                    <div>
+                        <strong>系统架构设计完成</strong>
+                        <div style="color: #666; font-size: 0.9em;">2024年9月 - 前后端分离架构，数据库设计</div>
+                    </div>
+                </div>
+                <div class="milestone-item completed">
+                    <div class="milestone-status status-completed"></div>
+                    <div>
+                        <strong>用户认证系统</strong>
+                        <div style="color: #666; font-size: 0.9em;">2024年10月 - JWT认证，角色权限管理</div>
+                    </div>
+                </div>
+                <div class="milestone-item completed">
+                    <div class="milestone-status status-completed"></div>
+                    <div>
+                        <strong>预约订单系统</strong>
+                        <div style="color: #666; font-size: 0.9em;">2024年11月 - 预约流程，订单管理</div>
+                    </div>
+                </div>
+                <div class="milestone-item completed">
+                    <div class="milestone-status status-completed"></div>
+                    <div>
+                        <strong>服务管理系统</strong>
+                        <div style="color: #666; font-size: 0.9em;">2024年12月 - 服务项目，价格管理</div>
+                    </div>
+                </div>
+                <div class="milestone-item in-progress">
+                    <div class="milestone-status status-in-progress"></div>
+                    <div>
+                        <strong>支付系统集成</strong>
+                        <div style="color: #666; font-size: 0.9em;">2025年1月 - 微信支付，支付宝集成</div>
+                    </div>
+                </div>
+                <div class="milestone-item pending">
+                    <div class="milestone-status status-pending"></div>
+                    <div>
+                        <strong>会员积分系统</strong>
+                        <div style="color: #666; font-size: 0.9em;">2025年2月 - 会员等级，积分体系</div>
+                    </div>
+                </div>
+                <div class="milestone-item pending">
+                    <div class="milestone-status status-pending"></div>
+                    <div>
+                        <strong>移动端应用</strong>
+                        <div style="color: #666; font-size: 0.9em;">2025年3月 - 微信小程序，移动APP</div>
+                    </div>
+                </div>
+                <div class="milestone-item pending">
+                    <div class="milestone-status status-pending"></div>
+                    <div>
+                        <strong>AI智能客服</strong>
+                        <div style="color: #666; font-size: 0.9em;">2025年4月 - 智能对话，自动回复</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 风险预警 -->
+            <div class="risk-alerts">
+                <div class="chart-title">🚨 风险预警</div>
+                <div class="risk-alert">
+                    <div class="risk-level risk-high">高风险</div>
+                    <div>
+                        <strong>支付系统集成复杂度</strong>
+                        <div style="color: #666; font-size: 0.9em;">第三方支付接口集成可能遇到技术难题，建议提前进行技术调研</div>
+                    </div>
+                </div>
+                <div class="risk-alert">
+                    <div class="risk-level risk-medium">中风险</div>
+                    <div>
+                        <strong>AI客服技术实现</strong>
+                        <div style="color: #666; font-size: 0.9em;">大语言模型集成需要较强的AI技术背景，可能需要外部技术支持</div>
+                    </div>
+                </div>
+                <div class="risk-alert">
+                    <div class="risk-level risk-medium">中风险</div>
+                    <div>
+                        <strong>移动端开发资源</strong>
+                        <div style="color: #666; font-size: 0.9em;">同时开发小程序和APP可能导致资源分散，建议优先小程序</div>
+                    </div>
+                </div>
+                <div class="risk-alert">
+                    <div class="risk-level risk-low">低风险</div>
+                    <div>
+                        <strong>数据库性能优化</strong>
+                        <div style="color: #666; font-size: 0.9em;">随着数据量增长可能需要性能优化，当前架构支持扩展</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 甘特图数据
+        const ganttData = [
+            // 已完成的功能
+            {name: '系统架构设计', start: '2024-09-01', end: '2024-09-30', status: 'completed', category: '基础架构'},
+            {name: '数据库设计', start: '2024-09-15', end: '2024-10-15', status: 'completed', category: '基础架构'},
+            {name: '用户认证系统', start: '2024-10-01', end: '2024-10-31', status: 'completed', category: '核心功能'},
+            {name: '服务管理系统', start: '2024-10-15', end: '2024-11-15', status: 'completed', category: '核心功能'},
+            {name: '预约订单系统', start: '2024-11-01', end: '2024-11-30', status: 'completed', category: '核心功能'},
+            {name: '管理后台系统', start: '2024-11-15', end: '2024-12-15', status: 'completed', category: '核心功能'},
+            {name: '前端界面开发', start: '2024-12-01', end: '2024-12-31', status: 'completed', category: '前端开发'},
+            {name: '系统测试优化', start: '2024-12-15', end: '2025-01-15', status: 'completed', category: '测试优化'},
+            
+            // 进行中的功能
+            {name: '支付系统集成', start: '2025-01-01', end: '2025-02-15', status: 'in-progress', category: '扩展功能'},
+            {name: '注册功能完善', start: '2025-01-15', end: '2025-02-01', status: 'in-progress', category: '功能完善'},
+            
+            // 待开发的功能
+            {name: '会员积分系统', start: '2025-02-01', end: '2025-03-01', status: 'pending', category: '扩展功能'},
+            {name: '消息通知系统', start: '2025-02-15', end: '2025-03-15', status: 'pending', category: '扩展功能'},
+            {name: '微信小程序', start: '2025-03-01', end: '2025-04-01', status: 'pending', category: '移动端'},
+            {name: 'AI智能客服', start: '2025-03-15', end: '2025-05-15', status: 'risk', category: '创新功能'},
+            {name: '数据分析报表', start: '2025-04-01', end: '2025-05-01', status: 'pending', category: '数据分析'},
+            {name: '移动APP开发', start: '2025-04-15', end: '2025-06-15', status: 'pending', category: '移动端'},
+            {name: '多门店管理', start: '2025-05-01', end: '2025-06-01', status: 'pending', category: '扩展功能'},
+            {name: '营销活动系统', start: '2025-05-15', end: '2025-06-30', status: 'pending', category: '营销功能'}
+        ];
+
+        // 初始化甘特图
+        function initGanttChart() {
+            const chart = echarts.init(document.getElementById('ganttChart'));
+            
+            // 处理数据
+            const categories = [...new Set(ganttData.map(item => item.category))];
+            const tasks = ganttData.map(item => item.name);
+            
+            const series = ganttData.map((item, index) => {
+                const startDate = new Date(item.start);
+                const endDate = new Date(item.end);
+                const duration = (endDate - startDate) / (1000 * 60 * 60 * 24);
+                
+                let color;
+                switch(item.status) {
+                    case 'completed': color = '#28a745'; break;
+                    case 'in-progress': color = '#ffc107'; break;
+                    case 'pending': color = '#6c757d'; break;
+                    case 'risk': color = '#e74c3c'; break;
+                    default: color = '#6c757d';
+                }
+                
+                return {
+                    name: item.name,
+                    value: [index, startDate, endDate, duration],
+                    itemStyle: { color: color }
+                };
+            });
+
+            const option = {
+                tooltip: {
+                    formatter: function(params) {
+                        const item = ganttData[params.value[0]];
+                        return `
+                            <strong>${item.name}</strong><br/>
+                            分类: ${item.category}<br/>
+                            开始: ${item.start}<br/>
+                            结束: ${item.end}<br/>
+                            状态: ${item.status === 'completed' ? '已完成' : 
+                                   item.status === 'in-progress' ? '进行中' : 
+                                   item.status === 'risk' ? '风险项' : '待开始'}
+                        `;
+                    }
+                },
+                grid: {
+                    left: '15%',
+                    right: '5%',
+                    top: '5%',
+                    bottom: '10%'
+                },
+                xAxis: {
+                    type: 'time',
+                    min: '2024-09-01',
+                    max: '2025-07-01',
+                    axisLabel: {
+                        formatter: function(value) {
+                            return echarts.format.formatTime('MM-dd', value);
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: tasks,
+                    axisLabel: {
+                        fontSize: 11
+                    }
+                },
+                series: [{
+                    type: 'custom',
+                    renderItem: function(params, api) {
+                        const categoryIndex = api.value(0);
+                        const start = api.coord([api.value(1), categoryIndex]);
+                        const end = api.coord([api.value(2), categoryIndex]);
+                        const height = api.size([0, 1])[1] * 0.6;
+                        
+                        return {
+                            type: 'rect',
+                            shape: {
+                                x: start[0],
+                                y: start[1] - height / 2,
+                                width: end[0] - start[0],
+                                height: height
+                            },
+                            style: api.style()
+                        };
+                    },
+                    data: series
+                }]
+            };
+            
+            chart.setOption(option);
+            
+            // 响应式
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        // 初始化进度图表
+        function initProgressChart() {
+            const chart = echarts.init(document.getElementById('progressChart'));
+            
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                series: [{
+                    name: '模块状态',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['50%', '50%'],
+                    data: [
+                        {value: 8, name: '已完成', itemStyle: {color: '#28a745'}},
+                        {value: 2, name: '进行中', itemStyle: {color: '#ffc107'}},
+                        {value: 7, name: '待开始', itemStyle: {color: '#6c757d'}},
+                        {value: 1, name: '风险项', itemStyle: {color: '#e74c3c'}}
+                    ],
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}: {c}个'
+                    }
+                }]
+            };
+            
+            chart.setOption(option);
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        // 初始化风险图表
+        function initRiskChart() {
+            const chart = echarts.init(document.getElementById('riskChart'));
+            
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['技术风险', '进度风险', '资源风险', '业务风险']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '风险等级'
+                },
+                series: [{
+                    name: '风险评估',
+                    type: 'bar',
+                    data: [
+                        {value: 3, itemStyle: {color: '#e74c3c'}}, // 技术风险-高
+                        {value: 2, itemStyle: {color: '#f39c12'}}, // 进度风险-中
+                        {value: 2, itemStyle: {color: '#f39c12'}}, // 资源风险-中
+                        {value: 1, itemStyle: {color: '#27ae60'}}  // 业务风险-低
+                    ],
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: function(params) {
+                            const levels = ['', '低', '中', '高'];
+                            return levels[params.value];
+                        }
+                    }
+                }]
+            };
+            
+            chart.setOption(option);
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        // 页面加载完成后初始化图表
+        window.addEventListener('load', function() {
+            initGanttChart();
+            initProgressChart();
+            initRiskChart();
+        });
+    </script>
+</body>
+</html>

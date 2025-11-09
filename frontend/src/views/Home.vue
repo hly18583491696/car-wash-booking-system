@@ -45,6 +45,49 @@
       </div>
     </section>
 
+    <!-- 用户快捷功能区域 -->
+    <section class="user-shortcuts-section" v-if="isLoggedIn">
+      <div class="container">
+        <div class="shortcuts-header">
+          <h2 class="section-title">快捷功能</h2>
+          <p class="section-subtitle">常用功能，一键直达</p>
+        </div>
+        <div class="shortcuts-grid">
+          <router-link to="/orders" class="shortcut-card">
+            <div class="shortcut-icon orders-icon">
+              <el-icon size="32"><List /></el-icon>
+            </div>
+            <h3 class="shortcut-title">我的订单</h3>
+            <p class="shortcut-desc">查看订单状态和历史记录</p>
+          </router-link>
+          
+          <router-link to="/payment-records" class="shortcut-card">
+            <div class="shortcut-icon payment-icon">
+              <el-icon size="32"><CreditCard /></el-icon>
+            </div>
+            <h3 class="shortcut-title">支付记录</h3>
+            <p class="shortcut-desc">查看支付和退款记录</p>
+          </router-link>
+          
+          <router-link to="/appointment" class="shortcut-card">
+            <div class="shortcut-icon appointment-icon">
+              <el-icon size="32"><Calendar /></el-icon>
+            </div>
+            <h3 class="shortcut-title">快速预约</h3>
+            <p class="shortcut-desc">预约洗车服务</p>
+          </router-link>
+          
+          <router-link to="/profile" class="shortcut-card">
+            <div class="shortcut-icon profile-icon">
+              <el-icon size="32"><User /></el-icon>
+            </div>
+            <h3 class="shortcut-title">个人中心</h3>
+            <p class="shortcut-desc">管理个人信息和设置</p>
+          </router-link>
+        </div>
+      </div>
+    </section>
+
     <!-- 特色服务 -->
     <section class="features-section">
       <div class="container">
@@ -169,11 +212,12 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import ParticleBackground from '@/components/ParticleBackground.vue'
 import AnimatedCounter from '@/components/AnimatedCounter.vue'
+import AuthManager from '../utils/auth.js'
 
 export default {
   name: 'Home',
@@ -183,6 +227,12 @@ export default {
   },
   setup() {
     const router = useRouter()
+    
+    // 使用 AuthManager 进行一致的登录状态检测
+    const isLoggedIn = computed(() => AuthManager.isAuthenticated())
+    const userInfo = computed(() => AuthManager.getCurrentUser())
+    
+
     
     // 特色功能
     const features = ref([
@@ -297,12 +347,19 @@ export default {
       })
     }
     
+    onMounted(() => {
+      // 页面加载时的初始化逻辑
+      console.log('Home页面已加载，用户登录状态:', isLoggedIn.value)
+    })
+    
     return {
       features,
       popularServices,
       stats,
       testimonials,
-      bookService
+      bookService,
+      isLoggedIn,
+      userInfo
     }
   }
 }
@@ -407,6 +464,8 @@ export default {
   color: #ffffff !important;
 }
 
+
+
 .top-display-image {
   display: flex;
   justify-content: center;
@@ -422,6 +481,83 @@ export default {
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(10px);
+}
+
+/* 用户快捷功能区域 */
+.user-shortcuts-section {
+  padding: 60px 0;
+  background: var(--bg-primary);
+}
+
+.shortcuts-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.shortcut-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-light);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.shortcut-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color);
+}
+
+.shortcut-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: white;
+}
+
+.orders-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.payment-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.appointment-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.profile-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.shortcut-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.shortcut-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 /* 通用容器和标题 */

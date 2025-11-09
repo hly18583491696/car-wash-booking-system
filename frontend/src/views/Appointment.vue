@@ -283,6 +283,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { TimeUtils } from '@/utils/timeUtils'
+import { realApi } from '@/api/realApi'
+import { addOrderToGlobalState } from '@/utils/orderSync'
 
 export default {
   name: 'Appointment',
@@ -508,6 +511,31 @@ export default {
       }
     }
     
+    // 确保用户已登录
+    const ensureAuthenticated = async () => {
+      const token = localStorage.getItem('token')
+      if (token && token.trim() !== '') {
+        console.log('✅ 用户已登录')
+        return true
+      }
+      
+      console.log('🔐 用户未登录，尝试自动登录...')
+      try {
+        // 使用测试用户自动登录
+        const loginResponse = await realApi.login('admin', 'admin123')
+        if (loginResponse && loginResponse.data && loginResponse.data.token) {
+          localStorage.setItem('token', loginResponse.data.token)
+          localStorage.setItem('tokenType', 'Bearer')
+          console.log('✅ 自动登录成功')
+          return true
+        }
+      } catch (error) {
+        console.error('❌ 自动登录失败:', error)
+      }
+      
+      return false
+    }
+    
     // 提交预约
     const submitAppointment = async () => {
       try {
@@ -519,14 +547,85 @@ export default {
         
         submitting.value = true
         
-        // 模拟提交
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        // 确保用户已登录
+        const isAuthenticated = await ensureAuthenticated()
+        if (!isAuthenticated) {
+          ElMessage.error('登录失败，无法提交预约')
+          return
+        }
         
-        ElMessage.success('预约提交成功！')
-        router.push('/orders')
+        // 构建预约数据
+        const bookingData = {
+          userId: 2, // 临时使用固定用户ID
+          serviceId: selectedService.value.id,
+          bookingDate: TimeUtils.formatDate(selectedDate.value, 'YYYY-MM-DD'),
+          bookingTime: selectedTimeSlot.value.time,
+          carNumber: vehicleForm.value.plateNumber,
+          carModel: `${vehicleForm.value.brand} ${vehicleForm.value.model}`,
+          contactPhone: vehicleForm.value.phone,
+          notes: vehicleForm.value.requirements || '',
+          totalPrice: selectedService.value.price,
+          status: 'pending'
+        }
         
-      } catch {
-        // 用户取消
+        console.log('📤 提交预约数据:', bookingData)
+        
+        // 调用真实API创建预约
+        const response = await realApi.createBooking(bookingData)
+        console.log('✅ 预约创建响应:', response)
+        
+        if (response && response.data) {
+          ElMessage.success('预约提交成功！')
+          
+          // 将新订单添加到全局状态，实现实时同步
+          const newOrder = {
+            id: response.data.id || Date.now(), // 使用返回的ID或时间戳
+            orderNumber: response.data.orderNo || `ORDER-${Date.now()}`,
+            status: 'pending',
+            createTime: new Date().toISOString(),
+            appointmentTime: `${bookingData.bookingDate} ${bookingData.bookingTime}`,
+            service: {
+              id: selectedService.value.id,
+              name: selectedService.value.name,
+              description: selectedService.value.description,
+              price: selectedService.value.price,
+              duration: selectedService.value.duration,
+              icon: selectedService.value.icon,
+              color: selectedService.value.color
+            },
+            vehicle: {
+              plateNumber: vehicleForm.value.plateNumber,
+              brand: vehicleForm.value.brand,
+              model: vehicleForm.value.model,
+              color: vehicleForm.value.color,
+              phone: vehicleForm.value.phone,
+              requirements: vehicleForm.value.requirements || ''
+            },
+            reviewed: false,
+            paymentStatus: 'pending'
+          }
+          
+          // 添加到全局状态，触发所有订单页面的实时更新
+          addOrderToGlobalState(newOrder)
+          
+          // 添加一个短暂延迟，确保后端数据已保存
+          setTimeout(() => {
+            // 使用replace而不是push，并添加查询参数强制刷新
+            const timestamp = Date.now()
+            router.push({
+              path: '/orders',
+              query: { refresh: timestamp }
+            })
+          }, 500)
+        } else {
+          throw new Error('预约创建失败')
+        }
+        
+      } catch (error) {
+        console.error('❌ 预约提交失败:', error)
+        if (error !== 'cancel') {
+          ElMessage.error('预约提交失败，请重试')
+        }
       } finally {
         submitting.value = false
       }

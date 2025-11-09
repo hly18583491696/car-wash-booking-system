@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员前端跳转测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid #2196F3;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 管理员前端跳转测试</h1>
+        
+        <div class="test-section">
+            <h3>📋 测试说明</h3>
+            <p>此页面用于测试管理员登录后跳转到前端管理页面的功能。</p>
+            <div class="step">
+                <strong>步骤 1:</strong> 使用管理员账号登录 (admin / admin123)
+            </div>
+            <div class="step">
+                <strong>步骤 2:</strong> 验证是否跳转到前端管理页面 (/admin)
+            </div>
+            <div class="step">
+                <strong>步骤 3:</strong> 检查管理页面是否正常显示
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 管理员登录测试</h3>
+            <form class="test-form" id="loginForm">
+                <input type="text" id="username" placeholder="用户名" value="admin">
+                <input type="password" id="password" placeholder="密码" value="admin123">
+                <button type="submit" id="loginBtn">登录测试</button>
+            </form>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 测试结果</h3>
+            <div id="testResults">
+                <p>等待测试结果...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 快速链接</h3>
+            <p>
+                <a href="http://localhost:3000/login" style="color: #fff; text-decoration: underline;">前端登录页面</a> |
+                <a href="http://localhost:3000/admin/dashboard" style="color: #fff; text-decoration: underline;">前端管理页面</a> |
+                <a href="http://localhost:3000/" style="color: #fff; text-decoration: underline;">前端首页</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const result = document.getElementById('loginResult');
+            const testResults = document.getElementById('testResults');
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = '登录中...';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.code === 200) {
+                    // 存储token和用户信息
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('tokenType', data.data.tokenType);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.user));
+                    localStorage.setItem('userRole', data.data.user.role);
+                    
+                    result.className = 'result success';
+                    result.textContent = `登录成功！用户角色: ${data.data.user.role}`;
+                    result.style.display = 'block';
+                    
+                    testResults.innerHTML = `
+                        <div class="success">
+                            <h4>✅ 登录测试通过</h4>
+                            <p><strong>用户:</strong> ${data.data.user.username}</p>
+                            <p><strong>角色:</strong> ${data.data.user.role}</p>
+                            <p><strong>Token:</strong> ${data.data.token.substring(0, 20)}...</p>
+                        </div>
+                    `;
+                    
+                    // 如果是管理员，测试跳转
+                    if (data.data.user.role === 'admin') {
+                        setTimeout(() => {
+                            testResults.innerHTML += `
+                                <div class="info">
+                                    <h4>🔄 正在跳转到前端管理页面...</h4>
+                                    <p>3秒后自动跳转到 /admin</p>
+                                </div>
+                            `;
+                            
+                            setTimeout(() => {
+                                window.location.href = '/admin/dashboard';
+                            }, 3000);
+                        }, 1000);
+                    }
+                    
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `登录失败: ${data.message || '未知错误'}`;
+                    result.style.display = 'block';
+                    
+                    testResults.innerHTML = `
+                        <div class="error">
+                            <h4>❌ 登录测试失败</h4>
+                            <p>${data.message || '未知错误'}</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `网络错误: ${error.message}`;
+                result.style.display = 'block';
+                
+                testResults.innerHTML = `
+                    <div class="error">
+                        <h4>❌ 网络连接失败</h4>
+                        <p>${error.message}</p>
+                        <p>请确保后端服务正在运行 (http://localhost:8080)</p>
+                    </div>
+                `;
+            }
+            
+            loginBtn.disabled = false;
+            loginBtn.textContent = '登录测试';
+        });
+        
+        // 页面加载时检查当前状态
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('token');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (token && userRole) {
+                document.getElementById('testResults').innerHTML = `
+                    <div class="info">
+                        <h4>ℹ️ 当前登录状态</h4>
+                        <p><strong>已登录角色:</strong> ${userRole}</p>
+                        <p><strong>Token存在:</strong> 是</p>
+                        ${userRole === 'admin' ? '<p><a href="/admin/dashboard" style="color: #fff;">点击访问管理页面</a></p>' : ''}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

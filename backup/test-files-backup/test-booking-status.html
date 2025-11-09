@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约状态更新测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-completed { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        
+        .btn {
+            padding: 6px 12px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        
+        .btn:hover { opacity: 0.8; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .log-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 预约状态更新功能测试</h1>
+        <p>使用模拟数据测试订单状态更新功能</p>
+        <div>
+            <button class="btn btn-info" onclick="window.open('http://localhost:3001/admin', '_blank')">
+                🚀 打开管理后台
+            </button>
+            <button class="btn btn-primary" onclick="resetTestData()">
+                🔄 重置测试数据
+            </button>
+            <button class="btn btn-warning" onclick="clearLog()">
+                🗑️ 清空日志
+            </button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 当前测试数据</h2>
+        <table id="orderTable">
+            <thead>
+                <tr>
+                    <th>订单ID</th>
+                    <th>客户姓名</th>
+                    <th>联系电话</th>
+                    <th>服务项目</th>
+                    <th>预约时间</th>
+                    <th>价格</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="orderTableBody">
+                <!-- 数据将通过JavaScript填充 -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 测试说明</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3>🔄 状态流转规则</h3>
+                <ul>
+                    <li><strong>待确认 → 已确认:</strong> 点击"确认"按钮</li>
+                    <li><strong>已确认 → 进行中:</strong> 点击"开始服务"按钮</li>
+                    <li><strong>进行中 → 已完成:</strong> 点击"完成服务"按钮</li>
+                    <li><strong>待确认/已确认 → 已取消:</strong> 点击"取消"按钮</li>
+                </ul>
+            </div>
+            <div>
+                <h3>🧪 测试步骤</h3>
+                <ol>
+                    <li>观察上方表格中的订单状态</li>
+                    <li>点击相应的操作按钮</li>
+                    <li>查看状态是否立即更新</li>
+                    <li>检查下方的操作日志</li>
+                    <li>在管理后台中验证同步效果</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 操作日志</h2>
+        <div id="logArea" class="log-area">
+            <div class="info">等待操作...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 模拟订单数据
+        let orders = [
+            {
+                id: 1,
+                userName: '张三',
+                userPhone: '13800138001',
+                serviceName: '基础洗车',
+                appointmentTime: '2024-10-25 10:00:00',
+                price: 50,
+                status: 'pending'
+            },
+            {
+                id: 2,
+                userName: '李四',
+                userPhone: '13800138002',
+                serviceName: '精洗服务',
+                appointmentTime: '2024-10-25 14:00:00',
+                price: 100,
+                status: 'confirmed'
+            },
+            {
+                id: 3,
+                userName: '王五',
+                userPhone: '13800138003',
+                serviceName: '打蜡服务',
+                appointmentTime: '2024-10-25 16:00:00',
+                price: 150,
+                status: 'processing'
+            },
+            {
+                id: 4,
+                userName: '赵六',
+                userPhone: '13800138004',
+                serviceName: '内饰清洁',
+                appointmentTime: '2024-10-25 09:00:00',
+                price: 80,
+                status: 'completed'
+            }
+        ];
+
+        // 状态映射
+        const statusMap = {
+            'pending': { text: '待确认', class: 'status-pending' },
+            'confirmed': { text: '已确认', class: 'status-confirmed' },
+            'processing': { text: '进行中', class: 'status-processing' },
+            'completed': { text: '已完成', class: 'status-completed' },
+            'cancelled': { text: '已取消', class: 'status-cancelled' }
+        };
+
+        // 日志函数
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // 模拟API调用
+        async function mockApiCall(action, orderId, newStatus) {
+            log(`🔄 ${action}，订单ID: ${orderId}`, 'info');
+            
+            // 模拟网络延迟
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // 更新本地数据
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                const oldStatus = order.status;
+                order.status = newStatus;
+                log(`✅ ${action}成功，状态更新: ${oldStatus} → ${newStatus}`, 'success');
+                renderTable();
+                return true;
+            } else {
+                log(`❌ ${action}失败，订单不存在`, 'error');
+                return false;
+            }
+        }
+
+        // 确认预约
+        async function confirmBooking(orderId) {
+            await mockApiCall('确认预约', orderId, 'confirmed');
+        }
+
+        // 开始服务
+        async function startService(orderId) {
+            await mockApiCall('开始服务', orderId, 'processing');
+        }
+
+        // 完成服务
+        async function completeService(orderId) {
+            await mockApiCall('完成服务', orderId, 'completed');
+        }
+
+        // 取消预约
+        async function cancelBooking(orderId) {
+            if (confirm('确定要取消这个预约吗？')) {
+                await mockApiCall('取消预约', orderId, 'cancelled');
+            }
+        }
+
+        // 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('orderTableBody');
+            tbody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                const statusInfo = statusMap[order.status];
+                
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.userName}</td>
+                    <td>${order.userPhone}</td>
+                    <td>${order.serviceName}</td>
+                    <td>${order.appointmentTime}</td>
+                    <td>¥${order.price}</td>
+                    <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
+                    <td>
+                        ${order.status === 'pending' ? 
+                            `<button class="btn btn-primary" onclick="confirmBooking(${order.id})">确认</button>` : ''}
+                        ${order.status === 'confirmed' ? 
+                            `<button class="btn btn-success" onclick="startService(${order.id})">开始服务</button>` : ''}
+                        ${order.status === 'processing' ? 
+                            `<button class="btn btn-warning" onclick="completeService(${order.id})">完成服务</button>` : ''}
+                        ${['pending', 'confirmed'].includes(order.status) ? 
+                            `<button class="btn btn-danger" onclick="cancelBooking(${order.id})">取消</button>` : ''}
+                        <button class="btn btn-info" onclick="viewDetail(${order.id})">详情</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 查看详情
+        function viewDetail(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                log(`👁️ 查看订单详情: ${JSON.stringify(order)}`, 'info');
+                alert(`订单详情:\\n${JSON.stringify(order, null, 2)}`);
+            }
+        }
+
+        // 重置测试数据
+        function resetTestData() {
+            orders = [
+                {
+                    id: 1,
+                    userName: '张三',
+                    userPhone: '13800138001',
+                    serviceName: '基础洗车',
+                    appointmentTime: '2024-10-25 10:00:00',
+                    price: 50,
+                    status: 'pending'
+                },
+                {
+                    id: 2,
+                    userName: '李四',
+                    userPhone: '13800138002',
+                    serviceName: '精洗服务',
+                    appointmentTime: '2024-10-25 14:00:00',
+                    price: 100,
+                    status: 'confirmed'
+                },
+                {
+                    id: 3,
+                    userName: '王五',
+                    userPhone: '13800138003',
+                    serviceName: '打蜡服务',
+                    appointmentTime: '2024-10-25 16:00:00',
+                    price: 150,
+                    status: 'processing'
+                },
+                {
+                    id: 4,
+                    userName: '赵六',
+                    userPhone: '13800138004',
+                    serviceName: '内饰清洁',
+                    appointmentTime: '2024-10-25 09:00:00',
+                    price: 80,
+                    status: 'completed'
+                }
+            ];
+            renderTable();
+            log('🔄 测试数据已重置', 'info');
+        }
+
+        // 清空日志
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '<div class="info">日志已清空...</div>';
+        }
+
+        // 将函数暴露到全局作用域
+        window.confirmBooking = confirmBooking;
+        window.startService = startService;
+        window.completeService = completeService;
+        window.cancelBooking = cancelBooking;
+        window.viewDetail = viewDetail;
+        window.resetTestData = resetTestData;
+        window.clearLog = clearLog;
+
+        // 初始化
+        renderTable();
+        log('🚀 测试页面已加载，可以开始测试状态更新功能', 'success');
+    </script>
+</body>
+</html>

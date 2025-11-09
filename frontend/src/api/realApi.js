@@ -115,6 +115,161 @@ export const realApi = {
     })
   },
 
+  // ==================== 统计相关 ====================
+  
+  // 获取统计概览
+  async getStatisticsOverview() {
+    return request.get('/statistics/overview')
+  },
+
+  // 获取今日统计
+  async getTodayStatistics() {
+    return request.get('/statistics/today')
+  },
+
+  // 获取预约趋势
+  async getBookingTrend(period) {
+    return request.get('/statistics/booking-trend', {
+      params: { period }
+    })
+  },
+
+  // 获取服务分布
+  async getServiceDistribution() {
+    return request.get('/statistics/service-distribution')
+  },
+
+  // 获取收入统计
+  async getRevenueStatistics(type) {
+    return request.get('/statistics/revenue', {
+      params: { type }
+    })
+  },
+
+  // 获取时段热力图
+  async getTimeSlotHeatmap() {
+    return request.get('/statistics/time-slot-heatmap')
+  },
+
+  // 获取客户满意度
+  async getCustomerSatisfaction() {
+    return request.get('/statistics/customer-satisfaction')
+  },
+
+  // ==================== 订单相关 ====================
+  
+  // 获取订单列表（管理员）
+  async getOrderList(params = {}) {
+    return request.get('/bookings/admin/all', { params })
+  },
+
+  // 获取订单详情
+  async getOrderById(id) {
+    return request.get(`/bookings/${id}`)
+  },
+
+  // 根据订单号获取订单详情
+  async getBookingByOrderNo(orderNo) {
+    return request.get(`/bookings/order/${encodeURIComponent(orderNo)}`)
+  },
+
+  // 更新订单状态
+  async updateOrderStatus(orderId, status) {
+    return request.put(`/bookings/${orderId}/status`, null, {
+      params: { status }
+    })
+  },
+
+  // 获取用户订单
+  async getUserOrders(userId) {
+    const normalizedUserId = userId != null ? String(userId).trim() : ''
+    console.log('🔍 realApi.getUserOrders被调用，用户ID:', normalizedUserId)
+    if (!normalizedUserId) {
+      const err = new Error('INVALID_PARAMETERS: userId 缺失或无效')
+      console.error('❌ 参数错误:', err.message)
+      throw err
+    }
+
+    const url = `/bookings/user/${encodeURIComponent(normalizedUserId)}`
+    console.log('📡 准备发送请求到:', url)
+    
+    try {
+      const response = await request.get(url, { timeout: 5000 })
+      console.log('✅ realApi.getUserOrders请求成功，响应:', response)
+      return response
+    } catch (error) {
+      console.error('❌ realApi.getUserOrders请求失败:', error)
+      console.error('❌ 错误详情:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url
+      })
+      // 提供更清晰的错误信息
+      const status = error.response?.status
+      if (status === 401) {
+        error.message = '未授权，请登录后重试'
+      } else if (status === 404) {
+        error.message = '用户订单不存在或路径错误'
+      } else if (status === 500) {
+        error.message = '服务器内部错误，请稍后重试'
+      }
+      throw error
+    }
+  },
+
+  // 取消订单
+  async cancelOrder(orderId, reason) {
+    return request.put(`/bookings/${orderId}/cancel`, null, {
+      params: { reason }
+    })
+  },
+
+  // 删除订单（管理员专用）
+  async deleteOrder(orderId) {
+    return request.delete(`/bookings/${orderId}`)
+  },
+
+  // 创建预约订单
+  async createBooking(bookingData) {
+    return request.post('/bookings', bookingData)
+  },
+
+  // ==================== 用户管理相关 ====================
+  
+  // 获取用户列表（管理员专用）
+  async getUserList(params = {}) {
+    return request.get('/user/admin/list', { params })
+  },
+
+  // 获取用户详情
+  async getUserById(id) {
+    return request.get(`/user/info`)
+  },
+
+  // 更新用户信息
+  async updateUser(userId, userData) {
+    return request.put(`/user/info`, userData)
+  },
+
+  // 更新用户状态（管理员专用）
+  async updateUserStatus(userId, status) {
+    return request.put(`/user/admin/${userId}/status`, null, {
+      params: { status }
+    })
+  },
+
+  // 删除用户（管理员专用）
+  async deleteUser(userId) {
+    return request.delete(`/user/admin/${userId}`)
+  },
+
+  // 获取用户统计
+  async getUserStatistics() {
+    return request.get('/statistics/users')
+  },
+
   // ==================== 测试相关 ====================
   
   // 健康检查
@@ -135,6 +290,30 @@ export const realApi = {
   // 数据库测试
   async testDatabase() {
     return request.get('/test/database')
+  },
+
+  // ==================== 数据同步相关 ====================
+  
+  // 数据同步健康检查
+  async dataSyncHealthCheck() {
+    return request.get('/data-sync/health')
+  },
+
+  // 数据一致性验证
+  async dataSyncConsistencyCheck() {
+    return request.get('/data-sync/consistency-check')
+  },
+
+  // 数据同步修复
+  async dataSyncRepair(repairType) {
+    return request.post('/data-sync/repair', null, {
+      params: { repairType }
+    })
+  },
+
+  // 获取同步统计信息
+  async dataSyncStatistics() {
+    return request.get('/data-sync/statistics')
   }
 }
 

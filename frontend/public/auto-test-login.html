@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动化登录测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .auto-test {
+            background-color: #28a745;
+        }
+        .auto-test:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 自动化登录测试</h1>
+    
+    <div class="test-section">
+        <h2>🚀 自动测试控制</h2>
+        <button class="auto-test" onclick="runAllTests()">运行所有测试</button>
+        <button onclick="clearResults()">清除结果</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 测试结果</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let testResults = [];
+
+        function addResult(test, status, message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const result = {
+                test,
+                status,
+                message,
+                data,
+                timestamp
+            };
+            testResults.push(result);
+            displayResults();
+        }
+
+        function displayResults() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = testResults.map(result => {
+                const statusClass = result.status === 'success' ? 'success' : 
+                                  result.status === 'error' ? 'error' : 
+                                  result.status === 'loading' ? 'loading' : 'info';
+                
+                let content = `<strong>[${result.timestamp}] ${result.test}</strong><br>${result.message}`;
+                if (result.data) {
+                    content += `<br><pre>${JSON.stringify(result.data, null, 2)}</pre>`;
+                }
+                
+                return `<div class="test-result ${statusClass}">${content}</div>`;
+            }).join('');
+            
+            // 滚动到最新结果
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearResults() {
+            testResults = [];
+            displayResults();
+        }
+
+        async function testBackendConnection() {
+            addResult('后端连接测试', 'loading', '正在测试后端连接...');
+            try {
+                // 使用一个简单的OPTIONS请求测试连接
+                const response = await axios.options(`${API_BASE}/auth/login`, {
+                    timeout: 5000
+                });
+                addResult('后端连接测试', 'success', '后端连接成功', {status: response.status});
+                return true;
+            } catch (error) {
+                // 如果OPTIONS失败，尝试直接访问登录端点（会返回405但证明连接正常）
+                try {
+                    await axios.get(`${API_BASE}/auth/login`);
+                } catch (getError) {
+                    if (getError.response && getError.response.status === 405) {
+                        addResult('后端连接测试', 'success', '后端连接成功（通过405响应确认）', {status: 405});
+                        return true;
+                    }
+                }
+                addResult('后端连接测试', 'error', `后端连接失败: ${error.message}`, error.response?.data);
+                return false;
+            }
+        }
+
+        async function testDatabaseUser() {
+            addResult('数据库用户查询', 'info', '跳过数据库用户查询（无对应API端点）');
+            return true;
+        }
+
+        async function testAdminLogin() {
+            addResult('管理员登录测试', 'loading', '正在测试admin登录...');
+            try {
+                const loginData = {
+                    username: 'admin',
+                    password: 'admin123'
+                };
+                
+                const response = await axios.post(`${API_BASE}/auth/login`, loginData, {
+                    timeout: 10000,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.data.success && response.data.data.token) {
+                    // 保存token
+                    localStorage.setItem('token', response.data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(response.data.data.userInfo));
+                    
+                    addResult('管理员登录测试', 'success', '管理员登录成功！', {
+                        token: response.data.data.token.substring(0, 20) + '...',
+                        userInfo: response.data.data.userInfo
+                    });
+                    return true;
+                } else {
+                    addResult('管理员登录测试', 'error', '登录响应格式异常', response.data);
+                    return false;
+                }
+            } catch (error) {
+                addResult('管理员登录测试', 'error', `登录失败: ${error.message}`, {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    config: {
+                        url: error.config?.url,
+                        method: error.config?.method,
+                        data: error.config?.data
+                    }
+                });
+                return false;
+            }
+        }
+
+        async function testAuthStatus() {
+            addResult('认证状态测试', 'loading', '正在检查认证状态...');
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    addResult('认证状态测试', 'error', '未找到token，请先登录');
+                    return false;
+                }
+
+                const response = await axios.get(`${API_BASE}/auth/status`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    timeout: 5000
+                });
+                
+                addResult('认证状态测试', 'success', '认证状态检查成功', response.data);
+                return true;
+            } catch (error) {
+                addResult('认证状态测试', 'error', `认证状态检查失败: ${error.message}`, error.response?.data);
+                return false;
+            }
+        }
+
+        async function testPaymentRecords() {
+            addResult('支付记录访问测试', 'loading', '正在测试支付记录页面访问...');
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    addResult('支付记录访问测试', 'error', '未找到token，请先登录');
+                    return false;
+                }
+
+                const response = await axios.get(`${API_BASE}/payment/records`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    params: {
+                        page: 1,
+                        size: 10
+                    },
+                    timeout: 10000
+                });
+                
+                addResult('支付记录访问测试', 'success', '支付记录访问成功', {
+                    total: response.data.data?.total || 0,
+                    records: response.data.data?.records?.length || 0
+                });
+                return true;
+            } catch (error) {
+                addResult('支付记录访问测试', 'error', `支付记录访问失败: ${error.message}`, {
+                    status: error.response?.status,
+                    data: error.response?.data
+                });
+                return false;
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            addResult('自动化测试', 'info', '开始运行所有测试...');
+            
+            // 1. 测试后端连接
+            const backendOk = await testBackendConnection();
+            if (!backendOk) {
+                addResult('自动化测试', 'error', '后端连接失败，停止测试');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 2. 测试数据库用户
+            await testDatabaseUser();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 3. 测试登录
+            const loginOk = await testAdminLogin();
+            if (!loginOk) {
+                addResult('自动化测试', 'error', '登录失败，停止后续测试');
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 4. 测试认证状态
+            await testAuthStatus();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 5. 测试支付记录访问
+            await testPaymentRecords();
+            
+            addResult('自动化测试', 'success', '所有测试完成！');
+        }
+
+        // 页面加载完成后显示初始状态
+        window.onload = function() {
+            addResult('系统初始化', 'info', '自动化测试页面已加载，点击"运行所有测试"开始测试');
+        };
+    </script>
+</body>
+</html>

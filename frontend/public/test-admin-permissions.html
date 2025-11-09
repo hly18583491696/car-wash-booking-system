@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员权限测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .api-test {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #409EFF;
+            border-radius: 4px;
+        }
+        .success {
+            color: #67C23A;
+            font-weight: bold;
+        }
+        .error {
+            color: #F56C6C;
+            font-weight: bold;
+        }
+        .warning {
+            color: #E6A23C;
+            font-weight: bold;
+        }
+        .info {
+            color: #409EFF;
+            font-weight: bold;
+        }
+        button {
+            background: #409EFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #337ecc;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .auth-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 管理员权限测试页面</h1>
+    
+    <div class="auth-info">
+        <h3>📋 当前认证状态</h3>
+        <div id="auth-info">正在检查...</div>
+        <button onclick="checkAuthStatus()">刷新认证状态</button>
+        <button onclick="clearAuth()">清除认证信息</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🔑 快速登录</h3>
+        <div>
+            <input type="text" id="username" placeholder="用户名" value="admin" style="margin: 5px; padding: 8px;">
+            <input type="password" id="password" placeholder="密码" value="admin123" style="margin: 5px; padding: 8px;">
+            <button onclick="quickLogin()">管理员登录</button>
+        </div>
+        <div id="login-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>👥 用户管理API测试</h3>
+        <div class="api-test">
+            <strong>GET /api/user/admin/list - 获取所有用户</strong>
+            <button onclick="testAPI('GET', '/api/user/admin/list', null, 'user-list-result')">测试</button>
+            <div id="user-list-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 预约管理API测试</h3>
+        <div class="api-test">
+            <strong>GET /api/bookings/admin/all - 获取所有预约</strong>
+            <button onclick="testAPI('GET', '/api/bookings/admin/all', null, 'booking-list-result')">测试</button>
+            <div id="booking-list-result" class="result" style="display: none;"></div>
+        </div>
+        <div class="api-test">
+            <strong>GET /api/bookings/admin/sync-check - 同步检查</strong>
+            <button onclick="testAPI('GET', '/api/bookings/admin/sync-check', null, 'sync-check-result')">测试</button>
+            <div id="sync-check-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🛠️ 服务管理API测试</h3>
+        <div class="api-test">
+            <strong>GET /api/services/admin/all - 获取所有服务</strong>
+            <button onclick="testAPI('GET', '/api/services/admin/all', null, 'service-list-result')">测试</button>
+            <div id="service-list-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>💳 支付管理API测试</h3>
+        <div class="api-test">
+            <strong>GET /api/payments/admin/records - 获取支付记录</strong>
+            <button onclick="testAPI('GET', '/api/payments/admin/records', null, 'payment-records-result')">测试</button>
+            <div id="payment-records-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔧 系统诊断API测试</h3>
+        <div class="api-test">
+            <strong>GET /api/debug/health - 系统健康检查</strong>
+            <button onclick="testAPI('GET', '/api/debug/health', null, 'health-result')">测试</button>
+            <div id="health-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🚀 批量测试</h3>
+        <button onclick="testAllAPIs()">测试所有管理员API</button>
+        <div id="batch-result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        
+        // 检查认证状态
+        function checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('userInfo');
+            const authInfo = document.getElementById('auth-info');
+            
+            if (!token) {
+                authInfo.innerHTML = '<span class="error">❌ 未登录</span>';
+                return false;
+            }
+            
+            try {
+                const user = JSON.parse(userInfo || '{}');
+                authInfo.innerHTML = `
+                    <span class="success">✅ 已登录</span><br>
+                    用户名: ${user.username || 'N/A'}<br>
+                    角色: ${user.role || 'N/A'}<br>
+                    Token: ${token.substring(0, 20)}...
+                `;
+                return true;
+            } catch (e) {
+                authInfo.innerHTML = '<span class="error">❌ 认证信息格式错误</span>';
+                return false;
+            }
+        }
+        
+        // 清除认证信息
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            checkAuthStatus();
+        }
+        
+        // 快速登录
+        async function quickLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('login-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '正在登录...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.data.userInfo));
+                    resultDiv.innerHTML = '<span class="success">✅ 登录成功</span>';
+                    checkAuthStatus();
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ 登录失败: ${data.message || '未知错误'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 登录错误: ${error.message}</span>`;
+            }
+        }
+        
+        // 测试API
+        async function testAPI(method, endpoint, body, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '正在测试...';
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                resultDiv.innerHTML = '<span class="error">❌ 请先登录</span>';
+                return;
+            }
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+                
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                const data = await response.json();
+                
+                let statusText = '';
+                if (response.ok) {
+                    statusText = '<span class="success">✅ 成功</span>';
+                } else if (response.status === 403) {
+                    statusText = '<span class="error">❌ 权限不足 (403)</span>';
+                } else if (response.status === 401) {
+                    statusText = '<span class="error">❌ 未授权 (401)</span>';
+                } else {
+                    statusText = `<span class="error">❌ 失败 (${response.status})</span>`;
+                }
+                
+                resultDiv.innerHTML = `
+                    ${statusText}
+                    状态码: ${response.status}
+                    响应数据: ${JSON.stringify(data, null, 2)}
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 请求错误: ${error.message}</span>`;
+            }
+        }
+        
+        // 批量测试所有API
+        async function testAllAPIs() {
+            const resultDiv = document.getElementById('batch-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '正在批量测试所有管理员API...';
+            
+            const apis = [
+                { name: '用户列表', method: 'GET', endpoint: '/api/user/admin/list' },
+                { name: '预约列表', method: 'GET', endpoint: '/api/bookings/admin/all' },
+                { name: '同步检查', method: 'GET', endpoint: '/api/bookings/admin/sync-check' },
+                { name: '服务列表', method: 'GET', endpoint: '/api/services/admin/all' },
+                { name: '支付记录', method: 'GET', endpoint: '/api/payments/admin/records' },
+                { name: '系统健康', method: 'GET', endpoint: '/api/debug/health' }
+            ];
+            
+            let results = '批量测试结果:\n\n';
+            
+            for (const api of apis) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${API_BASE}${api.endpoint}`, {
+                        method: api.method,
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        results += `✅ ${api.name}: 成功 (${response.status})\n`;
+                    } else if (response.status === 403) {
+                        results += `❌ ${api.name}: 权限不足 (403)\n`;
+                    } else if (response.status === 401) {
+                        results += `❌ ${api.name}: 未授权 (401)\n`;
+                    } else {
+                        results += `❌ ${api.name}: 失败 (${response.status})\n`;
+                    }
+                } catch (error) {
+                    results += `❌ ${api.name}: 错误 - ${error.message}\n`;
+                }
+            }
+            
+            resultDiv.textContent = results;
+        }
+        
+        // 页面加载时检查认证状态
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

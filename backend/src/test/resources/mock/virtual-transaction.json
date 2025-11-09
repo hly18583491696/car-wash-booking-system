@@ -1,0 +1,9 @@
+{
+  "orderNo": "ORDER-MOCK-001",
+  "amount": "12.34",
+  "paymentMethod": "virtual",
+  "channel": "qr",
+  "extra": {
+    "note": "sanitized test fixture"
+  }
+}

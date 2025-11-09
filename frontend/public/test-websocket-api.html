@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket API测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input, select {
+            width: 200px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .log-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f8f9fa;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .log-entry.info {
+            background-color: #e3f2fd;
+            border-left: 3px solid #2196f3;
+        }
+        .log-entry.success {
+            background-color: #e8f5e8;
+            border-left: 3px solid #4caf50;
+        }
+        .log-entry.error {
+            background-color: #ffebee;
+            border-left: 3px solid #f44336;
+        }
+        .log-entry.websocket {
+            background-color: #fff3e0;
+            border-left: 3px solid #ff9800;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 11px;
+        }
+        .api-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .api-result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .api-result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket API测试工具</h1>
+        
+        <!-- WebSocket连接状态 -->
+        <div id="connectionStatus" class="status disconnected">
+            WebSocket未连接
+        </div>
+        
+        <!-- WebSocket连接控制 -->
+        <div class="test-section">
+            <h3>🔌 WebSocket连接管理</h3>
+            <div class="form-group">
+                <label>用户ID:</label>
+                <input type="number" id="userId" value="1" min="1">
+            </div>
+            <button id="connectBtn" onclick="connectWebSocket()">连接WebSocket</button>
+            <button id="disconnectBtn" onclick="disconnectWebSocket()" disabled>断开连接</button>
+            <button onclick="sendPing()">发送心跳</button>
+        </div>
+        
+        <!-- API测试 -->
+        <div class="test-section">
+            <h3>🧪 WebSocket API测试</h3>
+            
+            <!-- 健康检查 -->
+            <div style="margin-bottom: 20px;">
+                <h4>健康检查</h4>
+                <button onclick="testHealthCheck()">检查WebSocket服务状态</button>
+                <button onclick="testConnectionCount()">获取连接数</button>
+                <div id="healthResult" class="api-result" style="display: none;"></div>
+            </div>
+            
+            <!-- 订单状态推送测试 -->
+            <div>
+                <h4>订单状态推送测试</h4>
+                <div class="form-group">
+                    <label>目标用户ID:</label>
+                    <input type="number" id="targetUserId" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>订单ID:</label>
+                    <input type="number" id="orderId" value="1001" min="1">
+                </div>
+                <div class="form-group">
+                    <label>订单号:</label>
+                    <input type="text" id="orderNo" value="ORDER-2025-001">
+                </div>
+                <div class="form-group">
+                    <label>原状态:</label>
+                    <select id="oldStatus">
+                        <option value="pending">待处理</option>
+                        <option value="confirmed">已确认</option>
+                        <option value="in_progress">进行中</option>
+                        <option value="completed">已完成</option>
+                        <option value="cancelled">已取消</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>新状态:</label>
+                    <select id="newStatus">
+                        <option value="confirmed">已确认</option>
+                        <option value="in_progress">进行中</option>
+                        <option value="completed">已完成</option>
+                        <option value="cancelled">已取消</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>更新原因:</label>
+                    <input type="text" id="updateReason" value="测试订单状态更新">
+                </div>
+                <button onclick="testPushOrderStatus()">推送订单状态更新</button>
+                <div id="pushResult" class="api-result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <!-- 日志显示 -->
+        <div class="test-section">
+            <h3>📋 实时日志</h3>
+            <button onclick="clearLogs()">清空日志</button>
+            <div id="logContainer" class="log-container"></div>
+        </div>
+    </div>
+
+    <script>
+        let websocket = null;
+        let userId = null;
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 清空日志
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        // 更新连接状态
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            
+            if (connected) {
+                statusElement.textContent = `WebSocket已连接 (用户ID: ${userId})`;
+                statusElement.className = 'status connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else {
+                statusElement.textContent = 'WebSocket未连接';
+                statusElement.className = 'status disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            }
+        }
+
+        // 连接WebSocket
+        function connectWebSocket() {
+            userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('请输入用户ID');
+                return;
+            }
+
+            const wsUrl = `ws://localhost:8080/ws/order-status?userId=${userId}`;
+            addLog(`尝试连接到: ${wsUrl}`, 'info');
+
+            try {
+                websocket = new WebSocket(wsUrl);
+
+                websocket.onopen = function(event) {
+                    addLog('✅ WebSocket连接已建立', 'success');
+                    updateConnectionStatus(true);
+                };
+
+                websocket.onmessage = function(event) {
+                    addLog(`📨 收到消息: ${event.data}`, 'websocket');
+                    try {
+                        const message = JSON.parse(event.data);
+                        if (message.type === 'order_status_update') {
+                            addLog(`📦 订单状态更新: ${JSON.stringify(message.data, null, 2)}`, 'websocket');
+                        }
+                    } catch (e) {
+                        // 非JSON消息，直接显示
+                    }
+                };
+
+                websocket.onclose = function(event) {
+                    addLog(`❌ WebSocket连接已关闭: ${event.code} - ${event.reason}`, 'error');
+                    updateConnectionStatus(false);
+                };
+
+                websocket.onerror = function(error) {
+                    addLog(`❌ WebSocket错误: ${error}`, 'error');
+                    updateConnectionStatus(false);
+                };
+
+            } catch (error) {
+                addLog(`❌ 连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 断开WebSocket
+        function disconnectWebSocket() {
+            if (websocket) {
+                websocket.close();
+                websocket = null;
+            }
+        }
+
+        // 发送心跳
+        function sendPing() {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send('ping');
+                addLog('💓 发送心跳: ping', 'info');
+            } else {
+                alert('WebSocket未连接');
+            }
+        }
+
+        // 测试健康检查
+        async function testHealthCheck() {
+            try {
+                addLog('🔍 测试WebSocket健康检查...', 'info');
+                const response = await fetch('http://localhost:8080/api/test/websocket/health');
+                const result = await response.text();
+                
+                const resultElement = document.getElementById('healthResult');
+                resultElement.style.display = 'block';
+                resultElement.className = 'api-result success';
+                resultElement.textContent = result;
+                
+                addLog(`✅ 健康检查结果: ${result}`, 'success');
+            } catch (error) {
+                const resultElement = document.getElementById('healthResult');
+                resultElement.style.display = 'block';
+                resultElement.className = 'api-result error';
+                resultElement.textContent = `错误: ${error.message}`;
+                
+                addLog(`❌ 健康检查失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试连接数
+        async function testConnectionCount() {
+            try {
+                addLog('🔍 获取WebSocket连接数...', 'info');
+                const response = await fetch('http://localhost:8080/api/test/websocket/connection-count');
+                const result = await response.text();
+                
+                const resultElement = document.getElementById('healthResult');
+                resultElement.style.display = 'block';
+                resultElement.className = 'api-result success';
+                resultElement.textContent = result;
+                
+                addLog(`✅ 连接数查询结果: ${result}`, 'success');
+            } catch (error) {
+                const resultElement = document.getElementById('healthResult');
+                resultElement.style.display = 'block';
+                resultElement.className = 'api-result error';
+                resultElement.textContent = `错误: ${error.message}`;
+                
+                addLog(`❌ 连接数查询失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试推送订单状态
+        async function testPushOrderStatus() {
+            const targetUserId = document.getElementById('targetUserId').value;
+            const orderId = document.getElementById('orderId').value;
+            const orderNo = document.getElementById('orderNo').value;
+            const oldStatus = document.getElementById('oldStatus').value;
+            const newStatus = document.getElementById('newStatus').value;
+            const updateReason = document.getElementById('updateReason').value;
+
+            if (!targetUserId || !orderId || !orderNo) {
+                alert('请填写完整的订单信息');
+                return;
+            }
+
+            try {
+                addLog(`🚀 推送订单状态更新: 用户${targetUserId}, 订单${orderId}, ${oldStatus}→${newStatus}`, 'info');
+                
+                const url = `http://localhost:8080/api/test/websocket/push-order-status?userId=${targetUserId}&orderId=${orderId}&orderNo=${encodeURIComponent(orderNo)}&oldStatus=${oldStatus}&newStatus=${newStatus}&reason=${encodeURIComponent(updateReason)}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST'
+                });
+                const result = await response.text();
+                
+                const resultElement = document.getElementById('pushResult');
+                resultElement.style.display = 'block';
+                resultElement.className = 'api-result success';
+                resultElement.textContent = result;
+                
+                addLog(`✅ 推送结果: ${result}`, 'success');
+            } catch (error) {
+                const resultElement = document.getElementById('pushResult');
+                resultElement.style.display = 'block';
+                resultElement.className = 'api-result error';
+                resultElement.textContent = `错误: ${error.message}`;
+                
+                addLog(`❌ 推送失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载完成后的初始化
+        window.onload = function() {
+            addLog('🎉 WebSocket API测试工具已加载', 'info');
+            addLog('💡 使用说明:', 'info');
+            addLog('1. 首先连接WebSocket (输入用户ID)', 'info');
+            addLog('2. 测试健康检查和连接数查询', 'info');
+            addLog('3. 推送订单状态更新，观察WebSocket是否能实时接收', 'info');
+        };
+    </script>
+</body>
+</html>

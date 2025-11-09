@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -56,4 +57,52 @@ public interface BookingMapper extends BaseMapper<Booking> {
      */
     @Update("UPDATE bookings SET payment_status = #{paymentStatus} WHERE id = #{bookingId}")
     int updatePaymentStatus(@Param("bookingId") Long bookingId, @Param("paymentStatus") String paymentStatus);
+
+    /**
+     * 统计总订单数
+     */
+    @Select("SELECT COUNT(*) FROM bookings WHERE deleted = 0")
+    int countTotalBookings();
+
+    /**
+     * 统计今日订单数
+     */
+    @Select("SELECT COUNT(*) FROM bookings WHERE DATE(created_at) = CURDATE() AND deleted = 0")
+    int countTodayBookings();
+
+    /**
+     * 统计月度订单数
+     */
+    @Select("SELECT COUNT(*) FROM bookings WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE()) AND deleted = 0")
+    int countMonthlyBookings();
+
+    /**
+     * 统计已完成订单数
+     */
+    @Select("SELECT COUNT(*) FROM bookings WHERE status = 'completed' AND deleted = 0")
+    int countCompletedBookings();
+
+    /**
+     * 统计待处理订单数
+     */
+    @Select("SELECT COUNT(*) FROM bookings WHERE status = 'pending' AND deleted = 0")
+    int countPendingBookings();
+
+    /**
+     * 获取总收入
+     */
+    @Select("SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE status = 'completed' AND deleted = 0")
+    BigDecimal getTotalRevenue();
+
+    /**
+     * 获取今日收入
+     */
+    @Select("SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE DATE(created_at) = CURDATE() AND status = 'completed' AND deleted = 0")
+    BigDecimal getTodayRevenue();
+
+    /**
+     * 获取月度收入
+     */
+    @Select("SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE()) AND status = 'completed' AND deleted = 0")
+    BigDecimal getMonthlyRevenue();
 }

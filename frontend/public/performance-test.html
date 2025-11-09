@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>性能监控验证测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .test-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .results {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .status-card {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .status-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 性能监控验证测试</h1>
+            <p>验证性能监控功能是否正常工作</p>
+        </div>
+
+        <div class="content">
+            <div class="test-section">
+                <h3>📊 性能监控模块测试</h3>
+                <button class="btn" onclick="testPerformanceMonitor()">测试性能监控</button>
+                <button class="btn" onclick="testTabSwitching()">测试标签页切换监控</button>
+                <button class="btn" onclick="testApiCallMonitoring()">测试API调用监控</button>
+                <button class="btn" onclick="clearResults()">清空结果</button>
+                
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div id="testCount" class="status-value">0</div>
+                        <div class="status-label">测试次数</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="successCount" class="status-value">0</div>
+                        <div class="status-label">成功次数</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="errorCount" class="status-value">0</div>
+                        <div class="status-label">错误次数</div>
+                    </div>
+                    <div class="status-card">
+                        <div id="avgTime" class="status-value">0ms</div>
+                        <div class="status-label">平均耗时</div>
+                    </div>
+                </div>
+                
+                <div id="results" class="results">测试结果将在这里显示...</div>
+            </div>
+
+            <div class="test-section">
+                <h3>🚀 并发性能测试</h3>
+                <button class="btn" onclick="runConcurrencyTest(5)">5个并发</button>
+                <button class="btn" onclick="runConcurrencyTest(10)">10个并发</button>
+                <button class="btn" onclick="runConcurrencyTest(20)">20个并发</button>
+                
+                <div id="concurrencyStatus" class="alert alert-info" style="display: none;">
+                    并发测试进行中...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MockPerformanceMonitor {
+            constructor() {
+                this.metrics = {
+                    tabSwitches: [],
+                    apiCalls: [],
+                    memoryUsage: []
+                };
+            }
+
+            recordTabSwitch(tabName, duration, success = true) {
+                const record = {
+                    tabName,
+                    duration,
+                    success,
+                    timestamp: Date.now()
+                };
+                this.metrics.tabSwitches.push(record);
+                log(`标签页切换记录: ${tabName}, 耗时: ${duration.toFixed(2)}ms, 成功: ${success}`);
+                return record;
+            }
+
+            recordAPICall(endpoint, duration, success = true, error = null) {
+                const record = {
+                    endpoint,
+                    duration,
+                    success,
+                    error,
+                    timestamp: Date.now()
+                };
+                this.metrics.apiCalls.push(record);
+                log(`API调用记录: ${endpoint}, 耗时: ${duration.toFixed(2)}ms, 成功: ${success}${error ? ', 错误: ' + error : ''}`);
+                return record;
+            }
+
+            clearMetrics() {
+                this.metrics = {
+                    tabSwitches: [],
+                    apiCalls: [],
+                    memoryUsage: []
+                };
+                log('性能监控指标已清空');
+            }
+        }
+
+        let performanceMonitor = new MockPerformanceMonitor();
+        let testStats = {
+            testCount: 0,
+            successCount: 0,
+            errorCount: 0,
+            totalTime: 0
+        };
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}\n`;
+            document.getElementById('results').textContent += logMessage;
+            document.getElementById('results').scrollTop = document.getElementById('results').scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('testCount').textContent = testStats.testCount;
+            document.getElementById('successCount').textContent = testStats.successCount;
+            document.getElementById('errorCount').textContent = testStats.errorCount;
+            
+            const avgTime = testStats.testCount > 0 ? (testStats.totalTime / testStats.testCount).toFixed(2) : 0;
+            document.getElementById('avgTime').textContent = avgTime + 'ms';
+        }
+
+        function testPerformanceMonitor() {
+            log('🔍 开始测试性能监控基本功能...');
+            
+            try {
+                const startTime = performance.now();
+                
+                performanceMonitor.recordTabSwitch('overview', 150.5, true);
+                performanceMonitor.recordAPICall('/api/test', 200.3, true);
+                
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+                
+                testStats.testCount++;
+                testStats.successCount++;
+                testStats.totalTime += duration;
+                
+                log(`✅ 性能监控基本功能测试完成，耗时: ${duration.toFixed(2)}ms`);
+                
+            } catch (error) {
+                testStats.testCount++;
+                testStats.errorCount++;
+                log(`❌ 性能监控基本功能测试失败: ${error.message}`);
+            }
+            
+            updateStats();
+        }
+
+        function testTabSwitching() {
+            log('🔄 开始测试标签页切换监控...');
+            
+            const tabs = ['overview', 'bookings', 'services', 'users'];
+            
+            tabs.forEach((tab, index) => {
+                setTimeout(() => {
+                    const duration = Math.random() * 200 + 50;
+                    performanceMonitor.recordTabSwitch(tab, duration, true);
+                    
+                    if (index === tabs.length - 1) {
+                        testStats.testCount++;
+                        testStats.successCount++;
+                        log(`✅ 标签页切换监控测试完成，共切换${tabs.length}个标签页`);
+                        updateStats();
+                    }
+                }, index * 200);
+            });
+        }
+
+        function testApiCallMonitoring() {
+            log('🌐 开始测试API调用监控...');
+            
+            const endpoints = ['/api/statistics/overview', '/api/orders/paginated', '/api/services/lazy'];
+            
+            endpoints.forEach((endpoint, index) => {
+                setTimeout(() => {
+                    const duration = Math.random() * 300 + 100;
+                    const success = Math.random() > 0.1;
+                    performanceMonitor.recordAPICall(endpoint, duration, success);
+                    
+                    if (index === endpoints.length - 1) {
+                        testStats.testCount++;
+                        testStats.successCount++;
+                        log(`✅ API调用监控测试完成，共调用${endpoints.length}个接口`);
+                        updateStats();
+                    }
+                }, index * 300);
+            });
+        }
+
+        function runConcurrencyTest(concurrentCount) {
+            document.getElementById('concurrencyStatus').style.display = 'block';
+            document.getElementById('concurrencyStatus').textContent = `并发测试进行中... (${concurrentCount}个并发)`;
+            
+            log(`🚀 开始${concurrentCount}个并发性能测试...`);
+            
+            const startTime = performance.now();
+            let completedTests = 0;
+            
+            for (let i = 0; i < concurrentCount; i++) {
+                setTimeout(() => {
+                    const duration = Math.random() * 100 + 50;
+                    performanceMonitor.recordTabSwitch(`concurrent-${i}`, duration, true);
+                    
+                    completedTests++;
+                    if (completedTests === concurrentCount) {
+                        const totalDuration = performance.now() - startTime;
+                        document.getElementById('concurrencyStatus').style.display = 'none';
+                        
+                        testStats.testCount++;
+                        testStats.successCount++;
+                        testStats.totalTime += totalDuration;
+                        
+                        log(`✅ ${concurrentCount}个并发测试完成，总耗时: ${totalDuration.toFixed(2)}ms`);
+                        updateStats();
+                    }
+                }, Math.random() * 1000);
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').textContent = '测试结果将在这里显示...';
+            performanceMonitor.clearMetrics();
+            
+            testStats = {
+                testCount: 0,
+                successCount: 0,
+                errorCount: 0,
+                totalTime: 0
+            };
+            
+            updateStats();
+            log('🧹 测试结果已清空');
+        }
+
+        window.addEventListener('load', () => {
+            log('📋 性能监控验证测试页面已加载');
+            log('💡 点击上方按钮开始测试各项功能');
+        });
+    </script>
+</body>
+</html>

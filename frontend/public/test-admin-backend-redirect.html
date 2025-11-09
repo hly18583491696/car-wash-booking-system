@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员后端跳转测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button.danger {
+            background-color: #dc3545;
+        }
+        .button.danger:hover {
+            background-color: #c82333;
+        }
+        .button.success {
+            background-color: #28a745;
+        }
+        .button.success:hover {
+            background-color: #218838;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .credentials {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 管理员后端跳转测试</h1>
+        
+        <div class="info">
+            <strong>测试目标：</strong>验证管理员登录后是否正确跳转到后端管理系统（http://localhost:8080/admin）
+        </div>
+
+        <div class="credentials">
+            <h4>🔑 测试账号信息：</h4>
+            <p><strong>管理员账号：</strong> admin</p>
+            <p><strong>密码：</strong> admin123</p>
+        </div>
+
+        <!-- 第一步：清除登录状态 -->
+        <div class="test-section">
+            <h3>步骤1：清除登录状态</h3>
+            <p>首先清除本地存储的登录信息，确保测试环境干净。</p>
+            <button class="button danger" onclick="clearLoginStatus()">清除登录状态</button>
+            <div id="clearResult"></div>
+        </div>
+
+        <!-- 第二步：测试管理员登录 -->
+        <div class="test-section">
+            <h3>步骤2：测试管理员登录</h3>
+            <p>使用管理员账号登录，验证是否跳转到后端管理系统。</p>
+            <div class="warning">
+                <strong>注意：</strong>点击下面的按钮将会跳转到登录页面，请使用上面的管理员账号信息进行登录。
+            </div>
+            <a href="http://localhost:3000/login" class="button" target="_blank">前往登录页面</a>
+            <button class="button" onclick="simulateAdminLogin()">模拟管理员登录</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- 第三步：验证跳转结果 -->
+        <div class="test-section">
+            <h3>步骤3：验证跳转结果</h3>
+            <p>检查管理员登录后是否正确跳转到后端管理系统。</p>
+            <button class="button success" onclick="checkBackendAccess()">检查后端管理系统访问</button>
+            <a href="http://localhost:8080/admin" class="button" target="_blank">直接访问后端管理系统</a>
+            <div id="backendResult"></div>
+        </div>
+
+        <!-- 测试日志 -->
+        <div class="test-section">
+            <h3>📋 测试日志</h3>
+            <div id="testLog" class="log">等待测试开始...</div>
+            <button class="button" onclick="clearLog()">清除日志</button>
+        </div>
+
+        <!-- 快速链接 -->
+        <div class="test-section">
+            <h3>🔗 快速链接</h3>
+            <a href="http://localhost:3000" class="button" target="_blank">前端首页</a>
+            <a href="http://localhost:3000/login" class="button" target="_blank">登录页面</a>
+            <a href="http://localhost:8080/admin" class="button" target="_blank">后端管理系统</a>
+            <a href="http://localhost:8080/admin/dashboard" class="button" target="_blank">后端仪表盘</a>
+        </div>
+    </div>
+
+    <script>
+        let testLog = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            testLog.push(logMessage);
+            document.getElementById('testLog').textContent = testLog.join('\n');
+            console.log(logMessage);
+        }
+
+        function clearLog() {
+            testLog = [];
+            document.getElementById('testLog').textContent = '日志已清除...';
+        }
+
+        function clearLoginStatus() {
+            try {
+                // 清除localStorage
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('userRole');
+                
+                // 清除sessionStorage
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('userRole');
+                
+                // 清除cookies（如果有的话）
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+
+                document.getElementById('clearResult').innerHTML = '<div class="success">✅ 登录状态已清除</div>';
+                log('登录状态已清除');
+            } catch (error) {
+                document.getElementById('clearResult').innerHTML = '<div class="warning">⚠️ 清除登录状态时出错: ' + error.message + '</div>';
+                log('清除登录状态失败: ' + error.message);
+            }
+        }
+
+        function simulateAdminLogin() {
+            log('开始模拟管理员登录...');
+            
+            const loginData = {
+                username: 'admin',
+                password: 'admin123'
+            };
+
+            fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loginData)
+            })
+            .then(response => {
+                log('登录请求响应状态: ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                log('登录响应数据: ' + JSON.stringify(data));
+                
+                if (data.code === 200) {
+                    // 保存登录信息
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    localStorage.setItem('userRole', data.data.user.role);
+                    
+                    document.getElementById('loginResult').innerHTML = '<div class="success">✅ 管理员登录成功！用户角色: ' + data.data.user.role + '</div>';
+                    log('管理员登录成功，角色: ' + data.data.user.role);
+                    
+                    // 检查是否为管理员
+                    if (data.data.user.role === 'admin') {
+                        log('检测到管理员角色，准备跳转到后端管理系统...');
+                        setTimeout(() => {
+                            log('正在跳转到: http://localhost:8080/admin');
+                            window.open('http://localhost:8080/admin', '_blank');
+                        }, 2000);
+                    }
+                } else {
+                    document.getElementById('loginResult').innerHTML = '<div class="warning">⚠️ 登录失败: ' + data.message + '</div>';
+                    log('登录失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                document.getElementById('loginResult').innerHTML = '<div class="warning">⚠️ 登录请求失败: ' + error.message + '</div>';
+                log('登录请求失败: ' + error.message);
+            });
+        }
+
+        function checkBackendAccess() {
+            log('检查后端管理系统访问...');
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('backendResult').innerHTML = '<div class="warning">⚠️ 未找到登录令牌，请先登录</div>';
+                log('未找到登录令牌');
+                return;
+            }
+
+            fetch('http://localhost:8080/admin', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'text/html'
+                }
+            })
+            .then(response => {
+                log('后端管理系统访问响应状态: ' + response.status);
+                
+                if (response.ok) {
+                    document.getElementById('backendResult').innerHTML = '<div class="success">✅ 后端管理系统访问成功！状态码: ' + response.status + '</div>';
+                    log('后端管理系统访问成功');
+                } else {
+                    document.getElementById('backendResult').innerHTML = '<div class="warning">⚠️ 后端管理系统访问失败，状态码: ' + response.status + '</div>';
+                    log('后端管理系统访问失败，状态码: ' + response.status);
+                }
+            })
+            .catch(error => {
+                document.getElementById('backendResult').innerHTML = '<div class="warning">⚠️ 后端管理系统访问错误: ' + error.message + '</div>';
+                log('后端管理系统访问错误: ' + error.message);
+            });
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('测试页面加载完成');
+            log('前端地址: http://localhost:3000');
+            log('后端地址: http://localhost:8080');
+            log('管理员测试账号: admin / admin123');
+        });
+    </script>
+</body>
+</html>

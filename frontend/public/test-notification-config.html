@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试通知配置开关</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .config-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .config-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .config-item:last-child {
+            border-bottom: none;
+        }
+        .config-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .config-value {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .enabled {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disabled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .test-button {
+            background-color: #28a745;
+        }
+        .test-button:hover {
+            background-color: #1e7e34;
+        }
+        .danger-button {
+            background-color: #dc3545;
+        }
+        .danger-button:hover {
+            background-color: #c82333;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .log-viewer {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ 通知配置开关测试</h1>
+        
+        <!-- 当前配置显示 -->
+        <div class="config-section">
+            <h3>📋 当前配置状态</h3>
+            <div id="currentConfig">
+                <div class="config-item">
+                    <span class="config-label">SMS 通知:</span>
+                    <span class="config-value enabled" id="smsEnabled">启用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">SMS 订单状态通知:</span>
+                    <span class="config-value enabled" id="smsOrderEnabled">启用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">SMS 验证码:</span>
+                    <span class="config-value enabled" id="smsVerificationEnabled">启用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">邮件通知:</span>
+                    <span class="config-value disabled" id="emailEnabled">禁用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">邮件订单状态通知:</span>
+                    <span class="config-value disabled" id="emailOrderEnabled">禁用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">微信通知:</span>
+                    <span class="config-value disabled" id="wechatEnabled">禁用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">微信订单状态通知:</span>
+                    <span class="config-value disabled" id="wechatOrderEnabled">禁用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">站内消息:</span>
+                    <span class="config-value enabled" id="inAppEnabled">启用</span>
+                </div>
+                <div class="config-item">
+                    <span class="config-label">站内订单状态通知:</span>
+                    <span class="config-value enabled" id="inAppOrderEnabled">启用</span>
+                </div>
+            </div>
+            <button onclick="refreshConfig()">🔄 刷新配置</button>
+        </div>
+
+        <!-- 配置修改测试 -->
+        <div class="test-section">
+            <h3>🔧 配置修改测试</h3>
+            <div class="warning result">
+                <strong>注意：</strong>当前配置来自 application.yml 文件，需要重启服务才能生效。
+                这里演示如何通过修改配置文件来测试不同的通知开关状态。
+            </div>
+            
+            <div class="form-group">
+                <label>选择要测试的配置场景:</label>
+                <select id="configScenario">
+                    <option value="all-enabled">全部启用</option>
+                    <option value="sms-only">仅SMS启用</option>
+                    <option value="sms-disabled">SMS禁用</option>
+                    <option value="order-disabled">订单通知禁用</option>
+                    <option value="all-disabled">全部禁用</option>
+                </select>
+            </div>
+            
+            <button onclick="generateConfigYaml()" class="test-button">生成配置文件</button>
+            <button onclick="showCurrentYaml()">查看当前配置</button>
+            
+            <div id="configResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 通知功能测试 -->
+        <div class="test-section">
+            <h3>📱 通知功能测试</h3>
+            <div class="form-group">
+                <label for="testPhone">测试手机号:</label>
+                <input type="text" id="testPhone" value="13800138000" placeholder="请输入手机号">
+            </div>
+            <div class="form-group">
+                <label for="testMessage">测试消息:</label>
+                <textarea id="testMessage" rows="3" placeholder="请输入测试消息内容">您的订单状态已更新为：已确认。感谢您的使用！</textarea>
+            </div>
+            
+            <button onclick="testSmsNotification()" class="test-button">测试SMS通知</button>
+            <button onclick="testEmailNotification()" class="test-button">测试邮件通知</button>
+            <button onclick="testWechatNotification()" class="test-button">测试微信通知</button>
+            <button onclick="testInAppNotification()" class="test-button">测试站内消息</button>
+            
+            <div id="testResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 日志查看器 -->
+        <div class="test-section">
+            <h3>📄 后端日志监控</h3>
+            <p>监控后端日志以查看通知发送情况和配置开关效果：</p>
+            <button onclick="startLogMonitoring()" class="test-button">开始监控日志</button>
+            <button onclick="stopLogMonitoring()" class="danger-button">停止监控</button>
+            <button onclick="clearLogs()">清空日志</button>
+            
+            <div id="logViewer" class="log-viewer" style="display: none;">
+                <div id="logContent">等待日志数据...</div>
+            </div>
+        </div>
+
+        <!-- 测试说明 -->
+        <div class="test-section">
+            <h3>📖 测试说明</h3>
+            <div class="info result">
+配置开关测试流程：
+
+1. 查看当前配置状态
+   - 显示所有通知类型的启用/禁用状态
+   - 配置来源于 application.yml 文件
+
+2. 生成不同配置场景
+   - 全部启用：所有通知类型都启用
+   - 仅SMS启用：只启用SMS通知
+   - SMS禁用：禁用所有SMS通知
+   - 订单通知禁用：禁用所有订单状态通知
+   - 全部禁用：禁用所有通知
+
+3. 测试通知功能
+   - 发送测试通知，观察配置开关效果
+   - 查看后端日志确认是否按配置执行
+
+4. 验证配置效果
+   - 启用的通知应该正常发送
+   - 禁用的通知应该跳过发送
+   - 日志中应该显示相应的提示信息
+
+注意事项：
+- 配置修改需要重启服务才能生效
+- 当前使用模拟通知发送
+- 可以通过日志查看配置开关的实际效果
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let logMonitorInterval = null;
+
+        // 获取JWT Token
+        function getAuthToken() {
+            return localStorage.getItem('token') || '';
+        }
+
+        // 刷新配置显示
+        async function refreshConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/notification-test/config`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const config = result.data;
+                    
+                    // 更新SMS配置显示
+                    updateConfigDisplay('smsEnabled', config.sms.enabled);
+                    updateConfigDisplay('smsOrderEnabled', config.sms.orderStatusEnabled);
+                    updateConfigDisplay('smsVerificationEnabled', config.sms.verificationEnabled);
+                    
+                    // 更新邮件配置显示
+                    updateConfigDisplay('emailEnabled', config.email.enabled);
+                    updateConfigDisplay('emailOrderEnabled', config.email.orderStatusEnabled);
+                    
+                    // 更新微信配置显示
+                    updateConfigDisplay('wechatEnabled', config.wechat.enabled);
+                    updateConfigDisplay('wechatOrderEnabled', config.wechat.orderStatusEnabled);
+                    
+                    // 更新站内消息配置显示
+                    updateConfigDisplay('inAppEnabled', config.inApp.enabled);
+                    updateConfigDisplay('inAppOrderEnabled', config.inApp.orderStatusEnabled);
+                    
+                    showResult('configResult', '配置已刷新', 'success');
+                } else {
+                    showResult('configResult', `获取配置失败: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('configResult', `获取配置异常: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新配置显示
+        function updateConfigDisplay(elementId, enabled) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = enabled ? '启用' : '禁用';
+                element.className = `config-value ${enabled ? 'enabled' : 'disabled'}`;
+            }
+        }
+
+        // 生成配置文件
+        function generateConfigYaml() {
+            const scenario = document.getElementById('configScenario').value;
+            let config = '';
+
+            switch (scenario) {
+                case 'all-enabled':
+                    config = `notification:
+  sms:
+    enabled: true
+    order-status-enabled: true
+    verification-enabled: true
+  email:
+    enabled: true
+    order-status-enabled: true
+  wechat:
+    enabled: true
+    order-status-enabled: true
+  in-app:
+    enabled: true
+    order-status-enabled: true`;
+                    break;
+                case 'sms-only':
+                    config = `notification:
+  sms:
+    enabled: true
+    order-status-enabled: true
+    verification-enabled: true
+  email:
+    enabled: false
+    order-status-enabled: false
+  wechat:
+    enabled: false
+    order-status-enabled: false
+  in-app:
+    enabled: false
+    order-status-enabled: false`;
+                    break;
+                case 'sms-disabled':
+                    config = `notification:
+  sms:
+    enabled: false
+    order-status-enabled: false
+    verification-enabled: false
+  email:
+    enabled: true
+    order-status-enabled: true
+  wechat:
+    enabled: true
+    order-status-enabled: true
+  in-app:
+    enabled: true
+    order-status-enabled: true`;
+                    break;
+                case 'order-disabled':
+                    config = `notification:
+  sms:
+    enabled: true
+    order-status-enabled: false
+    verification-enabled: true
+  email:
+    enabled: true
+    order-status-enabled: false
+  wechat:
+    enabled: true
+    order-status-enabled: false
+  in-app:
+    enabled: true
+    order-status-enabled: false`;
+                    break;
+                case 'all-disabled':
+                    config = `notification:
+  sms:
+    enabled: false
+    order-status-enabled: false
+    verification-enabled: false
+  email:
+    enabled: false
+    order-status-enabled: false
+  wechat:
+    enabled: false
+    order-status-enabled: false
+  in-app:
+    enabled: false
+    order-status-enabled: false`;
+                    break;
+            }
+
+            showResult('configResult', `生成的配置文件内容：\n\n${config}\n\n请将此配置复制到 application.yml 文件中，然后重启服务以测试效果。`, 'info');
+        }
+
+        // 显示当前配置
+        function showCurrentYaml() {
+            const currentConfig = `notification:
+  sms:
+    enabled: true
+    order-status-enabled: true
+    verification-enabled: true
+  email:
+    enabled: false
+    order-status-enabled: false
+  wechat:
+    enabled: false
+    order-status-enabled: false
+  in-app:
+    enabled: true
+    order-status-enabled: true`;
+
+            showResult('configResult', `当前 application.yml 配置：\n\n${currentConfig}`, 'info');
+        }
+
+        // 测试SMS通知
+        async function testSmsNotification() {
+            const phone = document.getElementById('testPhone').value;
+            const message = document.getElementById('testMessage').value;
+
+            if (!phone || !message) {
+                showResult('testResult', '请填写手机号和消息内容', 'error');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('phone', phone);
+                formData.append('message', message);
+
+                const response = await fetch(`${API_BASE}/notification-test/test-sms`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showResult('testResult', `SMS通知测试成功：\n${result.data}`, 'success');
+                    addLog(`[SMS] 测试成功 - ${phone}: ${message}`);
+                } else {
+                    showResult('testResult', `SMS通知测试失败：\n${result.message}`, 'warning');
+                    addLog(`[SMS] 测试失败 - ${result.message}`);
+                }
+
+            } catch (error) {
+                showResult('testResult', `SMS通知测试异常: ${error.message}`, 'error');
+                addLog(`[SMS] 测试异常 - ${error.message}`);
+            }
+        }
+
+        // 测试邮件通知
+        async function testEmailNotification() {
+            const message = document.getElementById('testMessage').value;
+
+            if (!message) {
+                showResult('testResult', '请填写消息内容', 'error');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('email', 'test@example.com');
+                formData.append('subject', '测试邮件通知');
+                formData.append('content', message);
+
+                const response = await fetch(`${API_BASE}/notification-test/test-email`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showResult('testResult', `邮件通知测试成功：\n${result.data}`, 'success');
+                    addLog(`[EMAIL] 测试成功 - test@example.com: ${message}`);
+                } else {
+                    showResult('testResult', `邮件通知测试失败：\n${result.message}`, 'warning');
+                    addLog(`[EMAIL] 测试失败 - ${result.message}`);
+                }
+
+            } catch (error) {
+                showResult('testResult', `邮件通知测试异常: ${error.message}`, 'error');
+                addLog(`[EMAIL] 测试异常 - ${error.message}`);
+            }
+        }
+
+        // 测试微信通知
+        async function testWechatNotification() {
+            const message = document.getElementById('testMessage').value;
+
+            if (!message) {
+                showResult('testResult', '请填写消息内容', 'error');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('openId', 'test_openid_123');
+                formData.append('message', message);
+
+                const response = await fetch(`${API_BASE}/notification-test/test-wechat`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showResult('testResult', `微信通知测试成功：\n${result.data}`, 'success');
+                    addLog(`[WECHAT] 测试成功 - test_openid_123: ${message}`);
+                } else {
+                    showResult('testResult', `微信通知测试失败：\n${result.message}`, 'warning');
+                    addLog(`[WECHAT] 测试失败 - ${result.message}`);
+                }
+
+            } catch (error) {
+                showResult('testResult', `微信通知测试异常: ${error.message}`, 'error');
+                addLog(`[WECHAT] 测试异常 - ${error.message}`);
+            }
+        }
+
+        // 测试站内消息
+        async function testInAppNotification() {
+            const message = document.getElementById('testMessage').value;
+
+            if (!message) {
+                showResult('testResult', '请填写消息内容', 'error');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('userId', '1001');
+                formData.append('title', '系统通知');
+                formData.append('content', message);
+
+                const response = await fetch(`${API_BASE}/notification-test/test-in-app`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showResult('testResult', `站内消息测试成功：\n${result.data}`, 'success');
+                    addLog(`[IN-APP] 测试成功 - 用户1001: ${message}`);
+                } else {
+                    showResult('testResult', `站内消息测试失败：\n${result.message}`, 'warning');
+                    addLog(`[IN-APP] 测试失败 - ${result.message}`);
+                }
+
+            } catch (error) {
+                showResult('testResult', `站内消息测试异常: ${error.message}`, 'error');
+                addLog(`[IN-APP] 测试异常 - ${error.message}`);
+            }
+        }
+
+        // 开始日志监控
+        function startLogMonitoring() {
+            document.getElementById('logViewer').style.display = 'block';
+            addLog('开始监控后端日志...');
+            
+            // 模拟日志监控
+            logMonitorInterval = setInterval(() => {
+                const timestamp = new Date().toLocaleTimeString();
+                addLog(`[${timestamp}] 系统运行正常，等待通知事件...`);
+            }, 5000);
+        }
+
+        // 停止日志监控
+        function stopLogMonitoring() {
+            if (logMonitorInterval) {
+                clearInterval(logMonitorInterval);
+                logMonitorInterval = null;
+                addLog('日志监控已停止');
+            }
+        }
+
+        // 清空日志
+        function clearLogs() {
+            document.getElementById('logContent').innerHTML = '日志已清空';
+        }
+
+        // 添加日志
+        function addLog(message) {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            logContent.innerHTML += `\n[${timestamp}] ${message}`;
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        // 显示结果
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+
+        // 测试订单状态通知
+        async function testOrderStatusNotification() {
+            const orderNo = document.getElementById('orderNo').value;
+            const oldStatus = document.getElementById('oldStatus').value;
+            const newStatus = document.getElementById('newStatus').value;
+            
+            if (!orderNo || !oldStatus || !newStatus) {
+                alert('请填写完整的订单信息');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('phone', '13800138000');
+                formData.append('orderNo', orderNo);
+                formData.append('oldStatus', oldStatus);
+                formData.append('newStatus', newStatus);
+                formData.append('customerName', '测试用户');
+                
+                const response = await fetch('http://localhost:8080/api/notification-test/test-order-status', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                document.getElementById('orderResult').innerHTML = 
+                    `<div style="color: ${result.success ? 'green' : 'red'}">
+                        ${result.success ? result.data : result.message}
+                    </div>`;
+                
+                console.log('订单状态通知测试结果:', result);
+            } catch (error) {
+                document.getElementById('orderResult').innerHTML = 
+                    `<div style="color: red">请求失败: ${error.message}</div>`;
+                console.error('订单状态通知测试失败:', error);
+            }
+        }
+
+        // 生成配置测试报告
+        async function generateTestReport() {
+            try {
+                const response = await fetch(`${API_BASE}/notification-test/config-test-report`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const report = result.data;
+                    const timestamp = new Date(report.timestamp).toLocaleString();
+                    
+                    let reportHtml = `
+                        <h4>配置测试报告 - ${timestamp}</h4>
+                        <div style="margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px;">
+                            <strong>测试摘要:</strong><br>
+                            总配置数: ${report.summary.totalConfigs}<br>
+                            已启用: ${report.summary.enabledConfigs}<br>
+                            已禁用: ${report.summary.disabledConfigs}<br>
+                            启用率: ${report.summary.enabledPercentage.toFixed(1)}%
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <strong>详细配置状态:</strong><br>
+                    `;
+                    
+                    // 添加各个配置的详细状态
+                    const testResults = report.testResults;
+                    for (const [type, config] of Object.entries(testResults)) {
+                        const typeName = {
+                            'sms': 'SMS短信',
+                            'email': '邮件',
+                            'wechat': '微信',
+                            'inApp': '站内消息'
+                        }[type] || type;
+                        
+                        reportHtml += `
+                            <div style="margin: 5px 0; padding: 5px; border-left: 3px solid ${config.enabled ? '#4CAF50' : '#f44336'};">
+                                <strong>${typeName}:</strong> ${config.status}<br>
+                                - 基础功能: ${config.enabled ? '启用' : '禁用'}<br>
+                                - 订单状态通知: ${config.orderStatusEnabled ? '启用' : '禁用'}
+                                ${config.verificationEnabled !== undefined ? `<br>- 验证码通知: ${config.verificationEnabled ? '启用' : '禁用'}` : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    reportHtml += '</div>';
+                    
+                    document.getElementById('reportResult').innerHTML = reportHtml;
+                    addLog(`[REPORT] 配置测试报告生成成功`);
+                    console.log('测试报告:', report);
+                } else {
+                    document.getElementById('reportResult').innerHTML = 
+                        `<div style="color: red">报告生成失败: ${result.message}</div>`;
+                    addLog(`[REPORT] 报告生成失败 - ${result.message}`);
+                }
+            } catch (error) {
+                document.getElementById('reportResult').innerHTML = 
+                    `<div style="color: red">报告生成异常: ${error.message}</div>`;
+                addLog(`[REPORT] 报告生成异常 - ${error.message}`);
+                console.error('报告生成失败:', error);
+            }
+        }
+
+        // 页面加载时的初始化
+        window.onload = function() {
+            console.log('通知配置开关测试页面已加载');
+            refreshConfig();
+        };
+    </script>
+</body>
+</html>

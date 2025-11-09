@@ -1,5 +1,6 @@
 package com.carwash.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.carwash.common.BusinessException;
 import com.carwash.common.result.ResultCode;
 import com.carwash.dto.LoginRequest;
@@ -8,9 +9,11 @@ import com.carwash.dto.RegisterRequest;
 import com.carwash.dto.UserInfoResponse;
 import com.carwash.entity.User;
 import com.carwash.mapper.UserMapper;
+import com.carwash.service.SmsService;
 import com.carwash.service.UserService;
 import com.carwash.utils.JwtUtils;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类
@@ -29,9 +34,10 @@ import java.time.LocalDateTime;
  * @author CarWash Team
  * @version 1.0.0
  */
-@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -45,6 +51,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private SmsService smsService;
+
     @Override
     @Transactional
     public void register(RegisterRequest request) {
@@ -53,6 +62,11 @@ public class UserServiceImpl implements UserService {
         // 验证密码确认
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new BusinessException(ResultCode.PARAM_ERROR, "两次输入的密码不一致");
+        }
+
+        // 验证短信验证码
+        if (!smsService.verifyCode(request.getPhone(), request.getSmsCode(), "register")) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "验证码错误或已过期");
         }
 
         // 检查用户名是否已存在
@@ -73,7 +87,7 @@ public class UserServiceImpl implements UserService {
         // 创建用户对象
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword()); // 使用明文密码
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // 加密密码
         user.setRealName(request.getRealName());
         user.setPhone(request.getPhone());
         user.setEmail(request.getEmail());
@@ -218,5 +232,93 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean existsByEmail(String email) {
         return userMapper.countByEmail(email) > 0;
+    }
+
+    @Override
+    public List<UserInfoResponse> getAllUsers() {
+        List<User> users = userMapper.selectList(
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<User>()
+                .eq("deleted", 0)
+                .orderByDesc("created_at")
+        );
+
+        return users.stream().map(user -> {
+            UserInfoResponse response = new UserInfoResponse();
+            BeanUtils.copyProperties(user, response);
+            return response;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void updateUserStatus(Long userId, Integer status) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        user.setStatus(status);
+        int result = userMapper.updateById(user);
+        if (result <= 0) {
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "更新用户状态失败");
+        }
+
+        log.info("用户状态更新成功，用户ID: {}, 新状态: {}", userId, status);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        // 软删除
+        user.setDeleted(1);
+        int result = userMapper.updateById(user);
+        if (result <= 0) {
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "删除用户失败");
+        }
+
+        log.info("用户删除成功，用户ID: {}", userId);
+    }
+
+    @Override
+    public long getUserCount() {
+        try {
+            return userMapper.selectCount(null);
+        } catch (Exception e) {
+            log.error("获取用户总数失败", e);
+            return 0;
+        }
+    }
+
+    @Override
+    public long getActiveUserCount() {
+        try {
+            // 查询未删除的用户数量
+            return userMapper.selectCount(
+                new QueryWrapper<User>().eq("deleted", 0)
+            );
+        } catch (Exception e) {
+            log.error("获取活跃用户数失败", e);
+            return 0;
+        }
+    }
+
+    @Override
+    public long getAdminUserCount() {
+        try {
+            // 查询管理员用户数量
+            return userMapper.selectCount(
+                new QueryWrapper<User>()
+                    .eq("role", "admin")
+                    .eq("deleted", 0)
+            );
+        } catch (Exception e) {
+            log.error("获取管理员用户数失败", e);
+            return 0;
+        }
     }
 }
