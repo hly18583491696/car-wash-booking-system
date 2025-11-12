@@ -272,7 +272,9 @@ export default {
     const getPaymentMethodText = (method) => {
       const methodMap = {
         wechat: '微信支付',
-        alipay: '支付宝'
+        alipay: '支付宝',
+        credit_card: '信用卡支付',
+        virtual: '虚拟支付(测试)'
       }
       return methodMap[method] || method
     }

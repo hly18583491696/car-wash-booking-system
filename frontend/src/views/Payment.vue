@@ -355,8 +355,9 @@ export default {
       try {
         const orderNo = route.params.orderNo || route.query.orderNo;
         console.log('订单号:', orderNo);
+        
         if (!orderNo) {
-          ElMessage.error('订单号不能为空');
+          ElMessage.error('订单号不能为空，请返回订单列表');
           router.push('/orders');
           return;
         }
@@ -365,9 +366,24 @@ export default {
         const response = await orderApi.getOrderByNo(orderNo);
         console.log('获取订单信息响应:', response);
 
-        if (response.code === 200) {
+        if (response.code === 200 && response.data) {
           const order = response.data;
           console.log('成功获取订单信息:', order);
+          
+          // 检查订单是否已支付
+          if (order.paymentStatus === 'paid') {
+            ElMessage.warning('该订单已完成支付，无需重复支付');
+            router.push('/orders');
+            return;
+          }
+          
+          // 检查订单状态是否允许支付
+          if (order.status !== 'confirmed' && order.status !== 'pending') {
+            ElMessage.error(`订单状态为 ${order.status}，不允许支付`);
+            router.push('/orders');
+            return;
+          }
+          
           Object.assign(orderInfo, {
             orderNo: order.orderNo,
             serviceName: order.serviceName,
@@ -376,6 +392,10 @@ export default {
             totalAmount: order.totalAmount
           });
           payAmount.value = order.totalAmount;
+        } else if (response.code === 404) {
+          console.error('订单不存在:', orderNo);
+          ElMessage.error('订单信息未找到，请返回重新创建');
+          router.push('/orders');
         } else {
           console.error('获取订单信息失败:', response.message);
           ElMessage.error(response.message || '获取订单信息失败');
@@ -383,7 +403,16 @@ export default {
         }
       } catch (error) {
         console.error('获取订单信息时发生异常:', error);
-        ElMessage.error('获取订单信息时发生异常');
+        
+        // 区分网络错误和其他错误
+        if (error.message && error.message.includes('timeout')) {
+          ElMessage.error('网络连接超时，请检查网络后重试');
+        } else if (error.message && error.message.includes('Network Error')) {
+          ElMessage.error('网络连接失败，请检查网络连接');
+        } else {
+          ElMessage.error('获取订单信息失败，请稍后重试');
+        }
+        
         router.push('/orders');
       }
     };
@@ -479,11 +508,31 @@ export default {
           }, 3000);
         } else {
           console.error('创建支付订单失败:', response.message);
-          ElMessage.error(response.message || '创建支付订单失败');
+          
+          // 根据错误类型显示不同提示
+          if (response.message && response.message.includes('订单已支付')) {
+            ElMessage.warning('该订单已完成支付，无需重复支付');
+            router.push('/orders');
+          } else if (response.message && response.message.includes('订单不存在')) {
+            ElMessage.error('订单信息未找到，请返回重新创建');
+            router.push('/orders');
+          } else {
+            ElMessage.error(response.message || '创建支付订单失败，请重试');
+          }
         }
       } catch (error) {
         console.error('支付处理时发生异常:', error);
-        ElMessage.error('支付处理时发生异常，请重试');
+        
+        // 区分不同类型的错误
+        if (error.message && error.message.includes('timeout')) {
+          ElMessage.error('网络连接超时，请检查网络后重试');
+        } else if (error.message && error.message.includes('Network Error')) {
+          ElMessage.error('网络连接失败，请检查网络连接');
+        } else if (error.message && error.message.includes('公钥')) {
+          ElMessage.error('加密初始化失败，请重试或选择其他支付方式');
+        } else {
+          ElMessage.error('支付处理失败，请稍后重试');
+        }
       } finally {
         loading.value = false;
       }

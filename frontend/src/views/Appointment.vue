@@ -577,46 +577,63 @@ export default {
         if (response && response.data) {
           ElMessage.success('预约提交成功！')
           
-          // 将新订单添加到全局状态，实现实时同步
+          // 重要:使用与后端 API 返回一致的数据格式,确保数据同步
+          const apiData = response.data
           const newOrder = {
-            id: response.data.id || Date.now(), // 使用返回的ID或时间戳
-            orderNumber: response.data.orderNo || `ORDER-${Date.now()}`,
-            status: 'pending',
-            createTime: new Date().toISOString(),
-            appointmentTime: `${bookingData.bookingDate} ${bookingData.bookingTime}`,
+            id: apiData.id,
+            orderNumber: apiData.orderNo,
+            status: apiData.status || 'pending',
+            createTime: TimeUtils.formatServerTime(apiData.createdAt || new Date().toISOString()),
+            appointmentTime: `${apiData.bookingDate || bookingData.bookingDate} ${apiData.bookingTime || bookingData.bookingTime}`,
             service: {
-              id: selectedService.value.id,
+              id: apiData.serviceId || selectedService.value.id,
               name: selectedService.value.name,
               description: selectedService.value.description,
-              price: selectedService.value.price,
-              duration: selectedService.value.duration,
+              price: apiData.totalPrice || selectedService.value.price,
+              duration: selectedService.value.duration || '30分钟',
               icon: selectedService.value.icon,
               color: selectedService.value.color
             },
             vehicle: {
-              plateNumber: vehicleForm.value.plateNumber,
+              plateNumber: apiData.carNumber || vehicleForm.value.plateNumber,
               brand: vehicleForm.value.brand,
               model: vehicleForm.value.model,
               color: vehicleForm.value.color,
-              phone: vehicleForm.value.phone,
-              requirements: vehicleForm.value.requirements || ''
+              phone: apiData.contactPhone || vehicleForm.value.phone,
+              requirements: apiData.notes || vehicleForm.value.requirements || ''
             },
             reviewed: false,
-            paymentStatus: 'pending'
+            paymentStatus: apiData.paymentStatus || 'pending'
           }
+          
+          console.log('➕ 准备添加新订单到全局状态:', newOrder)
           
           // 添加到全局状态，触发所有订单页面的实时更新
           addOrderToGlobalState(newOrder)
           
-          // 添加一个短暂延迟，确保后端数据已保存
-          setTimeout(() => {
-            // 使用replace而不是push，并添加查询参数强制刷新
-            const timestamp = Date.now()
+          console.log('✅ 新订单已添加到全局状态')
+          
+          // 等待状态传播完成
+          await new Promise(resolve => setTimeout(resolve, 200))
+          
+          // 根据支付状态决定跳转页面
+          const paymentStatus = apiData.paymentStatus || 'unpaid'
+          const orderStatus = apiData.status || 'pending'
+          
+          if (paymentStatus === 'unpaid' && (orderStatus === 'confirmed' || orderStatus === 'pending')) {
+            // 订单需要支付,跳转至支付页面
+            console.log('🔄 跳转到支付页面, 订单号:', newOrder.orderNumber)
             router.push({
-              path: '/orders',
-              query: { refresh: timestamp }
+              name: 'Payment',
+              params: { orderNo: newOrder.orderNumber }
             })
-          }, 500)
+          } else {
+            // 订单已支付或不需要支付,跳转到订单列表
+            console.log('🔄 跳转到订单列表页面')
+            router.push({
+              path: '/orders'
+            })
+          }
         } else {
           throw new Error('预约创建失败')
         }
