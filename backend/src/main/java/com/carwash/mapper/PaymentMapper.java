@@ -50,4 +50,6 @@ public interface PaymentMapper extends BaseMapper<Payment> {
      */
     BigDecimal sumAmountByDateRange(@Param("startDate") LocalDateTime startDate, 
                                    @Param("endDate") LocalDateTime endDate);
+
+    Integer avgPaymentResponseMinutes();
 }

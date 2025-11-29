@@ -11,12 +11,17 @@
       <div class="header-right">
         <div class="header-actions">
           <el-tooltip content="刷新数据" placement="bottom">
-            <el-button circle :icon="Refresh" @click="refreshData" :loading="refreshing" />
+            <el-button
+              circle
+              :icon="Refresh"
+              @click="refreshData"
+              :loading="refreshing"
+            />
           </el-tooltip>
           <el-dropdown @command="handleUserCommand" trigger="click">
             <div class="user-info">
-              <el-avatar :size="32">{{ userInfo.name?.[0] || 'A' }}</el-avatar>
-              <span class="username">{{ userInfo.name || '管理员' }}</span>
+              <el-avatar :size="32">{{ userInfo.name?.[0] || "A" }}</el-avatar>
+              <span class="username">{{ userInfo.name || "管理员" }}</span>
               <el-icon><ArrowDown /></el-icon>
             </div>
             <template #dropdown>
@@ -67,14 +72,17 @@
             <template #title>系统管理</template>
           </el-menu-item>
         </el-menu>
-        
+
         <div class="sidebar-toggle" @click="toggleSidebar">
           <el-icon><Fold v-if="!sidebarCollapsed" /><Expand v-else /></el-icon>
         </div>
       </aside>
 
       <!-- 内容区域 -->
-      <main class="dashboard-content" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+      <main
+        class="dashboard-content"
+        :class="{ 'sidebar-collapsed': sidebarCollapsed }"
+      >
         <!-- 数据总览 -->
         <div v-if="activeTab === 'overview'" class="tab-content overview-tab">
           <div class="page-header">
@@ -84,15 +92,28 @@
 
           <!-- 关键指标卡片 -->
           <div class="metrics-grid">
-            <div v-for="metric in metricsData" :key="metric.id" class="metric-card" :class="metric.type">
+            <div
+              v-for="metric in metricsData"
+              :key="metric.id"
+              class="metric-card"
+              :class="metric.type"
+            >
               <div class="metric-icon">
                 <el-icon><component :is="metric.icon" /></el-icon>
               </div>
               <div class="metric-content">
                 <div class="metric-value">{{ metric.value }}</div>
                 <div class="metric-label">{{ metric.label }}</div>
-                <div class="metric-change" :class="{ positive: metric.change > 0, negative: metric.change < 0 }">
-                  <el-icon><ArrowUp v-if="metric.change > 0" /><ArrowDown v-else /></el-icon>
+                <div
+                  class="metric-change"
+                  :class="{
+                    positive: metric.change > 0,
+                    negative: metric.change < 0,
+                  }"
+                >
+                  <el-icon
+                    ><ArrowUp v-if="metric.change > 0" /><ArrowDown v-else
+                  /></el-icon>
                   {{ Math.abs(metric.change) }}%
                 </div>
               </div>
@@ -105,7 +126,11 @@
               <div class="chart-container">
                 <div class="chart-header">
                   <h3>预约趋势分析</h3>
-                  <el-select v-model="trendPeriod" size="small" style="width: 120px">
+                  <el-select
+                    v-model="trendPeriod"
+                    size="small"
+                    style="width: 120px"
+                  >
                     <el-option label="最近7天" value="7days" />
                     <el-option label="最近30天" value="30days" />
                   </el-select>
@@ -137,7 +162,10 @@
         </div>
 
         <!-- 预约管理 -->
-        <div v-if="activeTab === 'bookings'" class="tab-content booking-management">
+        <div
+          v-if="activeTab === 'bookings'"
+          class="tab-content booking-management"
+        >
           <div class="page-header">
             <h1>预约管理</h1>
             <div class="header-actions">
@@ -145,13 +173,13 @@
                 v-model="bookingSearch"
                 placeholder="搜索预约记录..."
                 :prefix-icon="Search"
-                style="width: 300px; margin-right: 16px;"
+                style="width: 300px; margin-right: 16px"
                 clearable
               />
               <el-select
                 v-model="bookingStatusFilter"
                 placeholder="状态筛选"
-                style="width: 150px; margin-right: 16px;"
+                style="width: 150px; margin-right: 16px"
                 clearable
               >
                 <el-option label="全部" value="" />
@@ -176,10 +204,26 @@
               :default-sort="{ prop: 'createTime', order: 'descending' }"
             >
               <el-table-column prop="id" label="预约ID" width="100" />
-              <el-table-column prop="serviceName" label="服务项目" width="150" />
-              <el-table-column prop="customerName" label="客户姓名" width="120" />
-              <el-table-column prop="customerPhone" label="联系电话" width="130" />
-              <el-table-column prop="appointmentTime" label="预约时间" width="180" />
+              <el-table-column
+                prop="serviceName"
+                label="服务项目"
+                width="150"
+              />
+              <el-table-column
+                prop="customerName"
+                label="客户姓名"
+                width="120"
+              />
+              <el-table-column
+                prop="customerPhone"
+                label="联系电话"
+                width="130"
+              />
+              <el-table-column
+                prop="appointmentTime"
+                label="预约时间"
+                width="180"
+              />
               <el-table-column prop="status" label="状态" width="100">
                 <template #default="{ row }">
                   <el-tag :type="getBookingStatusType(row.status)">
@@ -243,11 +287,18 @@
         </div>
 
         <!-- 服务管理 -->
-        <div v-if="activeTab === 'services'" class="tab-content service-management">
+        <div
+          v-if="activeTab === 'services'"
+          class="tab-content service-management"
+        >
           <div class="page-header">
             <h1>服务管理</h1>
             <div class="header-actions">
-              <el-button type="primary" :icon="Plus" @click="showAddServiceDialog">
+              <el-button
+                type="primary"
+                :icon="Plus"
+                @click="showAddServiceDialog"
+              >
                 添加服务
               </el-button>
               <el-button type="default" :icon="Refresh" @click="refreshData">
@@ -265,21 +316,23 @@
             >
               <el-table-column prop="id" label="服务ID" width="100" />
               <el-table-column prop="name" label="服务名称" width="200" />
-              <el-table-column prop="description" label="服务描述" min-width="250" />
+              <el-table-column
+                prop="description"
+                label="服务描述"
+                min-width="250"
+              />
               <el-table-column prop="price" label="价格" width="120">
-                <template #default="{ row }">
-                  ¥{{ row.price }}
-                </template>
+                <template #default="{ row }"> ¥{{ row.price }} </template>
               </el-table-column>
               <el-table-column prop="duration" label="时长" width="100">
-                <template #default="{ row }">
-                  {{ row.duration }}分钟
-                </template>
+                <template #default="{ row }"> {{ row.duration }}分钟 </template>
               </el-table-column>
               <el-table-column prop="status" label="状态" width="100">
                 <template #default="{ row }">
-                  <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
-                    {{ row.status === 'active' ? '启用' : '禁用' }}
+                  <el-tag
+                    :type="row.status === 'active' ? 'success' : 'danger'"
+                  >
+                    {{ row.status === "active" ? "启用" : "禁用" }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -297,7 +350,7 @@
                     size="small"
                     @click="toggleServiceStatus(row)"
                   >
-                    {{ row.status === 'active' ? '禁用' : '启用' }}
+                    {{ row.status === "active" ? "禁用" : "启用" }}
                   </el-button>
                   <el-button
                     type="danger"
@@ -321,28 +374,34 @@
                 v-model="userSearch"
                 placeholder="搜索用户..."
                 :prefix-icon="Search"
-                style="width: 200px;"
+                style="width: 200px"
               />
             </div>
           </div>
 
           <div class="table-container">
-            <el-table :data="filteredUsers" style="width: 100%" v-loading="usersLoading">
+            <el-table
+              :data="filteredUsers"
+              style="width: 100%"
+              v-loading="usersLoading"
+            >
               <el-table-column prop="username" label="用户名" width="120" />
               <el-table-column prop="realName" label="真实姓名" width="120" />
               <el-table-column prop="phone" label="手机号" width="140" />
               <el-table-column prop="email" label="邮箱" min-width="180" />
               <el-table-column prop="role" label="角色" width="100">
                 <template #default="scope">
-                  <el-tag :type="scope.row.role === 'admin' ? 'danger' : 'primary'">
-                    {{ scope.row.role === 'admin' ? '管理员' : '用户' }}
+                  <el-tag
+                    :type="scope.row.role === 'admin' ? 'danger' : 'primary'"
+                  >
+                    {{ scope.row.role === "admin" ? "管理员" : "用户" }}
                   </el-tag>
                 </template>
               </el-table-column>
               <el-table-column prop="status" label="状态" width="100">
                 <template #default="scope">
                   <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
-                    {{ scope.row.status === 1 ? '正常' : '禁用' }}
+                    {{ scope.row.status === 1 ? "正常" : "禁用" }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -354,9 +413,11 @@
                     :type="scope.row.status === 1 ? 'warning' : 'success'"
                     @click="toggleUserStatus(scope.row)"
                   >
-                    {{ scope.row.status === 1 ? '禁用' : '启用' }}
+                    {{ scope.row.status === 1 ? "禁用" : "启用" }}
                   </el-button>
-                  <el-button size="small" @click="viewUserDetail(scope.row)">详情</el-button>
+                  <el-button size="small" @click="viewUserDetail(scope.row)"
+                    >详情</el-button
+                  >
                 </template>
               </el-table-column>
             </el-table>
@@ -379,22 +440,22 @@
             <el-input
               v-model="auditQuery.paymentNo"
               placeholder="支付单号"
-              style="width: 200px;"
+              style="width: 200px"
             />
             <el-input
               v-model="auditQuery.orderNo"
               placeholder="订单号"
-              style="width: 200px;"
+              style="width: 200px"
             />
             <el-input
               v-model="auditQuery.eventType"
               placeholder="事件类型"
-              style="width: 180px;"
+              style="width: 180px"
             />
             <el-input
               v-model="auditQuery.status"
               placeholder="状态"
-              style="width: 160px;"
+              style="width: 160px"
             />
             <el-button type="primary" @click="onAuditFilterChange">
               <el-icon><Search /></el-icon>筛选
@@ -402,7 +463,11 @@
           </div>
 
           <div class="table-container">
-            <el-table :data="audits" style="width: 100%" v-loading="auditLoading">
+            <el-table
+              :data="audits"
+              style="width: 100%"
+              v-loading="auditLoading"
+            >
               <el-table-column prop="paymentNo" label="支付单号" width="180" />
               <el-table-column prop="orderNo" label="订单号" width="180" />
               <el-table-column prop="eventType" label="事件类型" width="140">
@@ -417,12 +482,18 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="message" label="日志信息" min-width="240" />
+              <el-table-column
+                prop="message"
+                label="日志信息"
+                min-width="240"
+              />
               <el-table-column prop="createTime" label="时间" width="180" />
             </el-table>
           </div>
 
-          <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+          <div
+            style="margin-top: 16px; display: flex; justify-content: flex-end"
+          >
             <el-pagination
               v-model:current-page="auditPagination.current"
               v-model:page-size="auditPagination.size"
@@ -450,9 +521,15 @@
                 </div>
                 <div class="card-content">
                   <el-descriptions :column="1" border>
-                    <el-descriptions-item label="系统名称">汽车洗车服务预约系统</el-descriptions-item>
-                    <el-descriptions-item label="版本">v2.0.0</el-descriptions-item>
-                    <el-descriptions-item label="运行时间">{{ systemUptime }}</el-descriptions-item>
+                    <el-descriptions-item label="系统名称"
+                      >汽车洗车服务预约系统</el-descriptions-item
+                    >
+                    <el-descriptions-item label="版本"
+                      >v2.0.0</el-descriptions-item
+                    >
+                    <el-descriptions-item label="运行时间">{{
+                      systemUptime
+                    }}</el-descriptions-item>
                     <el-descriptions-item label="数据库状态">
                       <el-tag type="success">正常连接</el-tag>
                     </el-descriptions-item>
@@ -469,7 +546,10 @@
                 </div>
                 <div class="card-content">
                   <div class="tool-buttons">
-                    <el-button type="primary" @click="$router.push('/api-test')">
+                    <el-button
+                      type="primary"
+                      @click="$router.push('/api-test')"
+                    >
                       <el-icon><Link /></el-icon>API 测试
                     </el-button>
                     <el-button type="warning" @click="clearSystemCache">
@@ -492,7 +572,12 @@
 
     <!-- 添加服务对话框 -->
     <el-dialog v-model="showServiceDialog" title="添加服务" width="600px">
-      <el-form :model="serviceForm" :rules="serviceRules" ref="serviceFormRef" label-width="80px">
+      <el-form
+        :model="serviceForm"
+        :rules="serviceRules"
+        ref="serviceFormRef"
+        label-width="80px"
+      >
         <el-form-item label="服务名称" prop="name">
           <el-input v-model="serviceForm.name" placeholder="请输入服务名称" />
         </el-form-item>
@@ -508,8 +593,12 @@
           <el-input-number v-model="serviceForm.price" :min="0" :step="10" />
         </el-form-item>
         <el-form-item label="时长" prop="duration">
-          <el-input-number v-model="serviceForm.duration" :min="15" :step="15" />
-          <span style="margin-left: 8px;">分钟</span>
+          <el-input-number
+            v-model="serviceForm.duration"
+            :min="15"
+            :step="15"
+          />
+          <span style="margin-left: 8px">分钟</span>
         </el-form-item>
         <el-form-item label="分类" prop="category">
           <el-select v-model="serviceForm.category" placeholder="请选择分类">
@@ -522,21 +611,38 @@
       </el-form>
       <template #footer>
         <el-button @click="showServiceDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveService" :loading="serviceSaving">保存</el-button>
+        <el-button type="primary" @click="saveService" :loading="serviceSaving"
+          >保存</el-button
+        >
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted } from "vue";
 import {
-  Setting, Refresh, ArrowDown, User, SwitchButton,
-  DataBoard, Calendar, Tools, Fold, Expand,
-  Search, Plus, Link, Delete, Download, DocumentCopy,
-  ArrowUp, Money, Star
-} from '@element-plus/icons-vue'
-import { useAdminDashboard } from './AdminScript.js'
+  Setting,
+  Refresh,
+  ArrowDown,
+  User,
+  SwitchButton,
+  DataBoard,
+  Calendar,
+  Tools,
+  Fold,
+  Expand,
+  Search,
+  Plus,
+  Link,
+  Delete,
+  Download,
+  DocumentCopy,
+  ArrowUp,
+  Money,
+  Star,
+} from "@element-plus/icons-vue";
+import { useAdminDashboard } from "./AdminScript.js";
 
 const {
   // 响应式数据
@@ -602,17 +708,17 @@ const {
   getStatusText,
   getStatusTagType,
   getEventTypeText,
-  initialize
-} = useAdminDashboard()
+  initialize,
+} = useAdminDashboard();
 
 onMounted(() => {
-  console.log('[Admin.vue] onMounted 被调用')
+  console.log("[Admin.vue] onMounted 被调用");
   // 确保在DOM完全渲染后再初始化
   setTimeout(() => {
-    console.log('[Admin.vue] 开始执行initialize')
-    initialize()
-  }, 100)
-})
+    console.log("[Admin.vue] 开始执行initialize");
+    initialize();
+  }, 100);
+});
 </script>
 
 <style scoped>
@@ -876,7 +982,7 @@ onMounted(() => {
 }
 
 .metric-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1011,7 +1117,8 @@ onMounted(() => {
   color: #52c41a;
 }
 
-.chart-header :deep(.el-radio-button__original-radio:checked+.el-radio-button__inner) {
+.chart-header
+  :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
   background: #52c41a;
   border-color: #52c41a;
   color: #ffffff;
@@ -1102,7 +1209,7 @@ onMounted(() => {
 
 .service-card::before,
 .user-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1187,15 +1294,15 @@ onMounted(() => {
   .dashboard-header {
     padding: 0 16px;
   }
-  
+
   .dashboard-content {
     padding: 16px;
   }
-  
+
   .metrics-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .chart-row {
     grid-template-columns: 1fr;
   }

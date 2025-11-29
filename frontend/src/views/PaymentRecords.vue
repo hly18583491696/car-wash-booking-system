@@ -18,7 +18,7 @@
           <option value="refunded">已退款</option>
         </select>
       </div>
-      
+
       <div class="filter-group">
         <label>支付方式：</label>
         <select v-model="filters.paymentMethod" @change="loadPaymentRecords">
@@ -27,20 +27,20 @@
           <option value="alipay">支付宝</option>
         </select>
       </div>
-      
+
       <div class="filter-group">
         <label>时间范围：</label>
-        <input 
-          type="date" 
-          v-model="filters.startDate" 
+        <input
+          type="date"
+          v-model="filters.startDate"
           @change="loadPaymentRecords"
-        >
+        />
         <span>至</span>
-        <input 
-          type="date" 
-          v-model="filters.endDate" 
+        <input
+          type="date"
+          v-model="filters.endDate"
           @change="loadPaymentRecords"
-        >
+        />
       </div>
     </div>
 
@@ -51,10 +51,10 @@
         <h3>暂无支付记录</h3>
         <p>您还没有任何支付记录</p>
       </div>
-      
+
       <div v-else>
-        <div 
-          v-for="record in paymentRecords" 
+        <div
+          v-for="record in paymentRecords"
           :key="record.paymentNo"
           class="record-card"
         >
@@ -69,7 +69,7 @@
               </span>
             </div>
           </div>
-          
+
           <div class="record-details">
             <div class="detail-row">
               <span class="label">支付金额：</span>
@@ -92,16 +92,16 @@
               <span class="error-text">{{ record.failureReason }}</span>
             </div>
           </div>
-          
+
           <div class="record-actions">
-            <button 
+            <button
               v-if="record.status === 'pending'"
               class="btn-pay"
               @click="continuePay(record)"
             >
               继续支付
             </button>
-            <button 
+            <button
               v-if="record.status === 'paid' && canRefund(record)"
               class="btn-refund"
               @click="requestRefund(record)"
@@ -125,7 +125,7 @@
 
     <!-- 分页 -->
     <div v-if="pagination.total > 0" class="pagination">
-      <button 
+      <button
         :disabled="pagination.current === 1"
         @click="changePage(pagination.current - 1)"
       >
@@ -134,7 +134,7 @@
       <span class="page-info">
         第 {{ pagination.current }} 页，共 {{ pagination.pages }} 页
       </span>
-      <button 
+      <button
         :disabled="pagination.current === pagination.pages"
         @click="changePage(pagination.current + 1)"
       >
@@ -152,18 +152,18 @@
         <div class="modal-body">
           <div class="form-group">
             <label>退款金额：</label>
-            <input 
-              type="number" 
+            <input
+              type="number"
               v-model="refundForm.amount"
               :max="selectedRecord.amount"
               step="0.01"
               placeholder="请输入退款金额"
-            >
+            />
             <small>最大可退款金额：¥{{ selectedRecord.amount }}</small>
           </div>
           <div class="form-group">
             <label>退款原因：</label>
-            <textarea 
+            <textarea
               v-model="refundForm.reason"
               placeholder="请说明退款原因"
               rows="4"
@@ -172,8 +172,8 @@
         </div>
         <div class="modal-footer">
           <button class="btn-cancel" @click="closeRefundModal">取消</button>
-          <button 
-            class="btn-primary" 
+          <button
+            class="btn-primary"
             @click="submitRefund"
             :disabled="!refundForm.amount || !refundForm.reason"
           >
@@ -186,136 +186,151 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import paymentApi from '@/api/payment'
+import { ref, reactive, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage, ElMessageBox } from "element-plus";
+import paymentApi from "@/api/payment";
 
 export default {
-  name: 'PaymentRecords',
+  name: "PaymentRecords",
   setup() {
-    const router = useRouter()
-    
-    const loading = ref(false)
-    const paymentRecords = ref([])
-    const showRefundModal = ref(false)
-    const selectedRecord = ref({})
-    
+    const router = useRouter();
+
+    const loading = ref(false);
+    const paymentRecords = ref([]);
+    const showRefundModal = ref(false);
+    const selectedRecord = ref({});
+
     const filters = reactive({
-      status: '',
-      paymentMethod: '',
-      startDate: '',
-      endDate: ''
-    })
-    
+      status: "",
+      paymentMethod: "",
+      startDate: "",
+      endDate: "",
+    });
+
     const pagination = reactive({
       current: 1,
       size: 10,
       total: 0,
-      pages: 0
-    })
-    
+      pages: 0,
+    });
+
     const refundForm = reactive({
-      amount: '',
-      reason: ''
-    })
+      amount: "",
+      reason: "",
+    });
 
     // 加载支付记录
     const loadPaymentRecords = async () => {
-      loading.value = true
+      loading.value = true;
       try {
         const params = {
           page: pagination.current,
           size: pagination.size,
-          ...filters
-        }
-        
-        const response = await paymentApi.getUserPaymentRecords(params)
+          ...filters,
+        };
+
+        const response = await paymentApi.getUserPaymentRecords(params);
+        console.log("[支付记录] 响应摘要:", {
+          code: response.code,
+          dataType: Array.isArray(response.data)
+            ? "array"
+            : typeof response.data,
+          sample: Array.isArray(response.data)
+            ? response.data[0]
+            : response.data,
+        });
         if (response.code === 200) {
-          paymentRecords.value = response.data.records || []
-          pagination.total = response.data.total || 0
-          pagination.pages = Math.ceil(pagination.total / pagination.size)
+          const data = response.data;
+          const isArray = Array.isArray(data);
+          paymentRecords.value = isArray ? data : data.records || [];
+          pagination.total = isArray
+            ? data.length
+            : data.total || paymentRecords.value.length || 0;
+          pagination.pages = Math.ceil(
+            (pagination.total || 0) / (pagination.size || 1),
+          );
         }
       } catch (error) {
-        console.error('加载支付记录失败:', error)
-        ElMessage.error('加载支付记录失败')
+        console.error("加载支付记录失败:", error);
+        ElMessage.error("加载支付记录失败");
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     // 获取状态样式类
     const getStatusClass = (status) => {
       const statusMap = {
-        pending: 'warning',
-        paid: 'success',
-        failed: 'danger',
-        cancelled: 'info',
-        refunded: 'info'
-      }
-      return statusMap[status] || 'info'
-    }
+        pending: "warning",
+        paid: "success",
+        failed: "danger",
+        cancelled: "info",
+        refunded: "info",
+      };
+      return statusMap[status] || "info";
+    };
 
     // 获取状态文本
     const getStatusText = (status) => {
       const statusMap = {
-        pending: '待支付',
-        paid: '已支付',
-        failed: '支付失败',
-        cancelled: '已取消',
-        refunded: '已退款'
-      }
-      return statusMap[status] || status
-    }
+        pending: "待支付",
+        paid: "已支付",
+        failed: "支付失败",
+        cancelled: "已取消",
+        refunded: "已退款",
+      };
+      return statusMap[status] || status;
+    };
 
     // 获取支付方式文本
     const getPaymentMethodText = (method) => {
       const methodMap = {
-        wechat: '微信支付',
-        alipay: '支付宝',
-        credit_card: '信用卡支付',
-        virtual: '虚拟支付(测试)'
-      }
-      return methodMap[method] || method
-    }
+        wechat: "微信支付",
+        alipay: "支付宝",
+        credit_card: "信用卡支付",
+        virtual: "虚拟支付(测试)",
+      };
+      return methodMap[method] || method;
+    };
 
     // 格式化日期时间
     const formatDateTime = (dateTime) => {
-      if (!dateTime) return ''
-      const date = new Date(dateTime)
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
+      if (!dateTime) return "";
+      const date = new Date(dateTime);
+      return date.toLocaleString("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
 
     // 判断是否可以退款
     const canRefund = (record) => {
-      if (!record.paidAt) return false
-      const paidTime = new Date(record.paidAt)
-      const now = new Date()
-      const diffDays = (now - paidTime) / (1000 * 60 * 60 * 24)
-      return diffDays <= 7 // 7天内可以退款
-    }
+      if (!record.paidAt) return false;
+      const paidTime = new Date(record.paidAt);
+      const now = new Date();
+      const diffDays = (now - paidTime) / (1000 * 60 * 60 * 24);
+      return diffDays <= 7; // 7天内可以退款
+    };
 
     // 继续支付
     const continuePay = (record) => {
       router.push({
-        name: 'Payment',
-        params: { orderNo: record.orderNo }
-      })
-    }
+        name: "Payment",
+        params: { orderNo: record.orderNo },
+      });
+    };
 
     // 申请退款
     const requestRefund = (record) => {
-      selectedRecord.value = record
-      refundForm.amount = record.amount
-      refundForm.reason = ''
-      showRefundModal.value = true
-    }
+      selectedRecord.value = record;
+      refundForm.amount = record.amount;
+      refundForm.reason = "";
+      showRefundModal.value = true;
+    };
 
     // 取消支付 - 暂时注释，等待后端API实现
     /*
@@ -353,40 +368,40 @@ export default {
         const refundData = {
           paymentNo: selectedRecord.value.paymentNo,
           amount: parseFloat(refundForm.amount),
-          reason: refundForm.reason
-        }
-        
-        const response = await paymentApi.requestRefund(refundData)
+          reason: refundForm.reason,
+        };
+
+        const response = await paymentApi.requestRefund(refundData);
         if (response.code === 200) {
-          ElMessage.success('退款申请已提交，请等待审核')
-          closeRefundModal()
-          loadPaymentRecords()
+          ElMessage.success("退款申请已提交，请等待审核");
+          closeRefundModal();
+          loadPaymentRecords();
         } else {
-          ElMessage.error(response.message || '提交退款申请失败')
+          ElMessage.error(response.message || "提交退款申请失败");
         }
       } catch (error) {
-        console.error('提交退款申请失败:', error)
-        ElMessage.error('提交退款申请失败')
+        console.error("提交退款申请失败:", error);
+        ElMessage.error("提交退款申请失败");
       }
-    }
+    };
 
     // 关闭退款弹窗
     const closeRefundModal = () => {
-      showRefundModal.value = false
-      selectedRecord.value = {}
-      refundForm.amount = ''
-      refundForm.reason = ''
-    }
+      showRefundModal.value = false;
+      selectedRecord.value = {};
+      refundForm.amount = "";
+      refundForm.reason = "";
+    };
 
     // 切换页面
     const changePage = (page) => {
-      pagination.current = page
-      loadPaymentRecords()
-    }
+      pagination.current = page;
+      loadPaymentRecords();
+    };
 
     onMounted(() => {
-      loadPaymentRecords()
-    })
+      loadPaymentRecords();
+    });
 
     return {
       loading,
@@ -407,10 +422,10 @@ export default {
       // cancelPayment, // 暂时移除，等待后端API实现
       submitRefund,
       closeRefundModal,
-      changePage
-    }
-  }
-}
+      changePage,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -775,22 +790,22 @@ export default {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filter-group {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .record-header {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .record-actions {
     flex-direction: column;
   }
-  
+
   .pagination {
     flex-direction: column;
     gap: 8px;

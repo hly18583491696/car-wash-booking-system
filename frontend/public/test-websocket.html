@@ -242,10 +242,24 @@
             document.getElementById('messages').innerHTML = '';
         }
 
-        // 页面加载时的初始化
+        // 页面加载时的初始化（若已登录则自动尝试连接）
         window.onload = function() {
             addMessage('WebSocket测试页面已加载');
             addMessage('请先连接WebSocket，然后通过系统更新订单状态来测试实时同步功能');
+
+            try {
+                const userInfoStr = localStorage.getItem('userInfo');
+                if (userInfoStr) {
+                    const user = JSON.parse(userInfoStr);
+                    if (user && user.id) {
+                        document.getElementById('userId').value = user.id;
+                        addMessage(`检测到已登录用户，ID=${user.id}，自动尝试连接`);
+                        connectWebSocket();
+                    }
+                }
+            } catch (e) {
+                addMessage(`自动连接检查失败: ${e.message}`);
+            }
         };
 
         // 页面关闭时断开连接

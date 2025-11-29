@@ -314,4 +314,26 @@ public class DebugController {
             return Result.error(500, "健康检查失败", errorData);
         }
     }
+
+    /**
+     * 时间段完整性检查（指定日期）
+     */
+    @GetMapping("/time-slots/verify")
+    public Result<Map<String, Object>> verifyTimeSlots(@RequestParam String date) {
+        log.info("执行时间段完整性检查，日期: {}", date);
+        Map<String, Object> data = new HashMap<>();
+        try {
+            LocalDate target = LocalDate.parse(date);
+            List<TimeSlot> list = timeSlotMapper.selectAvailableByDate(target);
+            data.put("date", target);
+            data.put("availableCount", list.size());
+            data.put("expectedCount", 14);
+            data.put("slots", list);
+            data.put("status", list.size() >= 14 ? "ok" : "missing");
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("时间段完整性检查失败", e);
+            return Result.error(500, "时间段完整性检查失败", Map.of("error", e.getMessage()));
+        }
+    }
 }

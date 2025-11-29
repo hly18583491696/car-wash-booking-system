@@ -17,6 +17,7 @@ import com.carwash.mapper.ServiceMapper;
 import com.carwash.mapper.TimeSlotMapper;
 import com.carwash.mapper.UserMapper;
 import com.carwash.service.BookingService;
+import com.carwash.service.BookingStatusLogService;
 import com.carwash.service.WebSocketService;
 import com.carwash.service.NotificationService;
 import com.carwash.service.SmsService;
@@ -72,6 +73,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private BookingStatusLogService bookingStatusLogService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -270,6 +274,12 @@ public class BookingServiceImpl implements BookingService {
         String oldStatus = booking.getStatus();
         log.info("订单当前状态: {}, 目标状态: {}", oldStatus, status);
 
+        // 如果状态没有变化，直接返回
+        if (oldStatus.equals(status)) {
+            log.info("订单状态未变化，跳过更新: {}", status);
+            return;
+        }
+
         // 验证状态转换是否合法
         if (!isValidStatusTransition(oldStatus, status)) {
             log.warn("无效的状态转换: {} -> {}", oldStatus, status);
@@ -345,6 +355,22 @@ public class BookingServiceImpl implements BookingService {
         log.info("订单状态更新成功，订单ID: {}, 状态变更: {} -> {}, 更新时间: {}", 
             bookingId, oldStatus, status, updatedBooking.getUpdatedAt());
 
+        // 记录状态变更日志
+        try {
+            bookingStatusLogService.logStatusChange(
+                bookingId, 
+                oldStatus, 
+                status, 
+                "管理员更新订单状态",
+                null, // 操作人ID，后续可以从上下文获取
+                "system" // 操作人类型
+            );
+            log.info("状态变更日志记录成功，订单ID: {}", bookingId);
+        } catch (Exception e) {
+            log.error("记录状态变更日志失败，订单ID: {}", bookingId, e);
+            // 日志记录失败不影响主业务流程
+        }
+
         // 推送订单状态更新到WebSocket客户端
         try {
             webSocketService.pushOrderStatusUpdate(updatedBooking.getUserId(), bookingId, updatedBooking.getOrderNo(), oldStatus, status, "订单状态更新");
@@ -386,6 +412,81 @@ public class BookingServiceImpl implements BookingService {
             log.error("短信通知发送异常，用户ID: {}, 订单ID: {}, 错误: {}", 
                 updatedBooking.getUserId(), bookingId, e.getMessage(), e);
             // 短信发送失败不影响主业务流程
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void rollbackBookingStatus(Long bookingId, String reason) {
+        log.info("回滚订单状态，订单ID: {}, 原因: {}", bookingId, reason);
+
+        // 验证订单存在
+        Booking booking = bookingMapper.selectById(bookingId);
+        if (booking == null || booking.getDeleted() == 1) {
+            log.error("订单不存在或已删除，订单ID: {}", bookingId);
+            throw new BusinessException(ResultCode.ORDER_NOT_FOUND, "订单不存在");
+        }
+
+        String currentStatus = booking.getStatus();
+        log.info("订单当前状态: {}", currentStatus);
+
+        // 从日志中获取上一次的状态
+        String previousStatus = bookingStatusLogService.getPreviousStatus(bookingId);
+        
+        if (previousStatus == null) {
+            log.warn("未找到上一次的状态，无法回滚，订单ID: {}", bookingId);
+            throw new BusinessException(ResultCode.PARAM_ERROR, "无法回滚：未找到历史状态");
+        }
+
+        log.info("准备回滚状态: {} -> {}", currentStatus, previousStatus);
+
+        // 更新订单状态
+        booking.setStatus(previousStatus);
+        booking.setUpdatedAt(TimeUtils.now());
+
+        // 执行数据库更新
+        int result = bookingMapper.updateById(booking);
+        if (result <= 0) {
+            log.error("数据库更新失败，影响行数: {}", result);
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "回滚订单状态失败，数据库操作失败");
+        }
+
+        // 验证更新结果
+        Booking updatedBooking = bookingMapper.selectById(bookingId);
+        if (!previousStatus.equals(updatedBooking.getStatus())) {
+            log.error("状态回滚验证失败，期望: {}, 实际: {}", previousStatus, updatedBooking.getStatus());
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "状态回滚验证失败");
+        }
+
+        log.info("订单状态回滚成功，订单ID: {}, {} -> {}", bookingId, currentStatus, previousStatus);
+
+        // 记录回滚日志
+        try {
+            bookingStatusLogService.logStatusChange(
+                bookingId,
+                currentStatus,
+                previousStatus,
+                "状态回滚: " + reason,
+                null,
+                "system"
+            );
+        } catch (Exception e) {
+            log.error("记录回滚日志失败，订单ID: {}", bookingId, e);
+        }
+
+        // 推送WebSocket通知
+        try {
+            webSocketService.pushOrderStatusUpdate(
+                updatedBooking.getUserId(),
+                bookingId,
+                updatedBooking.getOrderNo(),
+                currentStatus,
+                previousStatus,
+                "订单状态已回滚"
+            );
+            log.info("WebSocket推送回滚通知成功，用户ID: {}", updatedBooking.getUserId());
+        } catch (Exception e) {
+            log.error("WebSocket推送失败，用户ID: {}", updatedBooking.getUserId(), e);
         }
     }
 

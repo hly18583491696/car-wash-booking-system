@@ -6,19 +6,23 @@
         <div class="card-header">
           <span>数据同步监控</span>
           <div class="header-actions">
-            <el-badge :value="issues.length" :hidden="issues.length === 0" type="danger">
-              <el-button 
-                :icon="Refresh" 
-                size="small" 
+            <el-badge
+              :value="issues.length"
+              :hidden="issues.length === 0"
+              type="danger"
+            >
+              <el-button
+                :icon="Refresh"
+                size="small"
                 @click="runDiagnostic"
                 :loading="diagnosing"
               >
                 诊断
               </el-button>
             </el-badge>
-            <el-button 
-              :icon="Tools" 
-              size="small" 
+            <el-button
+              :icon="Tools"
+              size="small"
               type="primary"
               @click="quickFix"
               :loading="fixing"
@@ -34,7 +38,9 @@
       <div class="status-overview">
         <div class="status-item">
           <div class="status-icon" :class="getStatusClass()">
-            <el-icon><CircleCheck v-if="syncStatus === 'good'" /><Warning v-else /></el-icon>
+            <el-icon
+              ><CircleCheck v-if="syncStatus === 'good'" /><Warning v-else
+            /></el-icon>
           </div>
           <div class="status-info">
             <div class="status-title">同步状态</div>
@@ -67,8 +73,8 @@
       <div v-if="issues.length > 0" class="issues-section">
         <el-divider>发现的问题</el-divider>
         <div class="issues-list">
-          <div 
-            v-for="issue in issues" 
+          <div
+            v-for="issue in issues"
             :key="issue.id"
             class="issue-item"
             :class="issue.severity"
@@ -86,9 +92,9 @@
               <div class="issue-time">{{ formatTime(issue.timestamp) }}</div>
             </div>
             <div class="issue-actions">
-              <el-button 
-                size="small" 
-                type="primary" 
+              <el-button
+                size="small"
+                type="primary"
                 @click="fixIssue(issue)"
                 :loading="fixingIssue === issue.id"
               >
@@ -103,8 +109,8 @@
       <div v-if="fixedIssues.length > 0" class="fixed-section">
         <el-divider>已修复问题</el-divider>
         <div class="fixed-list">
-          <div 
-            v-for="fixed in fixedIssues.slice(0, 3)" 
+          <div
+            v-for="fixed in fixedIssues.slice(0, 3)"
             :key="fixed.id"
             class="fixed-item"
           >
@@ -125,11 +131,14 @@
           <el-collapse-item title="同步队列详情" name="queue">
             <div class="queue-details">
               <p><strong>队列长度:</strong> {{ queueStatus.queueLength }}</p>
-              <p><strong>处理状态:</strong> {{ queueStatus.isProcessing ? '处理中' : '空闲' }}</p>
+              <p>
+                <strong>处理状态:</strong>
+                {{ queueStatus.isProcessing ? "处理中" : "空闲" }}
+              </p>
               <p><strong>重试次数:</strong> {{ queueStatus.retryCount }}</p>
             </div>
           </el-collapse-item>
-          
+
           <el-collapse-item title="系统信息" name="system">
             <div class="system-info">
               <p><strong>API模式:</strong> {{ apiMode }}</p>
@@ -144,170 +153,180 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import { 
-  Refresh, Tools, CircleCheck, Warning, DataLine, 
-  Clock, InfoFilled, QuestionFilled 
-} from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, onMounted, onUnmounted } from "vue";
+import {
+  Refresh,
+  Tools,
+  CircleCheck,
+  Warning,
+  DataLine,
+  Clock,
+  InfoFilled,
+  QuestionFilled,
+} from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
 
-import { dataSyncManager } from '@/utils/dataSync.js'
-import orderApi from '@/api/order.js'
-import API_CONFIG from '@/config/api.js'
+import { dataSyncManager } from "@/utils/dataSync.js";
+import orderApi from "@/api/order.js";
+import API_CONFIG from "@/config/api.js";
 
 // 响应式数据
-const diagnosing = ref(false)
-const fixing = ref(false)
-const fixingIssue = ref(null)
-const syncStatus = ref('unknown')
-const issues = ref([])
-const fixedIssues = ref([])
-const lastSyncTime = ref(new Date())
-const activeCollapse = ref(['queue'])
+const diagnosing = ref(false);
+const fixing = ref(false);
+const fixingIssue = ref(null);
+const syncStatus = ref("unknown");
+const issues = ref([]);
+const fixedIssues = ref([]);
+const lastSyncTime = ref(new Date());
+const activeCollapse = ref(["queue"]);
 
 const queueStatus = reactive({
   queueLength: 0,
   isProcessing: false,
-  retryCount: 0
-})
+  retryCount: 0,
+});
 
 // 计算属性
-const apiMode = ref(orderApi.isMockMode() ? '模拟模式' : '真实API')
-const backendUrl = ref(API_CONFIG.BASE_URL)
-const connectionStatus = ref('未知')
+const apiMode = ref(orderApi.isMockMode() ? "模拟模式" : "真实API");
+const backendUrl = ref(API_CONFIG.BASE_URL);
+const connectionStatus = ref("未知");
 
 // 定时器
-let statusTimer = null
+let statusTimer = null;
 
 // 生命周期
 onMounted(() => {
-  initMonitor()
-  startStatusPolling()
-})
+  initMonitor();
+  startStatusPolling();
+});
 
 onUnmounted(() => {
-  stopStatusPolling()
-})
+  stopStatusPolling();
+});
 
 // 方法
 const initMonitor = async () => {
-  await updateQueueStatus()
-  await checkConnectionStatus()
-}
+  await updateQueueStatus();
+  await checkConnectionStatus();
+};
 
 const startStatusPolling = () => {
   statusTimer = setInterval(async () => {
-    await updateQueueStatus()
-  }, 5000) // 每5秒更新一次
-}
+    await updateQueueStatus();
+  }, 5000); // 每5秒更新一次
+};
 
 const stopStatusPolling = () => {
   if (statusTimer) {
-    clearInterval(statusTimer)
-    statusTimer = null
+    clearInterval(statusTimer);
+    statusTimer = null;
   }
-}
+};
 
 const updateQueueStatus = async () => {
   try {
-    const status = dataSyncManager.getQueueStatus()
-    Object.assign(queueStatus, status)
-    
+    const status = dataSyncManager.getQueueStatus();
+    Object.assign(queueStatus, status);
+
     // 更新同步状态
     if (issues.value.length === 0 && !queueStatus.isProcessing) {
-      syncStatus.value = 'good'
-    } else if (issues.value.some(i => i.severity === 'critical')) {
-      syncStatus.value = 'critical'
+      syncStatus.value = "good";
+    } else if (issues.value.some((i) => i.severity === "critical")) {
+      syncStatus.value = "critical";
     } else {
-      syncStatus.value = 'warning'
+      syncStatus.value = "warning";
     }
   } catch (error) {
-    console.error('更新队列状态失败:', error)
+    console.error("更新队列状态失败:", error);
   }
-}
+};
 
 const checkConnectionStatus = async () => {
   try {
-    const response = await orderApi.getOrderList()
-    connectionStatus.value = response ? '已连接' : '连接失败'
+    const response = await orderApi.getOrderList();
+    connectionStatus.value = response ? "已连接" : "连接失败";
   } catch (error) {
-    connectionStatus.value = '连接失败'
+    connectionStatus.value = "连接失败";
   }
-}
+};
 
 const runDiagnostic = async () => {
-  diagnosing.value = true
+  diagnosing.value = true;
   try {
     // 简化的诊断逻辑
-    await checkConnection()
-    issues.value = []
-    fixedIssues.value = []
-    lastSyncTime.value = new Date()
-    ElMessage.success('数据同步状态良好')
+    await checkConnection();
+    issues.value = [];
+    fixedIssues.value = [];
+    lastSyncTime.value = new Date();
+    ElMessage.success("数据同步状态良好");
   } catch (error) {
-    ElMessage.error(`诊断过程出错: ${error.message}`)
+    ElMessage.error(`诊断过程出错: ${error.message}`);
   } finally {
-    diagnosing.value = false
+    diagnosing.value = false;
   }
-}
+};
 
 const quickFix = async () => {
-  fixing.value = true
+  fixing.value = true;
   try {
     // 简化的修复逻辑
-    await runDiagnostic()
-    ElMessage.success('快速修复完成')
+    await runDiagnostic();
+    ElMessage.success("快速修复完成");
   } catch (error) {
-    ElMessage.error(`快速修复失败: ${error.message}`)
+    ElMessage.error(`快速修复失败: ${error.message}`);
   } finally {
-    fixing.value = false
+    fixing.value = false;
   }
-}
+};
 
 const fixIssue = async (issue) => {
-  fixingIssue.value = issue.id
+  fixingIssue.value = issue.id;
   try {
     // 这里可以实现针对特定问题的修复逻辑
-    await new Promise(resolve => setTimeout(resolve, 1000)) // 模拟修复过程
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // 模拟修复过程
+
     // 移除已修复的问题
-    const index = issues.value.findIndex(i => i.id === issue.id)
+    const index = issues.value.findIndex((i) => i.id === issue.id);
     if (index !== -1) {
-      const fixed = issues.value.splice(index, 1)[0]
-      fixed.fixedAt = new Date()
-      fixedIssues.value.unshift(fixed)
+      const fixed = issues.value.splice(index, 1)[0];
+      fixed.fixedAt = new Date();
+      fixedIssues.value.unshift(fixed);
     }
-    
-    ElMessage.success('问题修复成功')
+
+    ElMessage.success("问题修复成功");
   } catch (error) {
-    ElMessage.error(`修复失败: ${error.message}`)
+    ElMessage.error(`修复失败: ${error.message}`);
   } finally {
-    fixingIssue.value = null
+    fixingIssue.value = null;
   }
-}
+};
 
 const getStatusClass = () => {
   return {
-    'success': syncStatus.value === 'good',
-    'warning': syncStatus.value === 'warning',
-    'danger': syncStatus.value === 'critical'
-  }
-}
+    success: syncStatus.value === "good",
+    warning: syncStatus.value === "warning",
+    danger: syncStatus.value === "critical",
+  };
+};
 
 const getStatusText = () => {
   switch (syncStatus.value) {
-    case 'good': return '正常'
-    case 'warning': return '警告'
-    case 'critical': return '严重'
-    default: return '未知'
+    case "good":
+      return "正常";
+    case "warning":
+      return "警告";
+    case "critical":
+      return "严重";
+    default:
+      return "未知";
   }
-}
+};
 
 const formatTime = (time) => {
-  if (!time) return '无'
-  const date = new Date(time)
-  return date.toLocaleTimeString()
-}
+  if (!time) return "无";
+  const date = new Date(time);
+  return date.toLocaleTimeString();
+};
 </script>
 
 <style scoped>
@@ -390,11 +409,13 @@ const formatTime = (time) => {
   color: #303133;
 }
 
-.issues-section, .fixed-section {
+.issues-section,
+.fixed-section {
   margin-top: 20px;
 }
 
-.issues-list, .fixed-list {
+.issues-list,
+.fixed-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -485,12 +506,14 @@ const formatTime = (time) => {
   margin-top: 20px;
 }
 
-.queue-details, .system-info {
+.queue-details,
+.system-info {
   font-size: 14px;
   line-height: 1.6;
 }
 
-.queue-details p, .system-info p {
+.queue-details p,
+.system-info p {
   margin: 8px 0;
 }
 </style>

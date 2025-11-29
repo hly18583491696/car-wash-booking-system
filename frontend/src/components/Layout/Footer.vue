@@ -25,7 +25,7 @@
             </a>
           </div>
         </div>
-        
+
         <!-- 快速链接 -->
         <div class="footer-section">
           <h4 class="section-title">快速链接</h4>
@@ -36,7 +36,7 @@
             <li><router-link to="/about">关于我们</router-link></li>
           </ul>
         </div>
-        
+
         <!-- 服务支持 -->
         <div class="footer-section">
           <h4 class="section-title">服务支持</h4>
@@ -47,7 +47,7 @@
             <li><a href="#">联系客服</a></li>
           </ul>
         </div>
-        
+
         <!-- 联系信息 -->
         <div class="footer-section">
           <h4 class="section-title">联系我们</h4>
@@ -58,16 +58,16 @@
             </div>
             <div class="contact-item">
               <el-icon><Message /></el-icon>
-              <span>service@carwash.com</span>
+              <span>qinghuandu@carwash.com</span>
             </div>
             <div class="contact-item">
               <el-icon><Location /></el-icon>
-              <span>北京市朝阳区xxx街道xxx号</span>
+              <span>四川省绵阳市安州区</span>
             </div>
           </div>
         </div>
       </div>
-      
+
       <!-- 版权信息 -->
       <div class="footer-bottom">
         <div class="copyright">
@@ -86,8 +86,8 @@
 
 <script>
 export default {
-  name: 'Footer'
-}
+  name: "Footer",
+};
 </script>
 
 <style scoped>
@@ -250,13 +250,13 @@ export default {
     grid-template-columns: 1fr;
     gap: 30px;
   }
-  
+
   .footer-bottom {
     flex-direction: column;
     gap: 12px;
     text-align: center;
   }
-  
+
   .footer-meta {
     flex-direction: column;
     gap: 4px;
@@ -267,11 +267,11 @@ export default {
   .footer-container {
     padding: 30px 16px 16px;
   }
-  
+
   .footer-content {
     gap: 24px;
   }
-  
+
   .social-links {
     justify-content: center;
   }

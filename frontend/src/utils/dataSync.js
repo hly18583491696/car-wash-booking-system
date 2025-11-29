@@ -3,28 +3,28 @@
  * 解决预约管理功能中的数据不同步问题
  */
 
-import { ElMessage } from 'element-plus'
+import { ElMessage } from "element-plus";
 
 // 状态映射表 - 统一前后端状态值
 export const STATUS_MAPPING = {
   // 后端状态 -> 前端显示状态
-  'pending': 'pending',
-  'confirmed': 'confirmed', 
-  'in_progress': 'in_progress',
-  'processing': 'in_progress', // 兼容旧状态
-  'completed': 'completed',
-  'cancelled': 'cancelled'
-}
+  pending: "pending",
+  confirmed: "confirmed",
+  in_progress: "in_progress",
+  processing: "in_progress", // 兼容旧状态
+  completed: "completed",
+  cancelled: "cancelled",
+};
 
 // 反向映射 - 前端状态 -> 后端状态
 export const REVERSE_STATUS_MAPPING = {
-  'pending': 'pending',
-  'confirmed': 'confirmed',
-  'in_progress': 'in_progress',
-  'processing': 'in_progress', // 统一为 in_progress
-  'completed': 'completed',
-  'cancelled': 'cancelled'
-}
+  pending: "pending",
+  confirmed: "confirmed",
+  in_progress: "in_progress",
+  processing: "in_progress", // 统一为 in_progress
+  completed: "completed",
+  cancelled: "cancelled",
+};
 
 /**
  * 标准化订单状态
@@ -32,7 +32,7 @@ export const REVERSE_STATUS_MAPPING = {
  * @returns {string} - 标准化后的状态
  */
 export function normalizeStatus(status) {
-  return STATUS_MAPPING[status] || status
+  return STATUS_MAPPING[status] || status;
 }
 
 /**
@@ -41,7 +41,7 @@ export function normalizeStatus(status) {
  * @returns {string} - 后端API状态值
  */
 export function getBackendStatus(frontendStatus) {
-  return REVERSE_STATUS_MAPPING[frontendStatus] || frontendStatus
+  return REVERSE_STATUS_MAPPING[frontendStatus] || frontendStatus;
 }
 
 /**
@@ -49,10 +49,10 @@ export function getBackendStatus(frontendStatus) {
  */
 export class DataSyncManager {
   constructor() {
-    this.syncQueue = []
-    this.isProcessing = false
-    this.retryCount = 0
-    this.maxRetries = 3
+    this.syncQueue = [];
+    this.isProcessing = false;
+    this.retryCount = 0;
+    this.maxRetries = 3;
   }
 
   /**
@@ -63,11 +63,11 @@ export class DataSyncManager {
     this.syncQueue.push({
       ...task,
       timestamp: Date.now(),
-      retries: 0
-    })
-    
+      retries: 0,
+    });
+
     if (!this.isProcessing) {
-      this.processSyncQueue()
+      this.processSyncQueue();
     }
   }
 
@@ -76,35 +76,39 @@ export class DataSyncManager {
    */
   async processSyncQueue() {
     if (this.isProcessing || this.syncQueue.length === 0) {
-      return
+      return;
     }
 
-    this.isProcessing = true
-    console.log('🔄 开始处理数据同步队列，任务数量:', this.syncQueue.length)
+    this.isProcessing = true;
+    console.log("🔄 开始处理数据同步队列，任务数量:", this.syncQueue.length);
 
     while (this.syncQueue.length > 0) {
-      const task = this.syncQueue.shift()
-      
+      const task = this.syncQueue.shift();
+
       try {
-        await this.executeTask(task)
-        console.log('✅ 同步任务执行成功:', task.type, task.id)
+        await this.executeTask(task);
+        console.log("✅ 同步任务执行成功:", task.type, task.id);
       } catch (error) {
-        console.error('❌ 同步任务执行失败:', task.type, task.id, error)
-        
+        console.error("❌ 同步任务执行失败:", task.type, task.id, error);
+
         // 重试机制
         if (task.retries < this.maxRetries) {
-          task.retries++
-          this.syncQueue.push(task)
-          console.log(`🔄 任务重试 ${task.retries}/${this.maxRetries}:`, task.type, task.id)
+          task.retries++;
+          this.syncQueue.push(task);
+          console.log(
+            `🔄 任务重试 ${task.retries}/${this.maxRetries}:`,
+            task.type,
+            task.id,
+          );
         } else {
-          console.error('❌ 任务重试次数超限，放弃同步:', task.type, task.id)
-          ElMessage.error(`数据同步失败: ${task.type} ${task.id}`)
+          console.error("❌ 任务重试次数超限，放弃同步:", task.type, task.id);
+          ElMessage.error(`数据同步失败: ${task.type} ${task.id}`);
         }
       }
     }
 
-    this.isProcessing = false
-    console.log('✅ 数据同步队列处理完成')
+    this.isProcessing = false;
+    console.log("✅ 数据同步队列处理完成");
   }
 
   /**
@@ -113,12 +117,12 @@ export class DataSyncManager {
    */
   async executeTask(task) {
     switch (task.type) {
-      case 'booking_status_update':
-        return await this.syncBookingStatus(task)
-      case 'booking_data_refresh':
-        return await this.refreshBookingData(task)
+      case "booking_status_update":
+        return await this.syncBookingStatus(task);
+      case "booking_data_refresh":
+        return await this.refreshBookingData(task);
       default:
-        throw new Error(`未知的同步任务类型: ${task.type}`)
+        throw new Error(`未知的同步任务类型: ${task.type}`);
     }
   }
 
@@ -127,20 +131,20 @@ export class DataSyncManager {
    * @param {Object} task - 状态更新任务
    */
   async syncBookingStatus(task) {
-    const { id, status, api } = task
-    
+    const { id, status, api } = task;
+
     // 确保使用正确的后端状态值
-    const backendStatus = getBackendStatus(status)
-    
-    console.log(`🔄 同步预约状态: ${id} -> ${status} (后端: ${backendStatus})`)
-    
-    const response = await api.updateBookingStatus(id, backendStatus)
-    
+    const backendStatus = getBackendStatus(status);
+
+    console.log(`🔄 同步预约状态: ${id} -> ${status} (后端: ${backendStatus})`);
+
+    const response = await api.updateBookingStatus(id, backendStatus);
+
     if (!response || !response.success) {
-      throw new Error('状态更新失败')
+      throw new Error("状态更新失败");
     }
-    
-    return response
+
+    return response;
   }
 
   /**
@@ -148,36 +152,36 @@ export class DataSyncManager {
    * @param {Object} task - 数据刷新任务
    */
   async refreshBookingData(task) {
-    const { api, callback } = task
-    
-    console.log('🔄 刷新预约数据')
-    
-    const response = await api.getOrderList()
-    
+    const { api, callback } = task;
+
+    console.log("🔄 刷新预约数据");
+
+    const response = await api.getOrderList();
+
     if (response && response.data) {
       // 标准化状态值
-      const normalizedData = response.data.map(booking => ({
+      const normalizedData = response.data.map((booking) => ({
         ...booking,
-        status: normalizeStatus(booking.status)
-      }))
-      
-      if (callback && typeof callback === 'function') {
-        callback(normalizedData)
+        status: normalizeStatus(booking.status),
+      }));
+
+      if (callback && typeof callback === "function") {
+        callback(normalizedData);
       }
-      
-      return normalizedData
+
+      return normalizedData;
     }
-    
-    throw new Error('获取数据失败')
+
+    throw new Error("获取数据失败");
   }
 
   /**
    * 清空同步队列
    */
   clearQueue() {
-    this.syncQueue = []
-    this.isProcessing = false
-    console.log('🧹 同步队列已清空')
+    this.syncQueue = [];
+    this.isProcessing = false;
+    console.log("🧹 同步队列已清空");
   }
 
   /**
@@ -187,13 +191,13 @@ export class DataSyncManager {
     return {
       queueLength: this.syncQueue.length,
       isProcessing: this.isProcessing,
-      retryCount: this.retryCount
-    }
+      retryCount: this.retryCount,
+    };
   }
 }
 
 // 创建全局同步管理器实例
-export const dataSyncManager = new DataSyncManager()
+export const dataSyncManager = new DataSyncManager();
 
 /**
  * 预约状态更新辅助函数
@@ -202,59 +206,65 @@ export const dataSyncManager = new DataSyncManager()
  * @param {Object} api - API对象
  * @param {Function} localUpdateCallback - 本地更新回调
  */
-export async function updateBookingStatusSync(bookingId, newStatus, api, localUpdateCallback) {
-  let originalStatus = null
-  
+export async function updateBookingStatusSync(
+  bookingId,
+  newStatus,
+  api,
+  localUpdateCallback,
+) {
+  let originalStatus = null;
+
   try {
-    console.log(`🔄 开始同步更新预约状态: ${bookingId} -> ${newStatus}`)
-    
+    console.log(`🔄 开始同步更新预约状态: ${bookingId} -> ${newStatus}`);
+
     // 记录原始状态用于回滚
     if (localUpdateCallback) {
       // 假设可以从当前数据中获取原始状态
-      originalStatus = getCurrentBookingStatus(bookingId)
+      originalStatus = getCurrentBookingStatus(bookingId);
     }
-    
+
     // 立即更新本地状态（乐观更新）
     if (localUpdateCallback) {
-      localUpdateCallback(bookingId, newStatus)
+      localUpdateCallback(bookingId, newStatus);
     }
-    
+
     // 直接调用API更新状态，而不是使用队列
-    const backendStatus = getBackendStatus(newStatus)
-    const response = await api.updateBookingStatus(bookingId, backendStatus)
-    
+    const backendStatus = getBackendStatus(newStatus);
+    const response = await api.updateBookingStatus(bookingId, backendStatus);
+
     if (!response || !response.success) {
-      throw new Error('后端状态更新失败')
+      throw new Error("后端状态更新失败");
     }
-    
+
     // 验证更新结果
-    const updatedBooking = await api.getOrderById(bookingId)
+    const updatedBooking = await api.getOrderById(bookingId);
     if (updatedBooking && updatedBooking.data) {
-      const actualStatus = normalizeStatus(updatedBooking.data.status)
+      const actualStatus = normalizeStatus(updatedBooking.data.status);
       if (actualStatus !== newStatus) {
-        console.warn(`⚠️ 状态更新验证失败: 期望${newStatus}, 实际${actualStatus}`)
+        console.warn(
+          `⚠️ 状态更新验证失败: 期望${newStatus}, 实际${actualStatus}`,
+        );
         // 使用实际状态更新本地显示
         if (localUpdateCallback) {
-          localUpdateCallback(bookingId, actualStatus)
+          localUpdateCallback(bookingId, actualStatus);
         }
       }
     }
-    
-    console.log('✅ 预约状态更新成功')
-    return response
-    
+
+    console.log("✅ 预约状态更新成功");
+    return response;
   } catch (error) {
-    console.error('❌ 预约状态更新失败:', error)
-    
+    console.error("❌ 预约状态更新失败:", error);
+
     // 回滚本地状态
     if (localUpdateCallback && originalStatus) {
-      console.log(`🔄 回滚状态: ${bookingId} -> ${originalStatus}`)
-      localUpdateCallback(bookingId, originalStatus)
+      console.log(`🔄 回滚状态: ${bookingId} -> ${originalStatus}`);
+      localUpdateCallback(bookingId, originalStatus);
     }
-    
+
     // 显示错误消息
-    ElMessage.error(`状态更新失败: ${error.message}`)
-    throw error
+    ElMessage.error(`状态更新失败: ${error.message}`);
+    throw error;
   }
 }
 
@@ -266,7 +276,7 @@ export async function updateBookingStatusSync(bookingId, newStatus, api, localUp
 function getCurrentBookingStatus(bookingId) {
   // 这里可以从全局状态或缓存中获取当前状态
   // 暂时返回默认值
-  return 'pending'
+  return "pending";
 }
 
 /**
@@ -276,31 +286,30 @@ function getCurrentBookingStatus(bookingId) {
  */
 export async function refreshBookingDataSync(api, dataUpdateCallback) {
   try {
-    console.log('🔄 开始同步刷新预约数据')
-    
+    console.log("🔄 开始同步刷新预约数据");
+
     // 直接调用API获取数据，不使用队列
-    const response = await api.getOrderList()
-    
+    const response = await api.getOrderList();
+
     if (response && response.data) {
       // 标准化状态值
-      const normalizedData = response.data.map(booking => ({
+      const normalizedData = response.data.map((booking) => ({
         ...booking,
-        status: normalizeStatus(booking.status)
-      }))
-      
-      if (dataUpdateCallback && typeof dataUpdateCallback === 'function') {
-        dataUpdateCallback(normalizedData)
+        status: normalizeStatus(booking.status),
+      }));
+
+      if (dataUpdateCallback && typeof dataUpdateCallback === "function") {
+        dataUpdateCallback(normalizedData);
       }
-      
-      console.log('✅ 数据刷新成功，数量:', normalizedData.length)
-      return normalizedData
+
+      console.log("✅ 数据刷新成功，数量:", normalizedData.length);
+      return normalizedData;
     }
-    
-    throw new Error('获取数据失败')
-    
+
+    throw new Error("获取数据失败");
   } catch (error) {
-    console.error('❌ 数据刷新失败:', error)
-    throw error
+    console.error("❌ 数据刷新失败:", error);
+    throw error;
   }
 }
 
@@ -312,5 +321,5 @@ export default {
   updateBookingStatusSync,
   refreshBookingDataSync,
   STATUS_MAPPING,
-  REVERSE_STATUS_MAPPING
-}
+  REVERSE_STATUS_MAPPING,
+};

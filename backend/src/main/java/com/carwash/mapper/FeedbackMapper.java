@@ -49,4 +49,10 @@ public interface FeedbackMapper extends BaseMapper<Feedback> {
      */
     @Update("UPDATE feedback SET status = #{status} WHERE id = #{feedbackId}")
     int updateStatus(@Param("feedbackId") Long feedbackId, @Param("status") String status);
+
+    @Select("SELECT COALESCE(AVG(rating),0) FROM feedback WHERE deleted = 0 AND rating IS NOT NULL")
+    Double avgRating();
+
+    @Select("SELECT id,user_id,booking_id,rating,content,reply,status,created_at,updated_at,deleted FROM feedback WHERE deleted = 0 AND rating IS NOT NULL AND content IS NOT NULL ORDER BY created_at DESC LIMIT #{limit}")
+    List<Feedback> selectLatest(@Param("limit") Integer limit);
 }

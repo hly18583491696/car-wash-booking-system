@@ -1,9 +1,9 @@
 <template>
-  <div 
-    class="scroll-reveal" 
+  <div
+    class="scroll-reveal"
     :class="[
       `reveal-${animation}`,
-      { 'is-visible': isVisible, 'reveal-once': once }
+      { 'is-visible': isVisible, 'reveal-once': once },
     ]"
     ref="revealElement"
   >
@@ -12,84 +12,100 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from "vue";
 
 export default {
-  name: 'ScrollReveal',
+  name: "ScrollReveal",
   props: {
     animation: {
       type: String,
-      default: 'fadeInUp',
-      validator: (value) => [
-        'fadeIn', 'fadeInUp', 'fadeInDown', 'fadeInLeft', 'fadeInRight',
-        'slideInUp', 'slideInDown', 'slideInLeft', 'slideInRight',
-        'zoomIn', 'zoomInUp', 'zoomInDown', 'rotateIn', 'flipInX', 'flipInY'
-      ].includes(value)
+      default: "fadeInUp",
+      validator: (value) =>
+        [
+          "fadeIn",
+          "fadeInUp",
+          "fadeInDown",
+          "fadeInLeft",
+          "fadeInRight",
+          "slideInUp",
+          "slideInDown",
+          "slideInLeft",
+          "slideInRight",
+          "zoomIn",
+          "zoomInUp",
+          "zoomInDown",
+          "rotateIn",
+          "flipInX",
+          "flipInY",
+        ].includes(value),
     },
     delay: {
       type: Number,
-      default: 0
+      default: 0,
     },
     duration: {
       type: Number,
-      default: 600
+      default: 600,
     },
     offset: {
       type: Number,
-      default: 100
+      default: 100,
     },
     once: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   setup(props) {
-    const revealElement = ref(null)
-    const isVisible = ref(false)
-    const observer = ref(null)
-    
+    const revealElement = ref(null);
+    const isVisible = ref(false);
+    const observer = ref(null);
+
     const handleIntersection = (entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           setTimeout(() => {
-            isVisible.value = true
-          }, props.delay)
-          
+            isVisible.value = true;
+          }, props.delay);
+
           if (props.once && observer.value) {
-            observer.value.unobserve(entry.target)
+            observer.value.unobserve(entry.target);
           }
         } else if (!props.once) {
-          isVisible.value = false
+          isVisible.value = false;
         }
-      })
-    }
-    
+      });
+    };
+
     onMounted(() => {
       if (revealElement.value) {
         observer.value = new IntersectionObserver(handleIntersection, {
           threshold: 0.1,
-          rootMargin: `0px 0px -${props.offset}px 0px`
-        })
-        
-        observer.value.observe(revealElement.value)
-        
+          rootMargin: `0px 0px -${props.offset}px 0px`,
+        });
+
+        observer.value.observe(revealElement.value);
+
         // 设置动画持续时间
-        revealElement.value.style.setProperty('--animation-duration', `${props.duration}ms`)
+        revealElement.value.style.setProperty(
+          "--animation-duration",
+          `${props.duration}ms`,
+        );
       }
-    })
-    
+    });
+
     onUnmounted(() => {
       if (observer.value) {
-        observer.value.disconnect()
+        observer.value.disconnect();
       }
-    })
-    
+    });
+
     return {
       revealElement,
-      isVisible
-    }
-  }
-}
+      isVisible,
+    };
+  },
+};
 </script>
 
 <style scoped>

@@ -6,12 +6,12 @@
         <div class="spinner-ring"></div>
         <div class="spinner-ring"></div>
       </div>
-      
+
       <div class="loading-text">
         <h3>{{ title }}</h3>
         <p v-if="description">{{ description }}</p>
       </div>
-      
+
       <div v-if="showProgress" class="loading-progress">
         <el-progress :percentage="progress" :show-text="false" />
         <span class="progress-text">{{ progress }}%</span>
@@ -22,30 +22,30 @@
 
 <script>
 export default {
-  name: 'Loading',
+  name: "Loading",
   props: {
     fullscreen: {
       type: Boolean,
-      default: false
+      default: false,
     },
     title: {
       type: String,
-      default: '加载中...'
+      default: "加载中...",
     },
     description: {
       type: String,
-      default: ''
+      default: "",
     },
     showProgress: {
       type: Boolean,
-      default: false
+      default: false,
     },
     progress: {
       type: Number,
-      default: 0
-    }
-  }
-}
+      default: 0,
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -157,19 +157,19 @@ export default {
   .loading-container {
     padding: 20px;
   }
-  
+
   .loading-spinner {
     width: 60px;
     height: 60px;
   }
-  
+
   .spinner-ring:nth-child(2) {
     width: 45px;
     height: 45px;
     top: 7.5px;
     left: 7.5px;
   }
-  
+
   .spinner-ring:nth-child(3) {
     width: 30px;
     height: 30px;

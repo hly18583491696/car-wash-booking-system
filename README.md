@@ -39,6 +39,9 @@
 
 ## 快速开始
 
+### 端口统一说明
+前端开发端口统一为 `3000`，后端服务端口统一为 `8080`。
+
 ### 后端启动
 ```bash
 cd backend
@@ -51,6 +54,16 @@ cd frontend
 npm install
 npm run dev
 ```
+
+### 前端开发环境变量
+将 `frontend/.env.development` 中的 `VITE_API_BASE_URL` 设置为 `http://localhost:8080/api`。
+
+### WebSocket
+前端直接使用 `ws://localhost:8080/ws/...` 与后端连接。
+
+- 订单状态推送地址：`ws://localhost:8080/ws/order-status?userId=<当前用户ID>`
+- 心跳机制：使用 `ping/pong`，前端定期发送 `ping`，后端返回 `pong`
+- 可选参数：可附加 `token` 用于扩展认证（后端当前按 `userId` 校验）
 
 ## 数据库配置
 

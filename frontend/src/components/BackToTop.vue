@@ -1,10 +1,6 @@
 <template>
   <transition name="fade">
-    <div 
-      v-show="visible" 
-      class="back-to-top"
-      @click="scrollToTop"
-    >
+    <div v-show="visible" class="back-to-top" @click="scrollToTop">
       <el-icon size="20">
         <ArrowUp />
       </el-icon>
@@ -13,38 +9,38 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from "vue";
 
 export default {
-  name: 'BackToTop',
+  name: "BackToTop",
   setup() {
-    const visible = ref(false)
-    
+    const visible = ref(false);
+
     const handleScroll = () => {
-      visible.value = window.scrollY > 300
-    }
-    
+      visible.value = window.scrollY > 300;
+    };
+
     const scrollToTop = () => {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
-      })
-    }
-    
+        behavior: "smooth",
+      });
+    };
+
     onMounted(() => {
-      window.addEventListener('scroll', handleScroll)
-    })
-    
+      window.addEventListener("scroll", handleScroll);
+    });
+
     onUnmounted(() => {
-      window.removeEventListener('scroll', handleScroll)
-    })
-    
+      window.removeEventListener("scroll", handleScroll);
+    });
+
     return {
       visible,
-      scrollToTop
-    }
-  }
-}
+      scrollToTop,
+    };
+  },
+};
 </script>
 
 <style scoped>

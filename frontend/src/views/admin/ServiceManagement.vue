@@ -149,10 +149,18 @@
           <div class="table-title">服务列表</div>
           <div class="table-actions">
             <el-button-group>
-              <el-button :icon="Grid" :type="viewMode === 'grid' ? 'primary' : ''" @click="viewMode = 'grid'">
+              <el-button
+                :icon="Grid"
+                :type="viewMode === 'grid' ? 'primary' : ''"
+                @click="viewMode = 'grid'"
+              >
                 卡片视图
               </el-button>
-              <el-button :icon="List" :type="viewMode === 'list' ? 'primary' : ''" @click="viewMode = 'list'">
+              <el-button
+                :icon="List"
+                :type="viewMode === 'list' ? 'primary' : ''"
+                @click="viewMode = 'list'"
+              >
                 列表视图
               </el-button>
             </el-button-group>
@@ -163,16 +171,26 @@
         <div v-if="viewMode === 'grid'" class="grid-view">
           <el-row :gutter="20">
             <el-col :span="8" v-for="service in services" :key="service.id">
-              <el-card class="service-card" shadow="hover" @click="viewDetail(service)">
+              <el-card
+                class="service-card"
+                shadow="hover"
+                @click="viewDetail(service)"
+              >
                 <div class="service-header">
                   <div class="service-category">
-                    <el-tag size="small" :type="getCategoryType(service.category)">
+                    <el-tag
+                      size="small"
+                      :type="getCategoryType(service.category)"
+                    >
                       {{ getCategoryText(service.category) }}
                     </el-tag>
                   </div>
                   <div class="service-status">
-                    <el-tag :type="service.status === 1 ? 'success' : 'danger'" size="small">
-                      {{ service.status === 1 ? '启用' : '禁用' }}
+                    <el-tag
+                      :type="service.status === 1 ? 'success' : 'danger'"
+                      size="small"
+                    >
+                      {{ service.status === 1 ? "启用" : "禁用" }}
                     </el-tag>
                   </div>
                 </div>
@@ -181,19 +199,27 @@
                   <p class="service-description">{{ service.description }}</p>
                   <div class="service-details">
                     <div class="service-price">¥{{ service.price }}</div>
-                    <div class="service-duration">{{ service.duration }}分钟</div>
+                    <div class="service-duration">
+                      {{ service.duration }}分钟
+                    </div>
                   </div>
                 </div>
                 <div class="service-actions">
-                  <el-button size="small" @click.stop="editService(service)">编辑</el-button>
+                  <el-button size="small" @click.stop="editService(service)"
+                    >编辑</el-button
+                  >
                   <el-button
                     size="small"
                     :type="service.status === 1 ? 'warning' : 'success'"
                     @click.stop="toggleStatus(service)"
                   >
-                    {{ service.status === 1 ? '禁用' : '启用' }}
+                    {{ service.status === 1 ? "禁用" : "启用" }}
                   </el-button>
-                  <el-button size="small" type="danger" @click.stop="deleteService(service)">
+                  <el-button
+                    size="small"
+                    type="danger"
+                    @click.stop="deleteService(service)"
+                  >
                     删除
                   </el-button>
                 </div>
@@ -215,22 +241,29 @@
             <template #default="scope">
               <div class="service-name-cell">
                 <strong>{{ scope.row.name }}</strong>
-                <el-tag size="small" :type="getCategoryType(scope.row.category)" style="margin-left: 8px;">
+                <el-tag
+                  size="small"
+                  :type="getCategoryType(scope.row.category)"
+                  style="margin-left: 8px"
+                >
                   {{ getCategoryText(scope.row.category) }}
                 </el-tag>
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="description" label="服务描述" min-width="200" show-overflow-tooltip />
+          <el-table-column
+            prop="description"
+            label="服务描述"
+            min-width="200"
+            show-overflow-tooltip
+          />
           <el-table-column prop="price" label="价格" width="100" sortable>
             <template #default="scope">
               <span class="price-cell">¥{{ scope.row.price }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="duration" label="时长" width="100" sortable>
-            <template #default="scope">
-              {{ scope.row.duration }}分钟
-            </template>
+            <template #default="scope"> {{ scope.row.duration }}分钟 </template>
           </el-table-column>
           <el-table-column prop="status" label="状态" width="100">
             <template #default="scope">
@@ -250,9 +283,17 @@
           <el-table-column label="操作" width="200" fixed="right">
             <template #default="scope">
               <el-button-group>
-                <el-button size="small" @click="viewDetail(scope.row)">详情</el-button>
-                <el-button size="small" @click="editService(scope.row)">编辑</el-button>
-                <el-button size="small" type="danger" @click="deleteService(scope.row)">
+                <el-button size="small" @click="viewDetail(scope.row)"
+                  >详情</el-button
+                >
+                <el-button size="small" @click="editService(scope.row)"
+                  >编辑</el-button
+                >
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="deleteService(scope.row)"
+                >
                   删除
                 </el-button>
               </el-button-group>
@@ -296,7 +337,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="服务分类" prop="category">
-              <el-select v-model="form.category" placeholder="请选择分类" style="width: 100%">
+              <el-select
+                v-model="form.category"
+                placeholder="请选择分类"
+                style="width: 100%"
+              >
                 <el-option label="基础洗车" value="basic" />
                 <el-option label="精洗套餐" value="premium" />
                 <el-option label="内饰清洁" value="interior" />
@@ -374,44 +419,46 @@
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="submitting">
-          {{ isEdit ? '更新' : '创建' }}
+          {{ isEdit ? "更新" : "创建" }}
         </el-button>
       </template>
     </el-dialog>
 
     <!-- 服务详情对话框 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="服务详情"
-      width="600px"
-    >
+    <el-dialog v-model="detailVisible" title="服务详情" width="600px">
       <el-descriptions v-if="currentService" :column="2" border>
-        <el-descriptions-item label="服务名称">{{ currentService.name }}</el-descriptions-item>
+        <el-descriptions-item label="服务名称">{{
+          currentService.name
+        }}</el-descriptions-item>
         <el-descriptions-item label="服务分类">
           <el-tag :type="getCategoryType(currentService.category)">
             {{ getCategoryText(currentService.category) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="服务价格">¥{{ currentService.price }}</el-descriptions-item>
-        <el-descriptions-item label="服务时长">{{ currentService.duration }}分钟</el-descriptions-item>
+        <el-descriptions-item label="服务价格"
+          >¥{{ currentService.price }}</el-descriptions-item
+        >
+        <el-descriptions-item label="服务时长"
+          >{{ currentService.duration }}分钟</el-descriptions-item
+        >
         <el-descriptions-item label="服务状态">
           <el-tag :type="currentService.status === 1 ? 'success' : 'danger'">
-            {{ currentService.status === 1 ? '启用' : '禁用' }}
+            {{ currentService.status === 1 ? "启用" : "禁用" }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="推荐服务">
           <el-tag :type="currentService.recommended === 1 ? 'warning' : ''">
-            {{ currentService.recommended === 1 ? '是' : '否' }}
+            {{ currentService.recommended === 1 ? "是" : "否" }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="创建时间" :span="2">
           {{ formatDateTime(currentService.createTime) }}
         </el-descriptions-item>
         <el-descriptions-item label="服务描述" :span="2">
-          {{ currentService.description || '无' }}
+          {{ currentService.description || "无" }}
         </el-descriptions-item>
         <el-descriptions-item label="服务特色" :span="2">
-          {{ currentService.features || '无' }}
+          {{ currentService.features || "无" }}
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -419,268 +466,276 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, reactive, computed, onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
-  Search, Plus, Refresh, Menu, Check, Star, Money,
-  Grid, List
-} from '@element-plus/icons-vue'
-import serviceApi from '../../api/service.js'
+  Search,
+  Plus,
+  Refresh,
+  Menu,
+  Check,
+  Star,
+  Money,
+  Grid,
+  List,
+} from "@element-plus/icons-vue";
+import serviceApi from "../../api/service.js";
 
 // 响应式数据
-const loading = ref(false)
-const submitting = ref(false)
-const dialogVisible = ref(false)
-const detailVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref()
-const viewMode = ref('list') // 'grid' | 'list'
+const loading = ref(false);
+const submitting = ref(false);
+const dialogVisible = ref(false);
+const detailVisible = ref(false);
+const isEdit = ref(false);
+const formRef = ref();
+const viewMode = ref("list"); // 'grid' | 'list'
 
 // 搜索表单
 const searchForm = reactive({
-  keyword: '',
-  category: '',
-  status: '',
+  keyword: "",
+  category: "",
+  status: "",
   minPrice: null,
-  maxPrice: null
-})
+  maxPrice: null,
+});
 
 // 服务列表和分页
-const services = ref([])
-const selectedServices = ref([])
-const currentService = ref(null)
+const services = ref([]);
+const selectedServices = ref([]);
+const currentService = ref(null);
 
 const pagination = reactive({
   current: 1,
   size: 24,
-  total: 0
-})
+  total: 0,
+});
 
 // 统计数据
 const stats = reactive({
   total: 0,
   active: 0,
   premium: 0,
-  avgPrice: 0
-})
+  avgPrice: 0,
+});
 
 // 表单数据
 const form = reactive({
   id: null,
-  name: '',
-  category: '',
-  description: '',
-  features: '',
+  name: "",
+  category: "",
+  description: "",
+  features: "",
   price: 0,
   duration: 60,
   status: 1,
-  recommended: 0
-})
+  recommended: 0,
+});
 
 // 表单验证规则
 const formRules = {
-  name: [
-    { required: true, message: '请输入服务名称', trigger: 'blur' }
-  ],
-  category: [
-    { required: true, message: '请选择服务分类', trigger: 'change' }
-  ],
-  description: [
-    { required: true, message: '请输入服务描述', trigger: 'blur' }
-  ],
+  name: [{ required: true, message: "请输入服务名称", trigger: "blur" }],
+  category: [{ required: true, message: "请选择服务分类", trigger: "change" }],
+  description: [{ required: true, message: "请输入服务描述", trigger: "blur" }],
   price: [
-    { required: true, message: '请输入服务价格', trigger: 'blur' },
-    { type: 'number', min: 0, message: '价格不能小于0', trigger: 'blur' }
+    { required: true, message: "请输入服务价格", trigger: "blur" },
+    { type: "number", min: 0, message: "价格不能小于0", trigger: "blur" },
   ],
   duration: [
-    { required: true, message: '请输入服务时长', trigger: 'blur' },
-    { type: 'number', min: 15, message: '时长不能小于15分钟', trigger: 'blur' }
-  ]
-}
+    { required: true, message: "请输入服务时长", trigger: "blur" },
+    { type: "number", min: 15, message: "时长不能小于15分钟", trigger: "blur" },
+  ],
+};
 
 // 计算属性
-const dialogTitle = computed(() => isEdit.value ? '编辑服务' : '添加服务')
+const dialogTitle = computed(() => (isEdit.value ? "编辑服务" : "添加服务"));
 
 // 方法
 const loadData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     const params = {
       page: pagination.current,
       size: pagination.size,
-      ...searchForm
-    }
-    
-    const response = await serviceApi.getServiceList(params)
+      ...searchForm,
+    };
+
+    const response = await serviceApi.getServiceList(params);
     if (response?.data) {
-      services.value = response.data.records || response.data
-      pagination.total = response.data.total || response.data.length
-      
+      services.value = response.data.records || response.data;
+      pagination.total = response.data.total || response.data.length;
+
       // 计算统计数据
-      calculateStats()
+      calculateStats();
     }
   } catch (error) {
-    console.error('加载服务数据失败:', error)
-    ElMessage.error('加载数据失败')
+    console.error("加载服务数据失败:", error);
+    ElMessage.error("加载数据失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const calculateStats = () => {
-  stats.total = services.value.length
-  stats.active = services.value.filter(item => item.status === 1).length
-  stats.premium = services.value.filter(item => item.category === 'premium').length
-  
-  const totalPrice = services.value.reduce((sum, item) => sum + (item.price || 0), 0)
-  stats.avgPrice = stats.total > 0 ? Math.round(totalPrice / stats.total) : 0
-}
+  stats.total = services.value.length;
+  stats.active = services.value.filter((item) => item.status === 1).length;
+  stats.premium = services.value.filter(
+    (item) => item.category === "premium",
+  ).length;
+
+  const totalPrice = services.value.reduce(
+    (sum, item) => sum + (item.price || 0),
+    0,
+  );
+  stats.avgPrice = stats.total > 0 ? Math.round(totalPrice / stats.total) : 0;
+};
 
 const handleSearch = () => {
-  pagination.current = 1
-  loadData()
-}
+  pagination.current = 1;
+  loadData();
+};
 
 const resetSearch = () => {
   Object.assign(searchForm, {
-    keyword: '',
-    category: '',
-    status: '',
+    keyword: "",
+    category: "",
+    status: "",
     minPrice: null,
-    maxPrice: null
-  })
-  handleSearch()
-}
+    maxPrice: null,
+  });
+  handleSearch();
+};
 
 const refreshData = () => {
-  loadData()
-}
+  loadData();
+};
 
 const handleSelectionChange = (selection) => {
-  selectedServices.value = selection
-}
+  selectedServices.value = selection;
+};
 
 const handleSizeChange = (size) => {
-  pagination.size = size
-  loadData()
-}
+  pagination.size = size;
+  loadData();
+};
 
 const handlePageChange = (page) => {
-  pagination.current = page
-  loadData()
-}
+  pagination.current = page;
+  loadData();
+};
 
 const showAddDialog = () => {
-  isEdit.value = false
-  resetForm()
-  dialogVisible.value = true
-}
+  isEdit.value = false;
+  resetForm();
+  dialogVisible.value = true;
+};
 
 const resetForm = () => {
   Object.assign(form, {
     id: null,
-    name: '',
-    category: '',
-    description: '',
-    features: '',
+    name: "",
+    category: "",
+    description: "",
+    features: "",
     price: 0,
     duration: 60,
     status: 1,
-    recommended: 0
-  })
-  formRef.value?.resetFields()
-}
+    recommended: 0,
+  });
+  formRef.value?.resetFields();
+};
 
 const handleSubmit = async () => {
   try {
-    await formRef.value.validate()
-    submitting.value = true
-    
-    const apiMethod = isEdit.value ? serviceApi.updateService : serviceApi.createService
-    await apiMethod(form)
-    
-    ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
-    dialogVisible.value = false
-    loadData()
+    await formRef.value.validate();
+    submitting.value = true;
+
+    const apiMethod = isEdit.value
+      ? serviceApi.updateService
+      : serviceApi.createService;
+    await apiMethod(form);
+
+    ElMessage.success(isEdit.value ? "更新成功" : "创建成功");
+    dialogVisible.value = false;
+    loadData();
   } catch (error) {
-    console.error('提交失败:', error)
-    ElMessage.error('操作失败')
+    console.error("提交失败:", error);
+    ElMessage.error("操作失败");
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
-}
+};
 
 const editService = (service) => {
-  isEdit.value = true
-  Object.assign(form, service)
-  dialogVisible.value = true
-}
+  isEdit.value = true;
+  Object.assign(form, service);
+  dialogVisible.value = true;
+};
 
 const toggleStatus = async (service) => {
   try {
-    await serviceApi.updateServiceStatus(service.id, service.status)
-    ElMessage.success(`服务已${service.status === 1 ? '启用' : '禁用'}`)
-    loadData()
+    await serviceApi.updateServiceStatus(service.id, service.status);
+    ElMessage.success(`服务已${service.status === 1 ? "启用" : "禁用"}`);
+    loadData();
   } catch (error) {
-    ElMessage.error('操作失败')
+    ElMessage.error("操作失败");
     // 恢复状态
-    service.status = service.status === 1 ? 0 : 1
+    service.status = service.status === 1 ? 0 : 1;
   }
-}
+};
 
 const deleteService = async (service) => {
   try {
-    await ElMessageBox.confirm('确定要删除这个服务吗？删除后不可恢复', '警告', {
-      type: 'error'
-    })
-    
-    await serviceApi.deleteService(service.id)
-    ElMessage.success('删除成功')
-    loadData()
+    await ElMessageBox.confirm("确定要删除这个服务吗？删除后不可恢复", "警告", {
+      type: "error",
+    });
+
+    await serviceApi.deleteService(service.id);
+    ElMessage.success("删除成功");
+    loadData();
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+    if (error !== "cancel") {
+      ElMessage.error("删除失败");
     }
   }
-}
+};
 
 const viewDetail = (service) => {
-  currentService.value = service
-  detailVisible.value = true
-}
+  currentService.value = service;
+  detailVisible.value = true;
+};
 
 // 工具方法
 const getCategoryType = (category) => {
   const types = {
-    basic: '',
-    premium: 'warning',
-    interior: 'success',
-    beauty: 'danger',
-    maintenance: 'info'
-  }
-  return types[category] || ''
-}
+    basic: "",
+    premium: "warning",
+    interior: "success",
+    beauty: "danger",
+    maintenance: "info",
+  };
+  return types[category] || "";
+};
 
 const getCategoryText = (category) => {
   const texts = {
-    basic: '基础洗车',
-    premium: '精洗套餐',
-    interior: '内饰清洁',
-    beauty: '美容服务',
-    maintenance: '保养维护'
-  }
-  return texts[category] || '未知'
-}
+    basic: "基础洗车",
+    premium: "精洗套餐",
+    interior: "内饰清洁",
+    beauty: "美容服务",
+    maintenance: "保养维护",
+  };
+  return texts[category] || "未知";
+};
 
 const formatDateTime = (dateTime) => {
-  if (!dateTime) return ''
-  return new Date(dateTime).toLocaleString()
-}
+  if (!dateTime) return "";
+  return new Date(dateTime).toLocaleString();
+};
 
 // 生命周期
 onMounted(() => {
-  loadData()
-})
+  loadData();
+});
 </script>
 
 <style scoped>
@@ -867,17 +922,17 @@ onMounted(() => {
   .service-management {
     padding: 12px;
   }
-  
+
   .page-header {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .header-actions {
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .grid-view .el-col {
     margin-bottom: 16px;
   }

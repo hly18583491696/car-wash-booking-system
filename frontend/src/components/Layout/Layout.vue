@@ -35,13 +35,15 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import Navbar from './Navbar.vue'
 import Footer from './Footer.vue'
 import BackToTop from '../BackToTop.vue'
+import { Loading } from '@element-plus/icons-vue'
 
 export default {
   name: 'Layout',
   components: {
     Navbar,
     Footer,
-    BackToTop
+    BackToTop,
+    Loading
   },
   setup() {
     const globalLoading = ref(false)

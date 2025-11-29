@@ -206,6 +206,8 @@ import RouteLogger from '../utils/routeLogger.js'
 
 // 增强的路由守卫
 router.beforeEach(async (to, from, next) => {
+  // 触发全局加载开始，避免页面切换时出现“未闭合”遮罩不一致
+  window.dispatchEvent(new Event('loading-start'))
   // 设置页面标题
   if (to.meta.title) {
     document.title = `${to.meta.title} - 汽车洗车服务预约系统`
@@ -335,6 +337,8 @@ router.beforeEach(async (to, from, next) => {
 
 // 路由后置守卫 - 用于页面加载完成后的处理
 router.afterEach((to, from) => {
+  // 结束全局加载，确保遮罩关闭
+  window.dispatchEvent(new Event('loading-end'))
   // 记录页面访问日志
   if (AuthManager.isAuthenticated()) {
     console.log(`用户 ${AuthManager.getUserDisplayName()} 访问了页面: ${to.path}`)
@@ -350,6 +354,8 @@ router.afterEach((to, from) => {
 router.onError((error) => {
   console.error('路由错误:', error)
   ElMessage.error('页面加载失败，请刷新重试')
+  // 发生错误也要关闭全局加载遮罩，避免未闭合
+  window.dispatchEvent(new Event('loading-end'))
 })
 
 export default router

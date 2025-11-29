@@ -172,7 +172,9 @@
             <template #default="scope">
               <div class="time-info">
                 <div>{{ formatDate(scope.row.appointmentTime) }}</div>
-                <div class="time-detail">{{ formatTime(scope.row.appointmentTime) }}</div>
+                <div class="time-detail">
+                  {{ formatTime(scope.row.appointmentTime) }}
+                </div>
               </div>
             </template>
           </el-table-column>
@@ -208,7 +210,10 @@
                   开始服务
                 </el-button>
                 <el-button
-                  v-if="scope.row.status === 'in_progress' || scope.row.status === 'processing'"
+                  v-if="
+                    scope.row.status === 'in_progress' ||
+                    scope.row.status === 'processing'
+                  "
                   size="small"
                   type="warning"
                   @click="completeService(scope.row)"
@@ -225,10 +230,15 @@
                   <template #dropdown>
                     <el-dropdown-menu>
                       <el-dropdown-item command="edit">编辑</el-dropdown-item>
-                      <el-dropdown-item command="cancel" :disabled="scope.row.status === 'completed'">
+                      <el-dropdown-item
+                        command="cancel"
+                        :disabled="scope.row.status === 'completed'"
+                      >
                         取消预约
                       </el-dropdown-item>
-                      <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
+                      <el-dropdown-item command="delete" divided
+                        >删除</el-dropdown-item
+                      >
                     </el-dropdown-menu>
                   </template>
                 </el-dropdown>
@@ -268,19 +278,29 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="客户姓名" prop="customerName">
-              <el-input v-model="form.customerName" placeholder="请输入客户姓名" />
+              <el-input
+                v-model="form.customerName"
+                placeholder="请输入客户姓名"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="联系电话" prop="customerPhone">
-              <el-input v-model="form.customerPhone" placeholder="请输入联系电话" />
+              <el-input
+                v-model="form.customerPhone"
+                placeholder="请输入联系电话"
+              />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="服务项目" prop="serviceId">
-              <el-select v-model="form.serviceId" placeholder="请选择服务项目" style="width: 100%">
+              <el-select
+                v-model="form.serviceId"
+                placeholder="请选择服务项目"
+                style="width: 100%"
+              >
                 <el-option
                   v-for="service in services"
                   :key="service.id"
@@ -315,32 +335,42 @@
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSubmit" :loading="submitting">
-          {{ isEdit ? '更新' : '创建' }}
+          {{ isEdit ? "更新" : "创建" }}
         </el-button>
       </template>
     </el-dialog>
 
     <!-- 预约详情对话框 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="预约详情"
-      width="600px"
-    >
+    <el-dialog v-model="detailVisible" title="预约详情" width="600px">
       <el-descriptions v-if="currentBooking" :column="2" border>
-        <el-descriptions-item label="订单号">{{ currentBooking.id }}</el-descriptions-item>
-        <el-descriptions-item label="客户姓名">{{ currentBooking.customerName }}</el-descriptions-item>
-        <el-descriptions-item label="联系电话">{{ currentBooking.customerPhone }}</el-descriptions-item>
-        <el-descriptions-item label="服务项目">{{ currentBooking.serviceName }}</el-descriptions-item>
-        <el-descriptions-item label="服务价格">¥{{ currentBooking.price }}</el-descriptions-item>
-        <el-descriptions-item label="预约时间">{{ formatDateTime(currentBooking.appointmentTime) }}</el-descriptions-item>
+        <el-descriptions-item label="订单号">{{
+          currentBooking.id
+        }}</el-descriptions-item>
+        <el-descriptions-item label="客户姓名">{{
+          currentBooking.customerName
+        }}</el-descriptions-item>
+        <el-descriptions-item label="联系电话">{{
+          currentBooking.customerPhone
+        }}</el-descriptions-item>
+        <el-descriptions-item label="服务项目">{{
+          currentBooking.serviceName
+        }}</el-descriptions-item>
+        <el-descriptions-item label="服务价格"
+          >¥{{ currentBooking.price }}</el-descriptions-item
+        >
+        <el-descriptions-item label="预约时间">{{
+          formatDateTime(currentBooking.appointmentTime)
+        }}</el-descriptions-item>
         <el-descriptions-item label="预约状态">
           <el-tag :type="getStatusType(currentBooking.status)">
             {{ getStatusText(currentBooking.status) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ formatDateTime(currentBooking.createTime) }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{
+          formatDateTime(currentBooking.createTime)
+        }}</el-descriptions-item>
         <el-descriptions-item label="备注信息" :span="2">
-          {{ currentBooking.remark || '无' }}
+          {{ currentBooking.remark || "无" }}
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -348,333 +378,351 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, reactive, computed, onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
-  Search, Plus, Refresh, Clock, Check, Loading, CircleCheck,
-  ArrowDown
-} from '@element-plus/icons-vue'
-import orderApi from '../../api/order.js'
-import serviceApi from '../../api/service.js'
+  Search,
+  Plus,
+  Refresh,
+  Clock,
+  Check,
+  Loading,
+  CircleCheck,
+  ArrowDown,
+} from "@element-plus/icons-vue";
+import orderApi from "../../api/order.js";
+import serviceApi from "../../api/service.js";
 
 // 响应式数据
-const loading = ref(false)
-const submitting = ref(false)
-const dialogVisible = ref(false)
-const detailVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref()
+const loading = ref(false);
+const submitting = ref(false);
+const dialogVisible = ref(false);
+const detailVisible = ref(false);
+const isEdit = ref(false);
+const formRef = ref();
 
 // 搜索表单
 const searchForm = reactive({
-  keyword: '',
-  status: '',
-  serviceId: '',
-  dateRange: null
-})
+  keyword: "",
+  status: "",
+  serviceId: "",
+  dateRange: null,
+});
 
 // 预约列表和分页
-const bookings = ref([])
-const services = ref([])
-const selectedBookings = ref([])
-const currentBooking = ref(null)
+const bookings = ref([]);
+const services = ref([]);
+const selectedBookings = ref([]);
+const currentBooking = ref(null);
 
 const pagination = reactive({
   current: 1,
   size: 20,
-  total: 0
-})
+  total: 0,
+});
 
 // 统计数据
 const stats = reactive({
   pending: 0,
   confirmed: 0,
   processing: 0,
-  completed: 0
-})
+  completed: 0,
+});
 
 // 表单数据
 const form = reactive({
   id: null,
-  customerName: '',
-  customerPhone: '',
-  serviceId: '',
-  appointmentTime: '',
-  remark: ''
-})
+  customerName: "",
+  customerPhone: "",
+  serviceId: "",
+  appointmentTime: "",
+  remark: "",
+});
 
 // 表单验证规则
 const formRules = {
   customerName: [
-    { required: true, message: '请输入客户姓名', trigger: 'blur' }
+    { required: true, message: "请输入客户姓名", trigger: "blur" },
   ],
   customerPhone: [
-    { required: true, message: '请输入联系电话', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+    { required: true, message: "请输入联系电话", trigger: "blur" },
+    {
+      pattern: /^1[3-9]\d{9}$/,
+      message: "请输入正确的手机号码",
+      trigger: "blur",
+    },
   ],
-  serviceId: [
-    { required: true, message: '请选择服务项目', trigger: 'change' }
-  ],
+  serviceId: [{ required: true, message: "请选择服务项目", trigger: "change" }],
   appointmentTime: [
-    { required: true, message: '请选择预约时间', trigger: 'change' }
-  ]
-}
+    { required: true, message: "请选择预约时间", trigger: "change" },
+  ],
+};
 
 // 计算属性
-const dialogTitle = computed(() => isEdit.value ? '编辑预约' : '新增预约')
+const dialogTitle = computed(() => (isEdit.value ? "编辑预约" : "新增预约"));
 
 // 方法
 const loadData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     const params = {
       page: pagination.current,
       size: pagination.size,
-      ...searchForm
-    }
-    
-    const response = await orderApi.getOrderList(params)
+      ...searchForm,
+    };
+
+    const response = await orderApi.getOrderList(params);
     if (response?.data) {
-      bookings.value = response.data.records || response.data
-      pagination.total = response.data.total || response.data.length
-      
+      bookings.value = response.data.records || response.data;
+      pagination.total = response.data.total || response.data.length;
+
       // 计算统计数据
-      calculateStats()
+      calculateStats();
     }
   } catch (error) {
-    console.error('加载预约数据失败:', error)
-    ElMessage.error('加载数据失败')
+    console.error("加载预约数据失败:", error);
+    ElMessage.error("加载数据失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const loadServices = async () => {
   try {
-    const response = await serviceApi.getServiceList()
+    const response = await serviceApi.getServiceList();
     if (response?.data) {
-      services.value = response.data
+      services.value = response.data;
     }
   } catch (error) {
-    console.error('加载服务数据失败:', error)
+    console.error("加载服务数据失败:", error);
   }
-}
+};
 
 const calculateStats = () => {
-  stats.pending = bookings.value.filter(item => item.status === 'pending').length
-  stats.confirmed = bookings.value.filter(item => item.status === 'confirmed').length
-  stats.processing = bookings.value.filter(item => item.status === 'processing').length
-  stats.completed = bookings.value.filter(item => item.status === 'completed').length
-}
+  stats.pending = bookings.value.filter(
+    (item) => item.status === "pending",
+  ).length;
+  stats.confirmed = bookings.value.filter(
+    (item) => item.status === "confirmed",
+  ).length;
+  stats.processing = bookings.value.filter(
+    (item) => item.status === "processing",
+  ).length;
+  stats.completed = bookings.value.filter(
+    (item) => item.status === "completed",
+  ).length;
+};
 
 const handleSearch = () => {
-  pagination.current = 1
-  loadData()
-}
+  pagination.current = 1;
+  loadData();
+};
 
 const resetSearch = () => {
   Object.assign(searchForm, {
-    keyword: '',
-    status: '',
-    serviceId: '',
-    dateRange: null
-  })
-  handleSearch()
-}
+    keyword: "",
+    status: "",
+    serviceId: "",
+    dateRange: null,
+  });
+  handleSearch();
+};
 
 const refreshData = () => {
-  loadData()
-}
+  loadData();
+};
 
 const handleSelectionChange = (selection) => {
-  selectedBookings.value = selection
-}
+  selectedBookings.value = selection;
+};
 
 const handleSizeChange = (size) => {
-  pagination.size = size
-  loadData()
-}
+  pagination.size = size;
+  loadData();
+};
 
 const handlePageChange = (page) => {
-  pagination.current = page
-  loadData()
-}
+  pagination.current = page;
+  loadData();
+};
 
 const showAddBookingDialog = () => {
-  isEdit.value = false
-  resetForm()
-  dialogVisible.value = true
-}
+  isEdit.value = false;
+  resetForm();
+  dialogVisible.value = true;
+};
 
 const resetForm = () => {
   Object.assign(form, {
     id: null,
-    customerName: '',
-    customerPhone: '',
-    serviceId: '',
-    appointmentTime: '',
-    remark: ''
-  })
-  formRef.value?.resetFields()
-}
+    customerName: "",
+    customerPhone: "",
+    serviceId: "",
+    appointmentTime: "",
+    remark: "",
+  });
+  formRef.value?.resetFields();
+};
 
 const handleSubmit = async () => {
   try {
-    await formRef.value.validate()
-    submitting.value = true
-    
-    const apiMethod = isEdit.value ? orderApi.updateOrder : orderApi.createOrder
-    await apiMethod(form)
-    
-    ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
-    dialogVisible.value = false
-    loadData()
+    await formRef.value.validate();
+    submitting.value = true;
+
+    const apiMethod = isEdit.value
+      ? orderApi.updateOrder
+      : orderApi.createOrder;
+    await apiMethod(form);
+
+    ElMessage.success(isEdit.value ? "更新成功" : "创建成功");
+    dialogVisible.value = false;
+    loadData();
   } catch (error) {
-    console.error('提交失败:', error)
-    ElMessage.error('操作失败')
+    console.error("提交失败:", error);
+    ElMessage.error("操作失败");
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
-}
+};
 
 const confirmBooking = async (booking) => {
   try {
-    console.log('确认预约，订单ID:', booking.id)
-    await orderApi.updateBookingStatus(booking.id, 'confirmed')
-    ElMessage.success('预约已确认')
-    loadData()
+    console.log("确认预约，订单ID:", booking.id);
+    await orderApi.updateBookingStatus(booking.id, "confirmed");
+    ElMessage.success("预约已确认");
+    loadData();
   } catch (error) {
-    console.error('确认预约失败:', error)
-    ElMessage.error(error.message || '操作失败')
+    console.error("确认预约失败:", error);
+    ElMessage.error(error.message || "操作失败");
   }
-}
+};
 
 const startService = async (booking) => {
   try {
-    console.log('开始服务，订单ID:', booking.id)
-    await orderApi.updateBookingStatus(booking.id, 'in_progress')
-    ElMessage.success('服务已开始')
-    loadData()
+    console.log("开始服务，订单ID:", booking.id);
+    await orderApi.updateBookingStatus(booking.id, "in_progress");
+    ElMessage.success("服务已开始");
+    loadData();
   } catch (error) {
-    console.error('开始服务失败:', error)
-    ElMessage.error(error.message || '操作失败')
+    console.error("开始服务失败:", error);
+    ElMessage.error(error.message || "操作失败");
   }
-}
+};
 
 const completeService = async (booking) => {
   try {
-    console.log('完成服务，订单ID:', booking.id)
-    await orderApi.updateBookingStatus(booking.id, 'completed')
-    ElMessage.success('服务已完成')
-    loadData()
+    console.log("完成服务，订单ID:", booking.id);
+    await orderApi.updateBookingStatus(booking.id, "completed");
+    ElMessage.success("服务已完成");
+    loadData();
   } catch (error) {
-    console.error('完成服务失败:', error)
-    ElMessage.error(error.message || '操作失败')
+    console.error("完成服务失败:", error);
+    ElMessage.error(error.message || "操作失败");
   }
-}
+};
 
 const viewDetail = (booking) => {
-  currentBooking.value = booking
-  detailVisible.value = true
-}
+  currentBooking.value = booking;
+  detailVisible.value = true;
+};
 
 const handleCommand = (command, booking) => {
   switch (command) {
-    case 'edit':
-      editBooking(booking)
-      break
-    case 'cancel':
-      cancelBooking(booking)
-      break
-    case 'delete':
-      deleteBooking(booking)
-      break
+    case "edit":
+      editBooking(booking);
+      break;
+    case "cancel":
+      cancelBooking(booking);
+      break;
+    case "delete":
+      deleteBooking(booking);
+      break;
   }
-}
+};
 
 const editBooking = (booking) => {
-  isEdit.value = true
-  Object.assign(form, booking)
-  dialogVisible.value = true
-}
+  isEdit.value = true;
+  Object.assign(form, booking);
+  dialogVisible.value = true;
+};
 
 const cancelBooking = async (booking) => {
   try {
-    await ElMessageBox.confirm('确定要取消这个预约吗？', '提示', {
-      type: 'warning'
-    })
-    
-    console.log('取消预约，订单ID:', booking.id)
-    await orderApi.updateBookingStatus(booking.id, 'cancelled')
-    ElMessage.success('预约已取消')
-    loadData()
+    await ElMessageBox.confirm("确定要取消这个预约吗？", "提示", {
+      type: "warning",
+    });
+
+    console.log("取消预约，订单ID:", booking.id);
+    await orderApi.updateBookingStatus(booking.id, "cancelled");
+    ElMessage.success("预约已取消");
+    loadData();
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('取消预约失败:', error)
-      ElMessage.error(error.message || '操作失败')
+    if (error !== "cancel") {
+      console.error("取消预约失败:", error);
+      ElMessage.error(error.message || "操作失败");
     }
   }
-}
+};
 
 const deleteBooking = async (booking) => {
   try {
-    await ElMessageBox.confirm('确定要删除这个预约吗？删除后不可恢复', '警告', {
-      type: 'error'
-    })
-    
-    await orderApi.deleteOrder(booking.id)
-    ElMessage.success('删除成功')
-    loadData()
+    await ElMessageBox.confirm("确定要删除这个预约吗？删除后不可恢复", "警告", {
+      type: "error",
+    });
+
+    await orderApi.deleteOrder(booking.id);
+    ElMessage.success("删除成功");
+    loadData();
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+    if (error !== "cancel") {
+      ElMessage.error("删除失败");
     }
   }
-}
+};
 
 // 工具方法
 const getStatusType = (status) => {
   const types = {
-    pending: 'warning',
-    confirmed: 'primary',
-    processing: 'info',
-    completed: 'success',
-    cancelled: 'danger'
-  }
-  return types[status] || 'info'
-}
+    pending: "warning",
+    confirmed: "primary",
+    processing: "info",
+    completed: "success",
+    cancelled: "danger",
+  };
+  return types[status] || "info";
+};
 
 const getStatusText = (status) => {
   const texts = {
-    pending: '待确认',
-    confirmed: '已确认',
-    processing: '进行中',
-    completed: '已完成',
-    cancelled: '已取消'
-  }
-  return texts[status] || '未知'
-}
+    pending: "待确认",
+    confirmed: "已确认",
+    processing: "进行中",
+    completed: "已完成",
+    cancelled: "已取消",
+  };
+  return texts[status] || "未知";
+};
 
 const formatDate = (dateTime) => {
-  if (!dateTime) return ''
-  return new Date(dateTime).toLocaleDateString()
-}
+  if (!dateTime) return "";
+  return new Date(dateTime).toLocaleDateString();
+};
 
 const formatTime = (dateTime) => {
-  if (!dateTime) return ''
-  return new Date(dateTime).toLocaleTimeString()
-}
+  if (!dateTime) return "";
+  return new Date(dateTime).toLocaleTimeString();
+};
 
 const formatDateTime = (dateTime) => {
-  if (!dateTime) return ''
-  return new Date(dateTime).toLocaleString()
-}
+  if (!dateTime) return "";
+  return new Date(dateTime).toLocaleString();
+};
 
 // 生命周期
 onMounted(() => {
-  loadData()
-  loadServices()
-})
+  loadData();
+  loadServices();
+});
 </script>
 
 <style scoped>
@@ -806,12 +854,12 @@ onMounted(() => {
   .booking-management {
     padding: 12px;
   }
-  
+
   .page-header {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .header-actions {
     width: 100%;
     justify-content: flex-end;

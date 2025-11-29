@@ -38,7 +38,6 @@
             <el-icon><CreditCard /></el-icon>
             <span>支付记录</span>
           </router-link>
-
         </nav>
       </div>
 
@@ -46,49 +45,55 @@
       <div class="navbar-actions">
         <!-- 主题切换 -->
         <ThemeToggle />
-        
-        <!-- 用户菜单 -->
-        <div class="user-menu" v-if="isLoggedIn">
-          <el-dropdown @command="handleUserCommand">
-            <div class="user-avatar">
-              <el-avatar :size="36" :src="userInfo.avatar">
-                <el-icon><User /></el-icon>
-              </el-avatar>
-              <span class="user-name">{{ userInfo.name }}</span>
-              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>
-                  个人中心
-                </el-dropdown-item>
-                <el-dropdown-item command="payment-records">
-                  <el-icon><CreditCard /></el-icon>
-                  支付记录
-                </el-dropdown-item>
-                <el-dropdown-item command="settings">
-                  <el-icon><Setting /></el-icon>
-                  账户设置
-                </el-dropdown-item>
-                <el-dropdown-item divided command="logout">
-                  <el-icon><SwitchButton /></el-icon>
-                  退出登录
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
 
-        <!-- 登录按钮 -->
-        <div class="auth-buttons" v-else>
-          <router-link to="/login">
-            <el-button type="primary" size="default">登录</el-button>
-          </router-link>
-          <router-link to="/register">
-            <el-button type="default" size="default" plain>注册</el-button>
-          </router-link>
-        </div>
+        <!-- 用户菜单 -->
+        <template v-if="isLoggedIn">
+          <transition name="fade-slide">
+            <div class="user-menu">
+              <el-dropdown @command="handleUserCommand">
+                <div class="user-avatar">
+                  <el-avatar :size="36" :src="userInfo.avatar">
+                    <el-icon><User /></el-icon>
+                  </el-avatar>
+                  <span class="user-name">{{ userInfo.name }}</span>
+                  <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+                </div>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="profile">
+                      <el-icon><User /></el-icon>
+                      个人中心
+                    </el-dropdown-item>
+                    <el-dropdown-item command="payment-records">
+                      <el-icon><CreditCard /></el-icon>
+                      支付记录
+                    </el-dropdown-item>
+                    <el-dropdown-item command="settings">
+                      <el-icon><Setting /></el-icon>
+                      账户设置
+                    </el-dropdown-item>
+                    <el-dropdown-item divided command="logout">
+                      <el-icon><SwitchButton /></el-icon>
+                      退出登录
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </transition>
+        </template>
+        <template v-else>
+          <transition name="fade-slide">
+            <div class="auth-buttons">
+              <router-link to="/login">
+                <el-button type="primary" size="default">登录</el-button>
+              </router-link>
+              <router-link to="/register">
+                <el-button type="default" size="default" plain>注册</el-button>
+              </router-link>
+            </div>
+          </transition>
+        </template>
 
         <!-- 移动端菜单按钮 -->
         <div class="mobile-menu-btn" @click="toggleMobileMenu">
@@ -103,85 +108,153 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import ThemeToggle from '../ThemeToggle.vue'
-import AuthManager from '../../utils/auth.js'
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage, ElMessageBox } from "element-plus";
+import ThemeToggle from "../ThemeToggle.vue";
+import {
+  House,
+  Grid,
+  Location,
+  Calendar,
+  List,
+  CreditCard,
+  User,
+  ArrowDown,
+  Setting,
+  SwitchButton,
+  Menu,
+  Close,
+} from "@element-plus/icons-vue";
+import AuthManager from "../../utils/auth.js";
 
 export default {
-  name: 'Navbar',
+  name: "Navbar",
   components: {
-    ThemeToggle
+    ThemeToggle,
+    House,
+    Grid,
+    Location,
+    Calendar,
+    List,
+    CreditCard,
+    User,
+    ArrowDown,
+    Setting,
+    SwitchButton,
+    Menu,
+    Close,
   },
   setup() {
-    const router = useRouter()
-    const mobileMenuOpen = ref(false)
-    
-    // 使用 AuthManager 进行一致的登录状态检测
-    const isLoggedIn = computed(() => AuthManager.isAuthenticated())
-    const userInfo = computed(() => AuthManager.getCurrentUser())
+    const router = useRouter();
+    const mobileMenuOpen = ref(false);
 
+    // 响应式认证状态（通过事件与storage同步）
+    const authState = ref({
+      isAuthenticated: AuthManager.isAuthenticated(),
+      user: AuthManager.getCurrentUser() || {},
+    });
 
-    
+    const updateAuthState = () => {
+      authState.value.isAuthenticated = AuthManager.isAuthenticated();
+      authState.value.user = AuthManager.getCurrentUser() || {};
+    };
+
+    const isLoggedIn = computed(() => authState.value.isAuthenticated);
+    const userInfo = computed(() => authState.value.user);
+
     // 切换移动端菜单
     const toggleMobileMenu = () => {
-      mobileMenuOpen.value = !mobileMenuOpen.value
-    }
-    
+      mobileMenuOpen.value = !mobileMenuOpen.value;
+    };
+
     // 处理用户菜单命令
     const handleUserCommand = async (command) => {
       switch (command) {
-        case 'profile':
-          router.push('/profile')
-          break
-        case 'payment-records':
-          router.push('/payment-records')
-          break
-        case 'settings':
-          router.push('/settings')
-          break
-        case 'logout':
+        case "profile":
+          router.push("/profile");
+          break;
+        case "payment-records":
+          router.push("/payment-records");
+          break;
+        case "settings":
+          router.push("/settings");
+          break;
+        case "logout":
           try {
-            await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning'
-            })
-            
+            await ElMessageBox.confirm("确定要退出登录吗？", "提示", {
+              confirmButtonText: "确定",
+              cancelButtonText: "取消",
+              type: "warning",
+            });
+
             // 使用 AuthManager 清除登录信息
             try {
-              AuthManager.logout()
-              ElMessage.success('已退出登录')
-              router.push('guest')
+              AuthManager.logout();
+              ElMessage.success("已退出登录");
+              router.push("guest");
             } catch (error) {
-              console.error('退出登录失败:', error)
-              ElMessage.error('退出登录失败')
+              console.error("退出登录失败:", error);
+              ElMessage.error("退出登录失败");
             }
           } catch {
             // 用户取消
           }
-          break
+          break;
       }
-    }
-    
+    };
+
     // 初始化
-    onMounted(() => {
-      console.log('Navbar已加载，用户登录状态:', isLoggedIn.value)
-      if (isLoggedIn.value) {
-        console.log('当前用户信息:', userInfo.value)
+    const handleAuthEvent = (e) => {
+      const detail = e.detail || {};
+      authState.value.isAuthenticated = !!detail.isAuthenticated;
+      authState.value.user = detail.user || {};
+    };
+
+    const handleStorage = (e) => {
+      if (["token", "userInfo", "userRole"].includes(e.key)) {
+        updateAuthState();
       }
-    })
-    
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        updateAuthState();
+      }
+    };
+
+    onMounted(() => {
+      updateAuthState();
+      console.log("Navbar已加载，用户登录状态:", isLoggedIn.value);
+      if (isLoggedIn.value) {
+        console.log("当前用户信息:", userInfo.value);
+      }
+
+      window.addEventListener("auth-state-changed", handleAuthEvent);
+      window.addEventListener("storage", handleStorage);
+      document.addEventListener("visibilitychange", handleVisibility);
+
+      // 路由跳转后自动关闭移动端菜单，避免“页面未闭合”状态
+      router.afterEach(() => {
+        mobileMenuOpen.value = false;
+      });
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener("auth-state-changed", handleAuthEvent);
+      window.removeEventListener("storage", handleStorage);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    });
+
     return {
       mobileMenuOpen,
       userInfo,
       isLoggedIn,
       toggleMobileMenu,
-      handleUserCommand
-    }
-  }
-}
+      handleUserCommand,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -283,7 +356,7 @@ export default {
 }
 
 .nav-link.router-link-active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -1px;
   left: 50%;
@@ -344,6 +417,17 @@ export default {
   gap: 8px;
 }
 
+/* 过渡动画 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.2s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
 /* 移动端菜单按钮 */
 .mobile-menu-btn {
   display: none;
@@ -364,11 +448,11 @@ export default {
   .navbar-container {
     padding: 0 16px;
   }
-  
+
   .brand-text {
     display: none;
   }
-  
+
   .navbar-menu {
     position: absolute;
     top: 100%;
@@ -382,33 +466,33 @@ export default {
     visibility: hidden;
     transition: all var(--transition-normal);
   }
-  
+
   .navbar-menu.is-active {
     transform: translateY(0);
     opacity: 1;
     visibility: visible;
   }
-  
+
   .nav-links {
     flex-direction: column;
     padding: 16px;
     gap: 4px;
   }
-  
+
   .nav-link {
     width: 100%;
     justify-content: flex-start;
     padding: 12px 16px;
   }
-  
+
   .user-name {
     display: none;
   }
-  
+
   .auth-buttons {
     display: none;
   }
-  
+
   .mobile-menu-btn {
     display: block;
   }
@@ -419,12 +503,12 @@ export default {
     height: 56px;
     padding: 0 12px;
   }
-  
+
   .brand-icon {
     width: 36px;
     height: 36px;
   }
-  
+
   .navbar-actions {
     gap: 12px;
   }

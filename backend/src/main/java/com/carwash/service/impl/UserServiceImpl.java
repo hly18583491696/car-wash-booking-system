@@ -74,22 +74,19 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ResultCode.PARAM_ERROR, "两次输入的密码不一致");
         }
 
-        // 验证短信验证码
-        if (!smsService.verifyCode(request.getPhone(), request.getSmsCode(), "register")) {
-            throw new BusinessException(ResultCode.PARAM_ERROR, "验证码错误或已过期");
-        }
+        // 验证码逻辑暂缓开发，跳过校验
 
         // 检查用户名是否已存在
         if (existsByUsername(request.getUsername())) {
             throw new BusinessException(ResultCode.USER_ALREADY_EXISTS, "用户名已存在");
         }
 
-        // 检查手机号是否已存在
-        if (existsByPhone(request.getPhone())) {
+        // 检查手机号是否已存在（仅在提供手机号时检查）
+        if (request.getPhone() != null && !request.getPhone().isEmpty() && existsByPhone(request.getPhone())) {
             throw new BusinessException(ResultCode.PHONE_ALREADY_EXISTS, "手机号已存在");
         }
 
-        // 检查邮箱是否已存在（如果提供了邮箱）
+        // 检查邮箱是否已存在（邮箱为必填）
         if (request.getEmail() != null && !request.getEmail().isEmpty() && existsByEmail(request.getEmail())) {
             throw new BusinessException(ResultCode.EMAIL_ALREADY_EXISTS, "邮箱已存在");
         }
@@ -214,13 +211,11 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ResultCode.USER_NOT_FOUND, "用户不存在");
         }
 
-        // 验证旧密码
-        if (!oldPassword.equals(user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new BusinessException(ResultCode.OLD_PASSWORD_ERROR, "原密码错误");
         }
 
-        // 更新密码
-        user.setPassword(newPassword); // 使用明文密码
+        user.setPassword(passwordEncoder.encode(newPassword));
         int result = userMapper.updateById(user);
         if (result <= 0) {
             throw new BusinessException(ResultCode.SYSTEM_ERROR, "修改密码失败");
@@ -407,6 +402,20 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("获取管理员用户数失败", e);
             return 0;
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateAvatar(Long userId, String avatarUrl) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ResultCode.USER_NOT_FOUND, "用户不存在");
+        }
+        user.setAvatar(avatarUrl);
+        int result = userMapper.updateById(user);
+        if (result <= 0) {
+            throw new BusinessException(ResultCode.SYSTEM_ERROR, "更新头像失败");
         }
     }
 }

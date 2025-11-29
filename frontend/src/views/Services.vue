@@ -14,7 +14,11 @@
         <div class="filters-container">
           <div class="filter-group">
             <label class="filter-label">服务类型</label>
-            <el-select v-model="filters.category" placeholder="全部类型" clearable>
+            <el-select
+              v-model="filters.category"
+              placeholder="全部类型"
+              clearable
+            >
               <el-option label="全部类型" value="" />
               <el-option label="基础洗车" value="basic" />
               <el-option label="精洗套餐" value="premium" />
@@ -22,10 +26,14 @@
               <el-option label="内饰清洁" value="interior" />
             </el-select>
           </div>
-          
+
           <div class="filter-group">
             <label class="filter-label">价格范围</label>
-            <el-select v-model="filters.priceRange" placeholder="全部价格" clearable>
+            <el-select
+              v-model="filters.priceRange"
+              placeholder="全部价格"
+              clearable
+            >
               <el-option label="全部价格" value="" />
               <el-option label="50元以下" value="0-50" />
               <el-option label="50-100元" value="50-100" />
@@ -33,10 +41,14 @@
               <el-option label="200元以上" value="200+" />
             </el-select>
           </div>
-          
+
           <div class="filter-group">
             <label class="filter-label">服务时长</label>
-            <el-select v-model="filters.duration" placeholder="全部时长" clearable>
+            <el-select
+              v-model="filters.duration"
+              placeholder="全部时长"
+              clearable
+            >
               <el-option label="全部时长" value="" />
               <el-option label="30分钟内" value="0-30" />
               <el-option label="30-60分钟" value="30-60" />
@@ -44,7 +56,7 @@
               <el-option label="90分钟以上" value="90+" />
             </el-select>
           </div>
-          
+
           <div class="filter-group">
             <label class="filter-label">排序方式</label>
             <el-select v-model="filters.sortBy" placeholder="默认排序">
@@ -63,9 +75,9 @@
     <div class="services-section">
       <div class="container">
         <div class="services-grid">
-          <div 
-            class="service-card" 
-            v-for="service in filteredServices" 
+          <div
+            class="service-card"
+            v-for="service in filteredServices"
             :key="service.id"
             @click="viewServiceDetail(service)"
           >
@@ -77,35 +89,45 @@
               </div>
               <div class="service-badges">
                 <span v-if="service.popular" class="badge popular">热门</span>
-                <span v-if="service.recommended" class="badge recommended">推荐</span>
-                <span v-if="service.discount" class="badge discount">{{ service.discount }}折</span>
+                <span v-if="service.recommended" class="badge recommended"
+                  >推荐</span
+                >
+                <span v-if="service.discount" class="badge discount"
+                  >{{ service.discount }}折</span
+                >
               </div>
             </div>
-            
+
             <div class="service-content">
               <div class="service-header">
                 <h3 class="service-title">{{ service.name }}</h3>
                 <div class="service-rating">
-                  <el-rate 
-                    v-model="service.rating" 
-                    disabled 
-                    show-score 
+                  <el-rate
+                    v-model="service.rating"
+                    disabled
+                    show-score
                     text-color="#ff9900"
                     score-template="{value}"
                     size="small"
                   />
                 </div>
               </div>
-              
+
               <p class="service-description">{{ service.description }}</p>
-              
+
               <div class="service-features">
-                <div class="feature-item" v-for="feature in service.features" :key="feature">
-                  <el-icon size="14" color="var(--success-color)"><Check /></el-icon>
+                <div
+                  class="feature-item"
+                  v-for="feature in service.features"
+                  :key="feature"
+                >
+                  <el-icon size="14" color="var(--success-color)"
+                    ><Check
+                  /></el-icon>
                   <span>{{ feature }}</span>
                 </div>
               </div>
-              
+
               <div class="service-info">
                 <div class="info-item">
                   <el-icon><Clock /></el-icon>
@@ -116,14 +138,16 @@
                   <span>已服务 {{ service.serviceCount }}+</span>
                 </div>
               </div>
-              
+
               <div class="service-footer">
                 <div class="service-price">
                   <span class="current-price">¥{{ service.price }}</span>
-                  <span v-if="service.originalPrice" class="original-price">¥{{ service.originalPrice }}</span>
+                  <span v-if="service.originalPrice" class="original-price"
+                    >¥{{ service.originalPrice }}</span
+                  >
                 </div>
-                <el-button 
-                  type="primary" 
+                <el-button
+                  type="primary"
                   size="default"
                   @click.stop="bookService(service)"
                 >
@@ -133,11 +157,13 @@
             </div>
           </div>
         </div>
-        
+
         <!-- 空状态 -->
         <div v-if="filteredServices.length === 0" class="empty-state">
           <el-empty description="没有找到符合条件的服务">
-            <el-button type="primary" @click="clearFilters">清除筛选条件</el-button>
+            <el-button type="primary" @click="clearFilters"
+              >清除筛选条件</el-button
+            >
           </el-empty>
         </div>
       </div>
@@ -146,223 +172,243 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 
 export default {
-  name: 'Services',
+  name: "Services",
   setup() {
-    const router = useRouter()
-    
+    const router = useRouter();
+
     // 筛选条件
     const filters = ref({
-      category: '',
-      priceRange: '',
-      duration: '',
-      sortBy: 'default'
-    })
-    
+      category: "",
+      priceRange: "",
+      duration: "",
+      sortBy: "default",
+    });
+
     // 服务数据
     const services = ref([
       {
         id: 1,
-        name: '基础洗车',
-        description: '外观清洗，轮胎清洁，玻璃清洁，适合日常维护',
+        name: "基础洗车",
+        description: "外观清洗，轮胎清洁，玻璃清洁，适合日常维护",
         price: 30,
         originalPrice: null,
-        duration: '30分钟',
-        category: 'basic',
+        duration: "30分钟",
+        category: "basic",
         rating: 4.2,
         serviceCount: 1200,
-        features: ['外观清洗', '轮胎清洁', '玻璃清洁', '简单内饰'],
-        icon: 'Car',
-        color: 'var(--primary-color)',
+        features: ["外观清洗", "轮胎清洁", "玻璃清洁", "简单内饰"],
+        icon: "Car",
+        color: "var(--primary-color)",
         popular: false,
         recommended: false,
-        discount: null
+        discount: null,
       },
       {
         id: 2,
-        name: '精洗套餐',
-        description: '深度清洁，内外兼修，包含基础洗车所有项目',
+        name: "精洗套餐",
+        description: "深度清洁，内外兼修，包含基础洗车所有项目",
         price: 68,
         originalPrice: 88,
-        duration: '60分钟',
-        category: 'premium',
+        duration: "60分钟",
+        category: "premium",
         rating: 4.6,
         serviceCount: 2800,
-        features: ['深度清洗', '内饰清洁', '轮毂清洁', '玻璃镀膜', '轮胎护理'],
-        icon: 'Star',
-        color: 'var(--warning-color)',
+        features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜", "轮胎护理"],
+        icon: "Star",
+        color: "var(--warning-color)",
         popular: true,
         recommended: true,
-        discount: '7.7'
+        discount: "7.7",
       },
       {
         id: 3,
-        name: '豪华套餐',
-        description: '全方位护理，焕然一新，适合重要场合前使用',
+        name: "豪华套餐",
+        description: "全方位护理，焕然一新，适合重要场合前使用",
         price: 128,
         originalPrice: 168,
-        duration: '90分钟',
-        category: 'luxury',
+        duration: "90分钟",
+        category: "luxury",
         rating: 4.8,
         serviceCount: 950,
-        features: ['精洗服务', '打蜡护理', '内饰深度清洁', '轮胎护理', '香氛服务', '细节处理'],
-        icon: 'Trophy',
-        color: 'var(--error-color)',
+        features: [
+          "精洗服务",
+          "打蜡护理",
+          "内饰深度清洁",
+          "轮胎护理",
+          "香氛服务",
+          "细节处理",
+        ],
+        icon: "Trophy",
+        color: "var(--error-color)",
         popular: false,
         recommended: true,
-        discount: '7.6'
+        discount: "7.6",
       },
       {
         id: 4,
-        name: '内饰深度清洁',
-        description: '专业内饰清洁，除菌除味，营造健康车内环境',
+        name: "内饰深度清洁",
+        description: "专业内饰清洁，除菌除味，营造健康车内环境",
         price: 88,
         originalPrice: null,
-        duration: '45分钟',
-        category: 'interior',
+        duration: "45分钟",
+        category: "interior",
         rating: 4.4,
         serviceCount: 680,
-        features: ['座椅清洁', '地毯清洁', '仪表台清洁', '除菌除味', '空调清洁'],
-        icon: 'House',
-        color: 'var(--info-color)',
+        features: [
+          "座椅清洁",
+          "地毯清洁",
+          "仪表台清洁",
+          "除菌除味",
+          "空调清洁",
+        ],
+        icon: "House",
+        color: "var(--info-color)",
         popular: false,
         recommended: false,
-        discount: null
+        discount: null,
       },
       {
         id: 5,
-        name: '快速洗车',
-        description: '15分钟快速清洗，适合时间紧急的情况',
+        name: "快速洗车",
+        description: "15分钟快速清洗，适合时间紧急的情况",
         price: 20,
         originalPrice: null,
-        duration: '15分钟',
-        category: 'basic',
+        duration: "15分钟",
+        category: "basic",
         rating: 4.0,
         serviceCount: 1500,
-        features: ['外观冲洗', '简单擦拭', '玻璃清洁'],
-        icon: 'Timer',
-        color: 'var(--success-color)',
+        features: ["外观冲洗", "简单擦拭", "玻璃清洁"],
+        icon: "Timer",
+        color: "var(--success-color)",
         popular: false,
         recommended: false,
-        discount: null
+        discount: null,
       },
       {
         id: 6,
-        name: '打蜡护理',
-        description: '专业打蜡服务，保护车漆，增加光泽度',
+        name: "打蜡护理",
+        description: "专业打蜡服务，保护车漆，增加光泽度",
         price: 158,
         originalPrice: null,
-        duration: '120分钟',
-        category: 'luxury',
+        duration: "120分钟",
+        category: "luxury",
         rating: 4.7,
         serviceCount: 420,
-        features: ['车身打蜡', '漆面护理', '光泽增强', '防护涂层'],
-        icon: 'Sunny',
-        color: 'var(--warning-color)',
+        features: ["车身打蜡", "漆面护理", "光泽增强", "防护涂层"],
+        icon: "Sunny",
+        color: "var(--warning-color)",
         popular: false,
         recommended: true,
-        discount: null
-      }
-    ])
-    
+        discount: null,
+      },
+    ]);
+
     // 筛选后的服务
     const filteredServices = computed(() => {
-      let result = [...services.value]
-      
+      let result = [...services.value];
+
       // 按类型筛选
       if (filters.value.category) {
-        result = result.filter(service => service.category === filters.value.category)
+        result = result.filter(
+          (service) => service.category === filters.value.category,
+        );
       }
-      
+
       // 按价格筛选
       if (filters.value.priceRange) {
-        const [min, max] = filters.value.priceRange.split('-').map(v => v === '+' ? Infinity : parseInt(v))
-        result = result.filter(service => {
-          if (max === undefined) return service.price >= min
-          return service.price >= min && service.price <= max
-        })
+        const [min, max] = filters.value.priceRange
+          .split("-")
+          .map((v) => (v === "+" ? Infinity : parseInt(v)));
+        result = result.filter((service) => {
+          if (max === undefined) return service.price >= min;
+          return service.price >= min && service.price <= max;
+        });
       }
-      
+
       // 按时长筛选
       if (filters.value.duration) {
-        const [min, max] = filters.value.duration.split('-').map(v => v === '+' ? Infinity : parseInt(v))
-        result = result.filter(service => {
-          const duration = parseInt(service.duration)
-          if (max === undefined) return duration >= min
-          return duration >= min && duration <= max
-        })
+        const [min, max] = filters.value.duration
+          .split("-")
+          .map((v) => (v === "+" ? Infinity : parseInt(v)));
+        result = result.filter((service) => {
+          const duration = parseInt(service.duration);
+          if (max === undefined) return duration >= min;
+          return duration >= min && duration <= max;
+        });
       }
-      
+
       // 排序
       switch (filters.value.sortBy) {
-        case 'price-asc':
-          result.sort((a, b) => a.price - b.price)
-          break
-        case 'price-desc':
-          result.sort((a, b) => b.price - a.price)
-          break
-        case 'rating-desc':
-          result.sort((a, b) => b.rating - a.rating)
-          break
-        case 'popular':
-          result.sort((a, b) => b.serviceCount - a.serviceCount)
-          break
+        case "price-asc":
+          result.sort((a, b) => a.price - b.price);
+          break;
+        case "price-desc":
+          result.sort((a, b) => b.price - a.price);
+          break;
+        case "rating-desc":
+          result.sort((a, b) => b.rating - a.rating);
+          break;
+        case "popular":
+          result.sort((a, b) => b.serviceCount - a.serviceCount);
+          break;
         default:
           // 默认排序：推荐 > 热门 > 评分
           result.sort((a, b) => {
-            if (a.recommended !== b.recommended) return b.recommended - a.recommended
-            if (a.popular !== b.popular) return b.popular - a.popular
-            return b.rating - a.rating
-          })
+            if (a.recommended !== b.recommended)
+              return b.recommended - a.recommended;
+            if (a.popular !== b.popular) return b.popular - a.popular;
+            return b.rating - a.rating;
+          });
       }
-      
-      return result
-    })
-    
+
+      return result;
+    });
+
     // 查看服务详情
     const viewServiceDetail = (service) => {
       router.push({
-        path: '/service-detail',
-        query: { id: service.id }
-      })
-    }
-    
+        path: "/service-detail",
+        query: { id: service.id },
+      });
+    };
+
     // 预约服务
     const bookService = (service) => {
       router.push({
-        path: '/appointment',
-        query: { serviceId: service.id }
-      })
-    }
-    
+        path: "/appointment",
+        query: { serviceId: service.id },
+      });
+    };
+
     // 清除筛选条件
     const clearFilters = () => {
       filters.value = {
-        category: '',
-        priceRange: '',
-        duration: '',
-        sortBy: 'default'
-      }
-    }
-    
+        category: "",
+        priceRange: "",
+        duration: "",
+        sortBy: "default",
+      };
+    };
+
     onMounted(() => {
       // 可以在这里加载服务数据
-    })
-    
+    });
+
     return {
       filters,
       services,
       filteredServices,
       viewServiceDetail,
       bookService,
-      clearFilters
-    }
-  }
-}
+      clearFilters,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -572,24 +618,24 @@ export default {
   .page-header {
     padding: 40px 0;
   }
-  
+
   .page-title {
     font-size: 2rem;
   }
-  
+
   .filters-container {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .filter-group {
     min-width: 100%;
   }
-  
+
   .services-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .service-header {
     flex-direction: column;
     gap: 8px;
@@ -601,13 +647,13 @@ export default {
   .service-content {
     padding: 16px;
   }
-  
+
   .service-footer {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
-  
+
   .service-footer .el-button {
     width: 100%;
   }

@@ -5,11 +5,11 @@
         <component :is="icon" />
       </el-icon>
     </div>
-    
+
     <div class="empty-content">
       <h3 class="empty-title">{{ title }}</h3>
       <p class="empty-description">{{ description }}</p>
-      
+
       <div v-if="showAction" class="empty-actions">
         <slot name="actions">
           <el-button type="primary" @click="handleAction">
@@ -23,48 +23,48 @@
 
 <script>
 export default {
-  name: 'EmptyState',
+  name: "EmptyState",
   props: {
     icon: {
       type: String,
-      default: 'Box'
+      default: "Box",
     },
     iconSize: {
       type: Number,
-      default: 80
+      default: 80,
     },
     iconColor: {
       type: String,
-      default: 'var(--text-light)'
+      default: "var(--text-light)",
     },
     title: {
       type: String,
-      default: '暂无数据'
+      default: "暂无数据",
     },
     description: {
       type: String,
-      default: '当前没有可显示的内容'
+      default: "当前没有可显示的内容",
     },
     showAction: {
       type: Boolean,
-      default: false
+      default: false,
     },
     actionText: {
       type: String,
-      default: '刷新'
-    }
+      default: "刷新",
+    },
   },
-  emits: ['action'],
+  emits: ["action"],
   setup(props, { emit }) {
     const handleAction = () => {
-      emit('action')
-    }
-    
+      emit("action");
+    };
+
     return {
-      handleAction
-    }
-  }
-}
+      handleAction,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -112,11 +112,11 @@ export default {
   .empty-state {
     padding: 40px 16px;
   }
-  
+
   .empty-title {
     font-size: 1.1rem;
   }
-  
+
   .empty-actions .el-button {
     width: 100%;
   }

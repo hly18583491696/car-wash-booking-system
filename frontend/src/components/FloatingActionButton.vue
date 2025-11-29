@@ -1,8 +1,8 @@
 <template>
   <div class="fab-container" :class="{ 'fab-open': isOpen }">
     <!-- 主按钮 -->
-    <button 
-      class="fab-main" 
+    <button
+      class="fab-main"
       @click="toggleFab"
       :style="{ background: mainColor }"
     >
@@ -10,17 +10,19 @@
         <component :is="isOpen ? 'Close' : mainIcon" />
       </el-icon>
     </button>
-    
+
     <!-- 子按钮 -->
     <transition-group name="fab-item" tag="div" class="fab-items">
       <button
         v-for="(item, index) in items"
         :key="item.id"
         class="fab-item"
-        :style="{ 
+        :style="{
           background: item.color || '#ffffff',
           transitionDelay: `${index * 50}ms`,
-          transform: isOpen ? `translateY(-${(index + 1) * 60}px)` : 'translateY(0)'
+          transform: isOpen
+            ? `translateY(-${(index + 1) * 60}px)`
+            : 'translateY(0)',
         }"
         @click="handleItemClick(item)"
         v-show="isOpen"
@@ -31,60 +33,56 @@
         <span class="fab-tooltip">{{ item.label }}</span>
       </button>
     </transition-group>
-    
+
     <!-- 背景遮罩 -->
-    <div 
-      v-if="isOpen" 
-      class="fab-backdrop" 
-      @click="closeFab"
-    ></div>
+    <div v-if="isOpen" class="fab-backdrop" @click="closeFab"></div>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref } from "vue";
 
 export default {
-  name: 'FloatingActionButton',
+  name: "FloatingActionButton",
   props: {
     mainIcon: {
       type: String,
-      default: 'Plus'
+      default: "Plus",
     },
     mainColor: {
       type: String,
-      default: 'var(--primary-color)'
+      default: "var(--primary-color)",
     },
     items: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
-  emits: ['item-click'],
+  emits: ["item-click"],
   setup(props, { emit }) {
-    const isOpen = ref(false)
-    
+    const isOpen = ref(false);
+
     const toggleFab = () => {
-      isOpen.value = !isOpen.value
-    }
-    
+      isOpen.value = !isOpen.value;
+    };
+
     const closeFab = () => {
-      isOpen.value = false
-    }
-    
+      isOpen.value = false;
+    };
+
     const handleItemClick = (item) => {
-      emit('item-click', item)
-      closeFab()
-    }
-    
+      emit("item-click", item);
+      closeFab();
+    };
+
     return {
       isOpen,
       toggleFab,
       closeFab,
-      handleItemClick
-    }
-  }
-}
+      handleItemClick,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -230,21 +228,21 @@ export default {
     bottom: 20px;
     right: 20px;
   }
-  
+
   .fab-main {
     width: 48px;
     height: 48px;
   }
-  
+
   .fab-icon {
     font-size: 20px;
   }
-  
+
   .fab-item {
     width: 40px;
     height: 40px;
   }
-  
+
   .fab-item .el-icon {
     font-size: 16px;
   }

@@ -2,7 +2,7 @@
   <div class="home-page">
     <!-- 粒子背景 -->
     <ParticleBackground />
-    
+
     <!-- 顶部展示区 -->
     <section class="top-display-section">
       <div class="top-display-container">
@@ -60,7 +60,7 @@
             <h3 class="shortcut-title">我的订单</h3>
             <p class="shortcut-desc">查看订单状态和历史记录</p>
           </router-link>
-          
+
           <router-link to="/payment-records" class="shortcut-card">
             <div class="shortcut-icon payment-icon">
               <el-icon size="32"><CreditCard /></el-icon>
@@ -68,7 +68,7 @@
             <h3 class="shortcut-title">支付记录</h3>
             <p class="shortcut-desc">查看支付和退款记录</p>
           </router-link>
-          
+
           <router-link to="/appointment" class="shortcut-card">
             <div class="shortcut-icon appointment-icon">
               <el-icon size="32"><Calendar /></el-icon>
@@ -76,7 +76,7 @@
             <h3 class="shortcut-title">快速预约</h3>
             <p class="shortcut-desc">预约洗车服务</p>
           </router-link>
-          
+
           <router-link to="/profile" class="shortcut-card">
             <div class="shortcut-icon profile-icon">
               <el-icon size="32"><User /></el-icon>
@@ -96,7 +96,11 @@
           <p class="section-subtitle">专业、便捷、高效的洗车服务体验</p>
         </div>
         <div class="features-grid">
-          <div class="feature-card" v-for="feature in features" :key="feature.id">
+          <div
+            class="feature-card"
+            v-for="feature in features"
+            :key="feature.id"
+          >
             <div class="feature-icon" :style="{ background: feature.color }">
               <el-icon size="32">
                 <component :is="feature.icon" />
@@ -117,7 +121,11 @@
           <p class="section-subtitle">多种洗车套餐，满足不同需求</p>
         </div>
         <div class="services-grid">
-          <div class="service-card" v-for="service in popularServices" :key="service.id">
+          <div
+            class="service-card"
+            v-for="service in popularServices"
+            :key="service.id"
+          >
             <div class="service-image">
               <div class="image-placeholder">
                 <el-icon size="60" :color="service.color">
@@ -130,7 +138,11 @@
               <h3 class="service-title">{{ service.name }}</h3>
               <p class="service-desc">{{ service.description }}</p>
               <div class="service-features">
-                <span v-for="feature in service.features" :key="feature" class="feature-tag">
+                <span
+                  v-for="feature in service.features"
+                  :key="feature"
+                  class="feature-tag"
+                >
                   {{ feature }}
                 </span>
               </div>
@@ -139,7 +151,11 @@
                   <span class="price">¥{{ service.price }}</span>
                   <span class="duration">{{ service.duration }}</span>
                 </div>
-                <el-button type="primary" size="small" @click="bookService(service)">
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="bookService(service)"
+                >
                   立即预约
                 </el-button>
               </div>
@@ -163,8 +179,8 @@
         <div class="stats-grid">
           <div class="stat-item" v-for="(stat, index) in stats" :key="stat.id">
             <div class="stat-number">
-              <AnimatedCounter 
-                :value="stat.numValue || 0" 
+              <AnimatedCounter
+                :value="stat.numValue || 0"
                 :suffix="stat.suffix || ''"
                 :duration="2000 + index * 300"
                 :color="'#ffffff'"
@@ -184,10 +200,18 @@
           <p class="section-subtitle">听听用户怎么说</p>
         </div>
         <div class="testimonials-grid">
-          <div class="testimonial-card" v-for="testimonial in testimonials" :key="testimonial.id">
+          <div
+            class="testimonial-card"
+            v-for="testimonial in testimonials"
+            :key="testimonial.id"
+          >
             <div class="testimonial-content">
               <div class="rating">
-                <el-icon v-for="i in 5" :key="i" :class="{ active: i <= testimonial.rating }">
+                <el-icon
+                  v-for="i in 5"
+                  :key="i"
+                  :class="{ active: i <= testimonial.rating }"
+                >
                   <Star />
                 </el-icon>
               </div>
@@ -212,146 +236,156 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import ParticleBackground from '@/components/ParticleBackground.vue'
-import AnimatedCounter from '@/components/AnimatedCounter.vue'
-import AuthManager from '../utils/auth.js'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import ParticleBackground from "@/components/ParticleBackground.vue";
+import AnimatedCounter from "@/components/AnimatedCounter.vue";
+import AuthManager from "../utils/auth.js";
 
 export default {
-  name: 'Home',
+  name: "Home",
   components: {
     ParticleBackground,
-    AnimatedCounter
+    AnimatedCounter,
   },
   setup() {
-    const router = useRouter()
-    
-    // 使用 AuthManager 进行一致的登录状态检测
-    const isLoggedIn = computed(() => AuthManager.isAuthenticated())
-    const userInfo = computed(() => AuthManager.getCurrentUser())
-    
+    const router = useRouter();
 
-    
+    // 使用 AuthManager 进行一致的登录状态检测
+    const isLoggedIn = computed(() => AuthManager.isAuthenticated());
+    const userInfo = computed(() => AuthManager.getCurrentUser());
+
     // 特色功能
     const features = ref([
       {
         id: 1,
-        icon: 'Clock',
-        title: '24小时预约',
-        description: '随时随地在线预约，无需等待',
-        color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        icon: "Clock",
+        title: "24小时预约",
+        description: "随时随地在线预约，无需等待",
+        color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       },
       {
         id: 2,
-        icon: 'Star',
-        title: '专业服务',
-        description: '经验丰富的专业团队，品质保证',
-        color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+        icon: "Star",
+        title: "专业服务",
+        description: "经验丰富的专业团队，品质保证",
+        color: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
       },
       {
         id: 3,
-        icon: 'Location',
-        title: '就近服务',
-        description: '多个服务网点，就近选择',
-        color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+        icon: "Location",
+        title: "就近服务",
+        description: "多个服务网点，就近选择",
+        color: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
       },
       {
         id: 4,
-        icon: 'Money',
-        title: '透明定价',
-        description: '明码标价，无隐藏费用',
-        color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-      }
-    ])
-    
+        icon: "Money",
+        title: "透明定价",
+        description: "明码标价，无隐藏费用",
+        color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+      },
+    ]);
+
     // 热门服务
     const popularServices = ref([
       {
         id: 1,
-        name: '基础洗车',
-        description: '外观清洗，内饰简单清理',
+        name: "基础洗车",
+        description: "外观清洗，内饰简单清理",
         price: 30,
-        duration: '30分钟',
-        features: ['外观清洗', '轮胎清洁', '玻璃清洁'],
-        icon: 'CarWashing',
-        color: 'var(--primary-color)',
-        popular: false
+        duration: "30分钟",
+        features: ["外观清洗", "轮胎清洁", "玻璃清洁"],
+        icon: "CarWashing",
+        color: "var(--primary-color)",
+        popular: false,
       },
       {
         id: 2,
-        name: '精洗套餐',
-        description: '深度清洁，内外兼修',
+        name: "精洗套餐",
+        description: "深度清洁，内外兼修",
         price: 68,
-        duration: '60分钟',
-        features: ['深度清洗', '内饰清洁', '轮毂清洁', '玻璃镀膜'],
-        icon: 'Star',
-        color: 'var(--warning-color)',
-        popular: true
+        duration: "60分钟",
+        features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜"],
+        icon: "Star",
+        color: "var(--warning-color)",
+        popular: true,
       },
       {
         id: 3,
-        name: '豪华套餐',
-        description: '全方位护理，焕然一新',
+        name: "豪华套餐",
+        description: "全方位护理，焕然一新",
         price: 128,
-        duration: '90分钟',
-        features: ['精洗服务', '打蜡护理', '内饰深度清洁', '轮胎护理'],
-        icon: 'Crown',
-        color: 'var(--error-color)',
-        popular: false
-      }
-    ])
-    
+        duration: "90分钟",
+        features: ["精洗服务", "打蜡护理", "内饰深度清洁", "轮胎护理"],
+        icon: "Crown",
+        color: "var(--error-color)",
+        popular: false,
+      },
+    ]);
+
     // 统计数据
     const stats = ref([
-      { id: 1, value: '10000+', numValue: 10000, suffix: '+', label: '服务用户' },
-      { id: 2, value: '50000+', numValue: 50000, suffix: '+', label: '完成订单' },
-      { id: 3, value: '98%', numValue: 98, suffix: '%', label: '满意度' },
-      { id: 4, value: '24h', numValue: 24, suffix: 'h', label: '响应时间' }
-    ])
-    
+      {
+        id: 1,
+        value: "10000+",
+        numValue: 10000,
+        suffix: "+",
+        label: "服务用户",
+      },
+      {
+        id: 2,
+        value: "50000+",
+        numValue: 50000,
+        suffix: "+",
+        label: "完成订单",
+      },
+      { id: 3, value: "98%", numValue: 98, suffix: "%", label: "满意度" },
+      { id: 4, value: "24h", numValue: 24, suffix: "h", label: "响应时间" },
+    ]);
+
     // 用户评价
     const testimonials = ref([
       {
         id: 1,
-        name: '张先生',
-        title: '奔驰车主',
-        content: '服务非常专业，预约方便，洗车效果很满意！',
+        name: "张先生",
+        title: "奔驰车主",
+        content: "服务非常专业，预约方便，洗车效果很满意！",
         rating: 5,
-        avatar: ''
+        avatar: "",
       },
       {
         id: 2,
-        name: '李女士',
-        title: '宝马车主',
-        content: '价格透明，服务态度好，会继续使用这个平台。',
+        name: "李女士",
+        title: "宝马车主",
+        content: "价格透明，服务态度好，会继续使用这个平台。",
         rating: 5,
-        avatar: ''
+        avatar: "",
       },
       {
         id: 3,
-        name: '王先生',
-        title: '奥迪车主',
-        content: '在线预约很方便，服务质量也很不错，推荐！',
+        name: "王先生",
+        title: "奥迪车主",
+        content: "在线预约很方便，服务质量也很不错，推荐！",
         rating: 4,
-        avatar: ''
-      }
-    ])
-    
+        avatar: "",
+      },
+    ]);
+
     // 预约服务
     const bookService = (service) => {
       router.push({
-        path: '/appointment',
-        query: { serviceId: service.id }
-      })
-    }
-    
+        path: "/appointment",
+        query: { serviceId: service.id },
+      });
+    };
+
     onMounted(() => {
       // 页面加载时的初始化逻辑
-      console.log('Home页面已加载，用户登录状态:', isLoggedIn.value)
-    })
-    
+      console.log("Home页面已加载，用户登录状态:", isLoggedIn.value);
+    });
+
     return {
       features,
       popularServices,
@@ -359,10 +393,10 @@ export default {
       testimonials,
       bookService,
       isLoggedIn,
-      userInfo
-    }
-  }
-}
+      userInfo,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -380,7 +414,7 @@ export default {
 }
 
 .top-display-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -410,7 +444,7 @@ export default {
 }
 
 .highlight {
-  background: linear-gradient(45deg, #FFD700, #FFA500);
+  background: linear-gradient(45deg, #ffd700, #ffa500);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -463,8 +497,6 @@ export default {
 .secondary-button .el-icon {
   color: #ffffff !important;
 }
-
-
 
 .top-display-image {
   display: flex;
@@ -807,7 +839,7 @@ export default {
 }
 
 .rating .el-icon.active {
-  color: #FFD700;
+  color: #ffd700;
 }
 
 .testimonial-text {
@@ -840,26 +872,26 @@ export default {
     gap: 40px;
     text-align: center;
   }
-  
+
   .top-display-title {
     font-size: 2.5rem;
   }
-  
+
   .top-display-actions {
     justify-content: center;
     flex-wrap: wrap;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .features-grid,
   .services-grid,
   .testimonials-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -869,21 +901,21 @@ export default {
   .top-display-section {
     padding: 60px 0;
   }
-  
+
   .top-display-title {
     font-size: 2rem;
   }
-  
+
   .features-section,
   .services-section,
   .testimonials-section {
     padding: 60px 0;
   }
-  
+
   .stats-section {
     padding: 60px 0;
   }
-  
+
   .stat-number {
     font-size: 2rem;
   }

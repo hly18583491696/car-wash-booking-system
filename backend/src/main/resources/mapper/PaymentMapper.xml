@@ -94,4 +94,12 @@
         AND deleted = 0
     </select>
 
+    <select id="avgPaymentResponseMinutes" resultType="java.lang.Integer">
+        SELECT CAST(AVG(TIMESTAMPDIFF(MINUTE, created_at, paid_at)) AS SIGNED)
+        FROM payments
+        WHERE status = 'paid'
+        AND paid_at IS NOT NULL
+        AND deleted = 0
+    </select>
+
 </mapper>

@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.carwash.service.CsrfService;
 
 /**
  * 认证控制器
@@ -30,6 +33,12 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CsrfService csrfService;
+
+    @Value("${csrf.ttl:300}")
+    private long csrfTtl;
 
     /**
      * 用户注册
@@ -55,6 +64,15 @@ public class AuthController {
         
         LoginResponse response = userService.login(request, clientIp);
         return Result.success("登录成功", response);
+    }
+
+    @PostMapping("/csrf")
+    @Operation(summary = "获取CSRF令牌", description = "为受保护接口生成短期CSRF令牌")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public Result<String> getCsrfToken() {
+        Long userId = com.carwash.utils.SecurityUtils.getCurrentUserId();
+        String token = csrfService.generateToken(userId, csrfTtl);
+        return Result.success(token);
     }
 
     /**

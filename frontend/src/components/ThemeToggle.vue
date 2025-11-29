@@ -4,22 +4,22 @@
       <el-button class="theme-button" circle>
         <el-icon><Brush /></el-icon>
       </el-button>
-      
+
       <template #dropdown>
         <el-dropdown-menu class="theme-menu">
           <div class="theme-header">
             <h4>选择主题</h4>
           </div>
           <div class="theme-grid">
-            <div 
-              v-for="theme in themes" 
+            <div
+              v-for="theme in themes"
               :key="theme.name"
               class="theme-item"
               :class="{ active: currentTheme === theme.name }"
               @click="handleThemeChange(theme.name)"
             >
-              <div 
-                class="theme-color" 
+              <div
+                class="theme-color"
                 :style="{ backgroundColor: theme.color }"
               ></div>
               <span class="theme-label">{{ theme.label }}</span>
@@ -35,28 +35,28 @@
 </template>
 
 <script>
-import { computed } from 'vue'
-import { useThemeStore } from '../stores/theme'
+import { computed } from "vue";
+import { useThemeStore } from "../stores/theme";
 
 export default {
-  name: 'ThemeToggle',
+  name: "ThemeToggle",
   setup() {
-    const themeStore = useThemeStore()
-    
-    const currentTheme = computed(() => themeStore.currentTheme)
-    const themes = computed(() => themeStore.themes)
-    
+    const themeStore = useThemeStore();
+
+    const currentTheme = computed(() => themeStore.currentTheme);
+    const themes = computed(() => themeStore.themes);
+
     const handleThemeChange = (themeName) => {
-      themeStore.setTheme(themeName)
-    }
-    
+      themeStore.setTheme(themeName);
+    };
+
     return {
       currentTheme,
       themes,
-      handleThemeChange
-    }
-  }
-}
+      handleThemeChange,
+    };
+  },
+};
 </script>
 
 <style scoped>

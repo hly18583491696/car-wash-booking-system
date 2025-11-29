@@ -99,4 +99,9 @@ public interface UserService {
      * 获取管理员用户数
      */
     long getAdminUserCount();
+
+    /**
+     * 更新头像URL
+     */
+    void updateAvatar(Long userId, String avatarUrl);
 }

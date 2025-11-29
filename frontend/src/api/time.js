@@ -3,7 +3,7 @@
  * 用于前后端时间同步
  */
 
-import request from './request'
+import request from "./request";
 
 /**
  * 时间API服务
@@ -14,7 +14,7 @@ export const timeApi = {
    * @returns {Promise} 服务器时间信息
    */
   async getCurrentTime() {
-    return request.get('/time/current')
+    return request.get("/time/current");
   },
 
   /**
@@ -22,7 +22,7 @@ export const timeApi = {
    * @returns {Promise} 时区信息
    */
   async getTimezone() {
-    return request.get('/time/timezone')
+    return request.get("/time/timezone");
   },
 
   /**
@@ -30,18 +30,18 @@ export const timeApi = {
    * @returns {Promise} 健康状态
    */
   async healthCheck() {
-    return request.get('/time/health')
-  }
-}
+    return request.get("/time/health");
+  },
+};
 
 /**
  * 时间同步服务
  */
 export class TimeSyncService {
   constructor() {
-    this.serverTimeOffset = 0 // 服务器时间偏移量
-    this.lastSyncTime = 0
-    this.syncInterval = 5 * 60 * 1000 // 5分钟同步一次
+    this.serverTimeOffset = 0; // 服务器时间偏移量
+    this.lastSyncTime = 0;
+    this.syncInterval = 5 * 60 * 1000; // 5分钟同步一次
   }
 
   /**
@@ -50,25 +50,25 @@ export class TimeSyncService {
    */
   async syncServerTime() {
     try {
-      const startTime = Date.now()
-      const response = await timeApi.getCurrentTime()
-      const endTime = Date.now()
-      
+      const startTime = Date.now();
+      const response = await timeApi.getCurrentTime();
+      const endTime = Date.now();
+
       if (response.code === 200) {
-        const serverTime = new Date(response.data.timestamp).getTime()
-        const networkDelay = (endTime - startTime) / 2
-        const clientTime = startTime + networkDelay
-        
+        const serverTime = new Date(response.data.timestamp).getTime();
+        const networkDelay = (endTime - startTime) / 2;
+        const clientTime = startTime + networkDelay;
+
         // 计算时间偏移量
-        this.serverTimeOffset = serverTime - clientTime
-        this.lastSyncTime = Date.now()
-        
-        console.log('时间同步成功，偏移量:', this.serverTimeOffset, 'ms')
-        return this.serverTimeOffset
+        this.serverTimeOffset = serverTime - clientTime;
+        this.lastSyncTime = Date.now();
+
+        console.log("时间同步成功，偏移量:", this.serverTimeOffset, "ms");
+        return this.serverTimeOffset;
       }
     } catch (error) {
-      console.error('时间同步失败:', error)
-      throw error
+      console.error("时间同步失败:", error);
+      throw error;
     }
   }
 
@@ -77,7 +77,7 @@ export class TimeSyncService {
    * @returns {Date} 服务器时间
    */
   getServerTime() {
-    return new Date(Date.now() + this.serverTimeOffset)
+    return new Date(Date.now() + this.serverTimeOffset);
   }
 
   /**
@@ -85,7 +85,7 @@ export class TimeSyncService {
    * @returns {boolean} 是否需要同步
    */
   needsSync() {
-    return Date.now() - this.lastSyncTime > this.syncInterval
+    return Date.now() - this.lastSyncTime > this.syncInterval;
   }
 
   /**
@@ -95,25 +95,25 @@ export class TimeSyncService {
   async autoSync() {
     if (this.needsSync()) {
       try {
-        await this.syncServerTime()
+        await this.syncServerTime();
       } catch (error) {
-        console.warn('自动时间同步失败:', error)
+        console.warn("自动时间同步失败:", error);
       }
     }
   }
 }
 
 // 创建全局时间同步实例
-export const timeSyncService = new TimeSyncService()
+export const timeSyncService = new TimeSyncService();
 
 // 页面加载时自动同步
-if (typeof window !== 'undefined') {
-  timeSyncService.syncServerTime().catch(console.error)
-  
+if (typeof window !== "undefined") {
+  timeSyncService.syncServerTime().catch(console.error);
+
   // 定期自动同步
   setInterval(() => {
-    timeSyncService.autoSync()
-  }, 60 * 1000) // 每分钟检查一次
+    timeSyncService.autoSync();
+  }, 60 * 1000); // 每分钟检查一次
 }
 
-export default timeApi
+export default timeApi;

@@ -8,7 +8,7 @@
           class="notification"
           :class="[
             `notification-${notification.type}`,
-            { 'notification-closable': notification.closable }
+            { 'notification-closable': notification.closable },
           ]"
           @click="handleClick(notification)"
         >
@@ -17,7 +17,7 @@
               <component :is="getIcon(notification.type)" />
             </el-icon>
           </div>
-          
+
           <div class="notification-content">
             <div v-if="notification.title" class="notification-title">
               {{ notification.title }}
@@ -26,7 +26,7 @@
               {{ notification.message }}
             </div>
           </div>
-          
+
           <button
             v-if="notification.closable"
             class="notification-close"
@@ -34,7 +34,7 @@
           >
             <el-icon><Close /></el-icon>
           </button>
-          
+
           <div
             v-if="notification.duration > 0"
             class="notification-progress"
@@ -47,90 +47,90 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from "vue";
 
 export default {
-  name: 'NotificationSystem',
+  name: "NotificationSystem",
   setup() {
-    const notifications = ref([])
-    let notificationId = 0
-    
+    const notifications = ref([]);
+    let notificationId = 0;
+
     const getIcon = (type) => {
       const icons = {
-        success: 'CircleCheck',
-        error: 'CircleClose',
-        warning: 'Warning',
-        info: 'InfoFilled'
-      }
-      return icons[type] || 'InfoFilled'
-    }
-    
+        success: "CircleCheck",
+        error: "CircleClose",
+        warning: "Warning",
+        info: "InfoFilled",
+      };
+      return icons[type] || "InfoFilled";
+    };
+
     const addNotification = (options) => {
       const notification = {
         id: ++notificationId,
-        type: options.type || 'info',
+        type: options.type || "info",
         title: options.title,
         message: options.message,
         duration: options.duration !== undefined ? options.duration : 4000,
         closable: options.closable !== false,
         onClick: options.onClick,
-        ...options
-      }
-      
-      notifications.value.push(notification)
-      
+        ...options,
+      };
+
+      notifications.value.push(notification);
+
       // 自动移除
       if (notification.duration > 0) {
         setTimeout(() => {
-          removeNotification(notification.id)
-        }, notification.duration)
+          removeNotification(notification.id);
+        }, notification.duration);
       }
-      
-      return notification.id
-    }
-    
+
+      return notification.id;
+    };
+
     const removeNotification = (id) => {
-      const index = notifications.value.findIndex(n => n.id === id)
+      const index = notifications.value.findIndex((n) => n.id === id);
       if (index > -1) {
-        notifications.value.splice(index, 1)
+        notifications.value.splice(index, 1);
       }
-    }
-    
+    };
+
     const clearAll = () => {
-      notifications.value = []
-    }
-    
+      notifications.value = [];
+    };
+
     const handleClick = (notification) => {
       if (notification.onClick) {
-        notification.onClick(notification)
+        notification.onClick(notification);
       }
-    }
-    
+    };
+
     // 全局方法
     const showSuccess = (message, options = {}) => {
-      return addNotification({ ...options, type: 'success', message })
-    }
-    
+      return addNotification({ ...options, type: "success", message });
+    };
+
     const showError = (message, options = {}) => {
-      return addNotification({ ...options, type: 'error', message })
-    }
-    
+      return addNotification({ ...options, type: "error", message });
+    };
+
     const showWarning = (message, options = {}) => {
-      return addNotification({ ...options, type: 'warning', message })
-    }
-    
+      return addNotification({ ...options, type: "warning", message });
+    };
+
     const showInfo = (message, options = {}) => {
-      return addNotification({ ...options, type: 'info', message })
-    }
-    
+      return addNotification({ ...options, type: "info", message });
+    };
+
     // 监听全局事件
     const handleGlobalNotification = (event) => {
-      addNotification(event.detail)
-    }
-    
+      addNotification(event.detail);
+    };
+
     onMounted(() => {
-      window.addEventListener('show-notification', handleGlobalNotification)
-      
+      window.addEventListener("show-notification", handleGlobalNotification);
+
       // 添加到全局对象
       window.$notify = {
         success: showSuccess,
@@ -139,23 +139,23 @@ export default {
         info: showInfo,
         add: addNotification,
         remove: removeNotification,
-        clear: clearAll
-      }
-    })
-    
+        clear: clearAll,
+      };
+    });
+
     onUnmounted(() => {
-      window.removeEventListener('show-notification', handleGlobalNotification)
-      delete window.$notify
-    })
-    
+      window.removeEventListener("show-notification", handleGlobalNotification);
+      delete window.$notify;
+    });
+
     return {
       notifications,
       getIcon,
       removeNotification,
-      handleClick
-    }
-  }
-}
+      handleClick,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -321,7 +321,7 @@ export default {
     right: 10px;
     left: 10px;
   }
-  
+
   .notification {
     width: auto;
     margin-bottom: 8px;

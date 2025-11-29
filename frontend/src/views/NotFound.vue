@@ -10,15 +10,15 @@
             </el-icon>
           </div>
         </div>
-        
+
         <div class="error-info">
           <h1 class="error-title">页面未找到</h1>
           <p class="error-description">
             抱歉，您访问的页面不存在或已被移除。
-            <br>
+            <br />
             请检查网址是否正确，或返回首页继续浏览。
           </p>
-          
+
           <div class="error-actions">
             <router-link to="/">
               <el-button type="primary" size="large">
@@ -26,12 +26,12 @@
                 返回首页
               </el-button>
             </router-link>
-            
+
             <el-button size="large" @click="goBack">
               <el-icon><Back /></el-icon>
               返回上页
             </el-button>
-            
+
             <router-link to="/services">
               <el-button size="large" plain>
                 <el-icon><Star /></el-icon>
@@ -39,7 +39,7 @@
               </el-button>
             </router-link>
           </div>
-          
+
           <div class="help-links">
             <h3>您可能在寻找：</h3>
             <div class="links-grid">
@@ -47,17 +47,17 @@
                 <el-icon><Calendar /></el-icon>
                 <span>预约洗车</span>
               </router-link>
-              
+
               <router-link to="/orders" class="help-link">
                 <el-icon><List /></el-icon>
                 <span>我的订单</span>
               </router-link>
-              
+
               <router-link to="/profile" class="help-link">
                 <el-icon><User /></el-icon>
                 <span>个人中心</span>
               </router-link>
-              
+
               <router-link to="/services" class="help-link">
                 <el-icon><Setting /></el-icon>
                 <span>服务项目</span>
@@ -71,26 +71,26 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
+import { useRouter } from "vue-router";
 
 export default {
-  name: 'NotFound',
+  name: "NotFound",
   setup() {
-    const router = useRouter()
-    
+    const router = useRouter();
+
     const goBack = () => {
       if (window.history.length > 1) {
-        router.go(-1)
+        router.go(-1);
       } else {
-        router.push('/')
+        router.push("/");
       }
-    }
-    
+    };
+
     return {
-      goBack
-    }
-  }
-}
+      goBack,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -210,23 +210,23 @@ export default {
     gap: 40px;
     text-align: center;
   }
-  
+
   .error-info {
     text-align: center;
   }
-  
+
   .error-code {
     font-size: 6rem;
   }
-  
+
   .error-title {
     font-size: 2rem;
   }
-  
+
   .error-actions {
     justify-content: center;
   }
-  
+
   .links-grid {
     grid-template-columns: 1fr;
   }
@@ -236,19 +236,19 @@ export default {
   .not-found-page {
     padding: 20px 0;
   }
-  
+
   .error-code {
     font-size: 4rem;
   }
-  
+
   .error-title {
     font-size: 1.5rem;
   }
-  
+
   .error-actions {
     flex-direction: column;
   }
-  
+
   .error-actions .el-button {
     width: 100%;
     justify-content: center;

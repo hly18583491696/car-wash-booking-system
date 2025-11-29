@@ -1,5 +1,5 @@
 <template>
-  <button 
+  <button
     class="interactive-button"
     :class="[
       `btn-${type}`,
@@ -11,8 +11,8 @@
         'btn-rounded': rounded,
         'btn-gradient': gradient,
         'btn-glow': glow,
-        'btn-ripple': ripple
-      }
+        'btn-ripple': ripple,
+      },
     ]"
     :disabled="disabled || loading"
     @click="handleClick"
@@ -20,147 +20,180 @@
     ref="buttonRef"
   >
     <!-- 涟漪效果 -->
-    <span 
-      v-if="ripple && rippleStyle" 
-      class="ripple-effect" 
+    <span
+      v-if="ripple && rippleStyle"
+      class="ripple-effect"
       :style="rippleStyle"
     ></span>
-    
+
     <!-- 加载动画 -->
     <span v-if="loading" class="loading-spinner">
       <svg viewBox="0 0 24 24" class="spinner">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="31.416" stroke-dashoffset="31.416">
-          <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
-          <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="2"
+          fill="none"
+          stroke-linecap="round"
+          stroke-dasharray="31.416"
+          stroke-dashoffset="31.416"
+        >
+          <animate
+            attributeName="stroke-dasharray"
+            dur="2s"
+            values="0 31.416;15.708 15.708;0 31.416"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="stroke-dashoffset"
+            dur="2s"
+            values="0;-15.708;-31.416"
+            repeatCount="indefinite"
+          />
         </circle>
       </svg>
     </span>
-    
+
     <!-- 图标 -->
-    <span v-if="icon && !loading" class="btn-icon" :class="{ 'icon-right': iconPosition === 'right' }">
+    <span
+      v-if="icon && !loading"
+      class="btn-icon"
+      :class="{ 'icon-right': iconPosition === 'right' }"
+    >
       <el-icon :size="iconSize">
         <component :is="icon" />
       </el-icon>
     </span>
-    
+
     <!-- 按钮文本 -->
     <span class="btn-text" v-if="$slots.default">
       <slot />
     </span>
-    
+
     <!-- 徽章 -->
     <span v-if="badge" class="btn-badge">{{ badge }}</span>
-    
+
     <!-- 悬浮提示 -->
     <div v-if="tooltip" class="btn-tooltip">{{ tooltip }}</div>
   </button>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
 export default {
-  name: 'InteractiveButton',
+  name: "InteractiveButton",
   props: {
     type: {
       type: String,
-      default: 'primary',
-      validator: (value) => ['primary', 'secondary', 'success', 'warning', 'danger', 'info', 'text'].includes(value)
+      default: "primary",
+      validator: (value) =>
+        [
+          "primary",
+          "secondary",
+          "success",
+          "warning",
+          "danger",
+          "info",
+          "text",
+        ].includes(value),
     },
     size: {
       type: String,
-      default: 'medium',
-      validator: (value) => ['small', 'medium', 'large'].includes(value)
+      default: "medium",
+      validator: (value) => ["small", "medium", "large"].includes(value),
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     block: {
       type: Boolean,
-      default: false
+      default: false,
     },
     rounded: {
       type: Boolean,
-      default: false
+      default: false,
     },
     gradient: {
       type: Boolean,
-      default: false
+      default: false,
     },
     glow: {
       type: Boolean,
-      default: false
+      default: false,
     },
     ripple: {
       type: Boolean,
-      default: true
+      default: true,
     },
     icon: {
       type: String,
-      default: ''
+      default: "",
     },
     iconPosition: {
       type: String,
-      default: 'left',
-      validator: (value) => ['left', 'right'].includes(value)
+      default: "left",
+      validator: (value) => ["left", "right"].includes(value),
     },
     iconSize: {
       type: Number,
-      default: 16
+      default: 16,
     },
     badge: {
       type: [String, Number],
-      default: ''
+      default: "",
     },
     tooltip: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
-  emits: ['click'],
+  emits: ["click"],
   setup(props, { emit }) {
-    const buttonRef = ref(null)
-    const rippleStyle = ref(null)
-    
+    const buttonRef = ref(null);
+    const rippleStyle = ref(null);
+
     const handleClick = (event) => {
-      if (props.disabled || props.loading) return
-      emit('click', event)
-    }
-    
+      if (props.disabled || props.loading) return;
+      emit("click", event);
+    };
+
     const handleMouseDown = (event) => {
-      if (!props.ripple || props.disabled || props.loading) return
-      
-      const button = buttonRef.value
-      const rect = button.getBoundingClientRect()
-      const size = Math.max(rect.width, rect.height)
-      const x = event.clientX - rect.left - size / 2
-      const y = event.clientY - rect.top - size / 2
-      
+      if (!props.ripple || props.disabled || props.loading) return;
+
+      const button = buttonRef.value;
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = event.clientX - rect.left - size / 2;
+      const y = event.clientY - rect.top - size / 2;
+
       rippleStyle.value = {
         width: `${size}px`,
         height: `${size}px`,
         left: `${x}px`,
-        top: `${y}px`
-      }
-      
+        top: `${y}px`,
+      };
+
       setTimeout(() => {
-        rippleStyle.value = null
-      }, 600)
-    }
-    
+        rippleStyle.value = null;
+      }, 600);
+    };
+
     return {
       buttonRef,
       rippleStyle,
       handleClick,
-      handleMouseDown
-    }
-  }
-}
+      handleMouseDown,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -294,7 +327,11 @@ export default {
 }
 
 .btn-gradient.btn-primary {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-light)
+  );
 }
 
 .btn-gradient.btn-success {
@@ -356,8 +393,12 @@ export default {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 涟漪效果 */
@@ -415,7 +456,7 @@ export default {
 }
 
 .btn-tooltip::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 100%;
   left: 50%;
@@ -465,12 +506,12 @@ export default {
     padding: 14px 28px;
     font-size: 15px;
   }
-  
+
   .btn-medium {
     padding: 10px 20px;
     font-size: 13px;
   }
-  
+
   .btn-small {
     padding: 6px 12px;
     font-size: 11px;
@@ -482,11 +523,11 @@ export default {
   .interactive-button {
     transition: none;
   }
-  
+
   .interactive-button:hover:not(.btn-disabled) {
     transform: none;
   }
-  
+
   .ripple-effect {
     display: none;
   }

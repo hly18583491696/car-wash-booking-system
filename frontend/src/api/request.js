@@ -109,13 +109,15 @@ request.interceptors.response.use(
       switch (status) {
         case 401:
           message = '未授权，请重新登录'
-          // 清除token，但不直接跳转，让调用方处理
           localStorage.removeItem('token')
           localStorage.removeItem('tokenType')
           localStorage.removeItem('user')
           localStorage.removeItem('userInfo')
           localStorage.removeItem('userRole')
-          // 不直接跳转，避免中止正在进行的请求验证
+          const current = window.location.pathname + window.location.search
+          if (!current.includes('/login')) {
+            window.location.href = `/login?redirect=${encodeURIComponent(current)}`
+          }
           break
         case 403:
           message = '拒绝访问'

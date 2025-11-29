@@ -32,8 +32,9 @@
           </div>
           <div class="detail-item total-amount">
             <span>支付金额：</span>
-            <span class="amount">¥{{ orderInfo.totalAmount }}</span>
+            <span class="amount">¥{{ formattedDisplayAmount }}</span>
           </div>
+          <div v-if="priceMismatch" class="price-tip">已与系统配置价格同步</div>
         </div>
         <div v-else class="skeleton">
           <div class="skeleton-line"></div>
@@ -50,8 +51,8 @@
           role="radiogroup"
           :aria-labelledby="'payMethodLabel'"
         >
-          <div 
-            class="payment-option" 
+          <div
+            class="payment-option"
             :class="{ active: selectedMethod === 'wechat' }"
             @click="selectPaymentMethod('wechat')"
             role="radio"
@@ -60,16 +61,24 @@
             @keydown="handleOptionKeydown('wechat', $event)"
           >
             <div class="payment-icon wechat-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                <path fill="#07C160" d="M8.5 6.5c-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7-1.2-2.7-2.7-2.7zm7 0c-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7-1.2-2.7-2.7-2.7z"/>
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#07C160"
+                  d="M8.5 6.5c-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7-1.2-2.7-2.7-2.7zm7 0c-1.5 0-2.7 1.2-2.7 2.7s1.2 2.7 2.7 2.7 2.7-1.2 2.7-2.7-1.2-2.7-2.7-2.7z"
+                />
               </svg>
             </div>
             <span>微信支付</span>
             <div class="check-icon" v-if="selectedMethod === 'wechat'">✓</div>
           </div>
-          
-          <div 
-            class="payment-option" 
+
+          <div
+            class="payment-option"
             :class="{ active: selectedMethod === 'alipay' }"
             @click="selectPaymentMethod('alipay')"
             role="radio"
@@ -78,16 +87,24 @@
             @keydown="handleOptionKeydown('alipay', $event)"
           >
             <div class="payment-icon alipay-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                <path fill="#1677FF" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#1677FF"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+                />
               </svg>
             </div>
             <span>支付宝</span>
             <div class="check-icon" v-if="selectedMethod === 'alipay'">✓</div>
           </div>
 
-          <div 
-            class="payment-option" 
+          <div
+            class="payment-option"
             :class="{ active: selectedMethod === 'credit_card' }"
             @click="selectPaymentMethod('credit_card')"
             role="radio"
@@ -96,20 +113,38 @@
             @keydown="handleOptionKeydown('credit_card', $event)"
           >
             <div class="payment-icon">
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                <rect x="3" y="5" width="18" height="14" rx="2" fill="#34495e"/>
-                <rect x="3" y="9" width="18" height="3" fill="#2c3e50"/>
-                <rect x="6" y="14" width="6" height="2" fill="#ecf0f1"/>
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                aria-hidden="true"
+              >
+                <rect
+                  x="3"
+                  y="5"
+                  width="18"
+                  height="14"
+                  rx="2"
+                  fill="#34495e"
+                />
+                <rect x="3" y="9" width="18" height="3" fill="#2c3e50" />
+                <rect x="6" y="14" width="6" height="2" fill="#ecf0f1" />
               </svg>
             </div>
             <span>信用卡</span>
-            <div class="check-icon" v-if="selectedMethod === 'credit_card'">✓</div>
+            <div class="check-icon" v-if="selectedMethod === 'credit_card'">
+              ✓
+            </div>
           </div>
         </div>
       </div>
 
       <!-- 信用卡支付表单 -->
-      <div v-if="selectedMethod === 'credit_card'" class="card-form" aria-labelledby="cardFormTitle">
+      <div
+        v-if="selectedMethod === 'credit_card'"
+        class="card-form"
+        aria-labelledby="cardFormTitle"
+      >
         <h3>填写信用卡信息</h3>
         <div class="form-row">
           <label>持卡人姓名</label>
@@ -119,9 +154,18 @@
             placeholder="姓名"
             :aria-invalid="!!formErrors.cardHolder"
             aria-describedby="cardholder-error"
-            :class="{ 'input-invalid': formErrors.cardHolder, 'input-valid': !formErrors.cardHolder && creditCard.cardHolder }"
+            :class="{
+              'input-invalid': formErrors.cardHolder,
+              'input-valid': !formErrors.cardHolder && creditCard.cardHolder,
+            }"
           />
-          <span id="cardholder-error" class="error-msg" role="alert" v-if="formErrors.cardHolder">{{ formErrors.cardHolder }}</span>
+          <span
+            id="cardholder-error"
+            class="error-msg"
+            role="alert"
+            v-if="formErrors.cardHolder"
+            >{{ formErrors.cardHolder }}</span
+          >
         </div>
         <div class="form-row">
           <label>卡号</label>
@@ -132,9 +176,18 @@
             inputmode="numeric"
             :aria-invalid="!!formErrors.cardNumber"
             aria-describedby="cardnumber-error"
-            :class="{ 'input-invalid': formErrors.cardNumber, 'input-valid': !formErrors.cardNumber && creditCard.cardNumber }"
+            :class="{
+              'input-invalid': formErrors.cardNumber,
+              'input-valid': !formErrors.cardNumber && creditCard.cardNumber,
+            }"
           />
-          <span id="cardnumber-error" class="error-msg" role="alert" v-if="formErrors.cardNumber">{{ formErrors.cardNumber }}</span>
+          <span
+            id="cardnumber-error"
+            class="error-msg"
+            role="alert"
+            v-if="formErrors.cardNumber"
+            >{{ formErrors.cardNumber }}</span
+          >
         </div>
         <div class="form-row two-cols">
           <div>
@@ -145,9 +198,18 @@
               placeholder="MM/YY"
               :aria-invalid="!!formErrors.expiry"
               aria-describedby="expiry-error"
-              :class="{ 'input-invalid': formErrors.expiry, 'input-valid': !formErrors.expiry && creditCard.expiry }"
+              :class="{
+                'input-invalid': formErrors.expiry,
+                'input-valid': !formErrors.expiry && creditCard.expiry,
+              }"
             />
-            <span id="expiry-error" class="error-msg" role="alert" v-if="formErrors.expiry">{{ formErrors.expiry }}</span>
+            <span
+              id="expiry-error"
+              class="error-msg"
+              role="alert"
+              v-if="formErrors.expiry"
+              >{{ formErrors.expiry }}</span
+            >
           </div>
           <div>
             <label>CVV</label>
@@ -157,9 +219,18 @@
               placeholder="123"
               :aria-invalid="!!formErrors.cvv"
               aria-describedby="cvv-error"
-              :class="{ 'input-invalid': formErrors.cvv, 'input-valid': !formErrors.cvv && creditCard.cvv }"
+              :class="{
+                'input-invalid': formErrors.cvv,
+                'input-valid': !formErrors.cvv && creditCard.cvv,
+              }"
             />
-            <span id="cvv-error" class="error-msg" role="alert" v-if="formErrors.cvv">{{ formErrors.cvv }}</span>
+            <span
+              id="cvv-error"
+              class="error-msg"
+              role="alert"
+              v-if="formErrors.cvv"
+              >{{ formErrors.cvv }}</span
+            >
           </div>
         </div>
         <div class="form-row">
@@ -183,53 +254,93 @@
             inputmode="numeric"
             :aria-invalid="!!formErrors.otp"
             aria-describedby="otp-error"
-            :class="{ 'input-invalid': formErrors.otp, 'input-valid': !formErrors.otp && creditCard.otp }"
+            :class="{
+              'input-invalid': formErrors.otp,
+              'input-valid': !formErrors.otp && creditCard.otp,
+            }"
           />
-          <span id="otp-error" class="error-msg" role="alert" v-if="formErrors.otp">{{ formErrors.otp }}</span>
+          <span
+            id="otp-error"
+            class="error-msg"
+            role="alert"
+            v-if="formErrors.otp"
+            >{{ formErrors.otp }}</span
+          >
         </div>
       </div>
 
       <div class="payment-actions">
         <button class="btn-cancel" @click="cancelPayment">取消支付</button>
-        <button 
-          class="btn-pay" 
+        <button
+          class="btn-pay"
           @click="processPayment"
-          :disabled="!selectedMethod || loading || (selectedMethod === 'credit_card' && !isCardFormValid)"
-          :aria-disabled="!selectedMethod || loading || (selectedMethod === 'credit_card' && !isCardFormValid)"
+          :disabled="
+            !selectedMethod ||
+            loading ||
+            (selectedMethod === 'credit_card' && !isCardFormValid)
+          "
+          :aria-disabled="
+            !selectedMethod ||
+            loading ||
+            (selectedMethod === 'credit_card' && !isCardFormValid)
+          "
         >
           <span v-if="loading">处理中...</span>
-          <span v-else>立即支付 ¥{{ orderInfo.totalAmount }}</span>
+          <span v-else>立即支付 ¥{{ formattedDisplayAmount }}</span>
         </button>
       </div>
     </div>
 
     <!-- 支付状态弹窗 -->
-    <div v-if="showPaymentModal" class="payment-modal-overlay" @click="closePaymentModal">
-      <div class="payment-modal" role="dialog" aria-modal="true" aria-labelledby="paymentDialogTitle" @click.stop>
+    <div
+      v-if="showPaymentModal"
+      class="payment-modal-overlay"
+      @click="closePaymentModal"
+    >
+      <div
+        class="payment-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="paymentDialogTitle"
+        @click.stop
+      >
         <div class="modal-content">
           <div v-if="paymentStatus === 'processing'" class="payment-processing">
             <div class="loading-spinner"></div>
             <h3 id="paymentDialogTitle">正在处理支付...</h3>
             <p>
-              请在{{ selectedMethod === 'credit_card' ? '信用卡' : (selectedMethod === 'wechat' ? '微信' : '支付宝') }}中完成支付
+              请在{{
+                selectedMethod === "credit_card"
+                  ? "信用卡"
+                  : selectedMethod === "wechat"
+                    ? "微信"
+                    : "支付宝"
+              }}中完成支付
             </p>
-            <div v-if="selectedMethod !== 'credit_card'" class="qr-code-placeholder">
+            <div
+              v-if="selectedMethod !== 'credit_card'"
+              class="qr-code-placeholder"
+            >
               <p>二维码区域</p>
-              <small>请使用{{ selectedMethod === 'wechat' ? '微信' : '支付宝' }}扫码支付</small>
+              <small
+                >请使用{{
+                  selectedMethod === "wechat" ? "微信" : "支付宝"
+                }}扫码支付</small
+              >
             </div>
           </div>
-          
+
           <div v-else-if="paymentStatus === 'success'" class="payment-success">
             <div class="success-icon">✓</div>
             <h3 id="paymentDialogTitle">支付成功</h3>
             <p>您的订单已支付完成</p>
             <button class="btn-primary" @click="goToOrders">查看订单</button>
           </div>
-          
+
           <div v-else-if="paymentStatus === 'failed'" class="payment-failed">
             <div class="error-icon">✗</div>
             <h3 id="paymentDialogTitle">支付失败</h3>
-            <p>{{ paymentError || '支付过程中出现错误，请重试' }}</p>
+            <p>{{ paymentError || "支付过程中出现错误，请重试" }}</p>
             <button class="btn-primary" @click="retryPayment">重新支付</button>
           </div>
         </div>
@@ -239,97 +350,128 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, watch, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import paymentApi from '@/api/payment'
-import orderApi from '@/api/order'
+import { ref, reactive, onMounted, watch, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import paymentApi from "@/api/payment";
+import orderApi from "@/api/order";
+import realApi from "@/api/realApi";
+import API_CONFIG from "@/config/api.js";
 
 export default {
-  name: 'Payment',
+  name: "Payment",
   setup() {
-    const route = useRoute()
-    const router = useRouter()
-    
-    const loading = ref(false)
-    const selectedMethod = ref('')
-    const showPaymentModal = ref(false)
-    const paymentStatus = ref('') // processing, success, failed
-    const paymentError = ref('')
-    const paymentNo = ref('')
-    const payAmount = ref(0)
-    
+    const route = useRoute();
+    const router = useRouter();
+
+    const loading = ref(false);
+    const selectedMethod = ref("");
+    const showPaymentModal = ref(false);
+    const paymentStatus = ref(""); // processing, success, failed
+    const paymentError = ref("");
+    const paymentNo = ref("");
+    const payAmount = ref(0);
+    const servicePrice = ref(null);
+    const priceMismatch = ref(false);
+    const baselineAmount = computed(() => {
+      return (
+        (servicePrice.value != null
+          ? Number(servicePrice.value)
+          : Number(orderInfo.totalAmount)) || 0
+      );
+    });
+    const displayAmount = computed(() => {
+      return selectedMethod.value === "credit_card"
+        ? Number(payAmount.value) || 0
+        : baselineAmount.value;
+    });
+    const formatMoney = (val) => {
+      const num = Number(val) || 0;
+      return num.toFixed(2);
+    };
+    const formattedDisplayAmount = computed(() =>
+      formatMoney(displayAmount.value),
+    );
+    watch(payAmount, (val) => {
+      if (val == null || val < 0) {
+        payAmount.value = 0;
+      }
+    });
+
     const orderInfo = reactive({
-      orderNo: '',
-      serviceName: '',
-      appointmentTime: '',
-      location: '',
-      totalAmount: 0
-    })
+      orderNo: "",
+      serviceName: "",
+      appointmentTime: "",
+      location: "",
+      totalAmount: 0,
+    });
 
     const creditCard = reactive({
-      cardHolder: '',
-      cardNumber: '',
-      expiry: '',
-      cvv: '',
-      otp: ''
-    })
+      cardHolder: "",
+      cardNumber: "",
+      expiry: "",
+      cvv: "",
+      otp: "",
+    });
 
     // 表单即时校验与错误信息
     const formErrors = reactive({
-      cardHolder: '',
-      cardNumber: '',
-      expiry: '',
-      cvv: '',
-      otp: ''
-    })
+      cardHolder: "",
+      cardNumber: "",
+      expiry: "",
+      cvv: "",
+      otp: "",
+    });
 
     // Luhn 校验实现（避免对外部依赖的执行顺序问题）
     const isValidCardNumber = (num) => {
-      const sanitized = String(num).replace(/\s+/g, '')
-      if (!/^\d{12,19}$/.test(sanitized)) return false
-      let sum = 0
-      let shouldDouble = false
+      const sanitized = String(num).replace(/\s+/g, "");
+      if (!/^\d{12,19}$/.test(sanitized)) return false;
+      let sum = 0;
+      let shouldDouble = false;
       for (let i = sanitized.length - 1; i >= 0; i--) {
-        let digit = parseInt(sanitized[i], 10)
+        let digit = parseInt(sanitized[i], 10);
         if (shouldDouble) {
-          digit *= 2
-          if (digit > 9) digit -= 9
+          digit *= 2;
+          if (digit > 9) digit -= 9;
         }
-        sum += digit
-        shouldDouble = !shouldDouble
+        sum += digit;
+        shouldDouble = !shouldDouble;
       }
-      return sum % 10 === 0
-    }
+      return sum % 10 === 0;
+    };
 
     const validateCardHolder = (val) => {
-      formErrors.cardHolder = !val || String(val).trim() === '' ? '请输入持卡人姓名' : ''
-    }
+      formErrors.cardHolder =
+        !val || String(val).trim() === "" ? "请输入持卡人姓名" : "";
+    };
     const validateCardNumber = (val) => {
-      formErrors.cardNumber = isValidCardNumber(val) ? '' : '信用卡号格式不正确'
-    }
+      formErrors.cardNumber = isValidCardNumber(val)
+        ? ""
+        : "信用卡号格式不正确";
+    };
     const validateExpiry = (val) => {
-      const ok = /^\d{2}\/\d{2}$/.test(val)
+      const ok = /^\d{2}\/\d{2}$/.test(val);
       if (!ok) {
-        formErrors.expiry = '有效期格式应为MM/YY'
-        return
+        formErrors.expiry = "有效期格式应为MM/YY";
+        return;
       }
-      const [mm, yy] = val.split('/')
-      const m = parseInt(mm, 10)
-      formErrors.expiry = m >= 1 && m <= 12 ? '' : '月份应在01-12之间'
-    }
+      const [mm, yy] = val.split("/");
+      const m = parseInt(mm, 10);
+      formErrors.expiry = m >= 1 && m <= 12 ? "" : "月份应在01-12之间";
+    };
     const validateCvv = (val) => {
-      formErrors.cvv = /^\d{3,4}$/.test(val) ? '' : 'CVV格式不正确'
-    }
+      formErrors.cvv = /^\d{3,4}$/.test(val) ? "" : "CVV格式不正确";
+    };
     const validateOtp = (val) => {
-      formErrors.otp = val && String(val).length >= 4 ? '' : '请输入短信验证码'
-    }
+      formErrors.otp = val && String(val).length >= 4 ? "" : "请输入短信验证码";
+    };
 
-    watch(() => creditCard.cardHolder, validateCardHolder)
-    watch(() => creditCard.cardNumber, validateCardNumber)
-    watch(() => creditCard.expiry, validateExpiry)
-    watch(() => creditCard.cvv, validateCvv)
-    watch(() => creditCard.otp, validateOtp)
+    watch(() => creditCard.cardHolder, validateCardHolder);
+    watch(() => creditCard.cardNumber, validateCardNumber);
+    watch(() => creditCard.expiry, validateExpiry);
+    watch(() => creditCard.cvv, validateCvv);
+    watch(() => creditCard.otp, validateOtp);
 
     const isCardFormValid = computed(() => {
       return (
@@ -343,124 +485,156 @@ export default {
         creditCard.expiry &&
         creditCard.cvv &&
         creditCard.otp
-      )
-    })
+      );
+    });
 
     // 订单加载状态（用于骨架屏）
-    const isOrderLoaded = computed(() => !!orderInfo.orderNo)
+    const isOrderLoaded = computed(() => !!orderInfo.orderNo);
 
     // 获取订单信息
     const getOrderInfo = async () => {
-      console.log('开始获取订单信息...');
+      console.log("开始获取订单信息...");
       try {
         const orderNo = route.params.orderNo || route.query.orderNo;
-        console.log('订单号:', orderNo);
-        
+        console.log("订单号:", orderNo);
+
         if (!orderNo) {
-          ElMessage.error('订单号不能为空，请返回订单列表');
-          router.push('/orders');
+          ElMessage.error("订单号不能为空，请返回订单列表");
+          router.push("/orders");
           return;
         }
 
-        console.log('调用 orderApi.getOrderByNo...');
+        console.log("调用 orderApi.getOrderByNo...");
         const response = await orderApi.getOrderByNo(orderNo);
-        console.log('获取订单信息响应:', response);
+        console.log("获取订单信息响应:", response);
 
         if (response.code === 200 && response.data) {
           const order = response.data;
-          console.log('成功获取订单信息:', order);
-          
+          console.log("成功获取订单信息:", order);
+
           // 检查订单是否已支付
-          if (order.paymentStatus === 'paid') {
-            ElMessage.warning('该订单已完成支付，无需重复支付');
-            router.push('/orders');
+          if (order.paymentStatus === "paid") {
+            ElMessage.warning("该订单已完成支付，无需重复支付");
+            router.push("/orders");
             return;
           }
-          
+
           // 检查订单状态是否允许支付
-          if (order.status !== 'confirmed' && order.status !== 'pending') {
+          if (order.status !== "confirmed" && order.status !== "pending") {
             ElMessage.error(`订单状态为 ${order.status}，不允许支付`);
-            router.push('/orders');
+            router.push("/orders");
             return;
           }
-          
+
+          const totalAmount =
+            order.totalAmount != null
+              ? order.totalAmount
+              : order.totalPrice != null
+                ? order.totalPrice
+                : 0;
+          const appointmentTime = order.appointmentTime
+            ? order.appointmentTime
+            : order.bookingDate && order.bookingTime
+              ? `${order.bookingDate} ${order.bookingTime}`
+              : "";
           Object.assign(orderInfo, {
             orderNo: order.orderNo,
             serviceName: order.serviceName,
-            appointmentTime: order.appointmentTime,
-            location: order.location || '上门服务',
-            totalAmount: order.totalAmount
+            serviceId: order.serviceId,
+            appointmentTime,
+            location: order.location || "上门服务",
+            totalAmount: totalAmount,
           });
-          payAmount.value = order.totalAmount;
+          payAmount.value = totalAmount;
+
+          try {
+            const svcResp = await realApi.getServiceDetail(order.serviceId);
+            if (svcResp && svcResp.code === 200 && svcResp.data) {
+              servicePrice.value = Number(svcResp.data.price) || null;
+              priceMismatch.value =
+                servicePrice.value != null &&
+                Math.abs(servicePrice.value - Number(orderInfo.totalAmount)) >
+                  0.0001;
+            }
+          } catch (e) {
+            console.warn("获取服务价格失败，使用订单金额", e);
+            servicePrice.value = null;
+            priceMismatch.value = false;
+          }
         } else if (response.code === 404) {
-          console.error('订单不存在:', orderNo);
-          ElMessage.error('订单信息未找到，请返回重新创建');
-          router.push('/orders');
+          console.error("订单不存在:", orderNo);
+          ElMessage.error("订单信息未找到，请返回重新创建");
+          router.push("/orders");
         } else {
-          console.error('获取订单信息失败:', response.message);
-          ElMessage.error(response.message || '获取订单信息失败');
-          router.push('/orders');
+          console.error("获取订单信息失败:", response.message);
+          ElMessage.error(response.message || "获取订单信息失败");
+          router.push("/orders");
         }
       } catch (error) {
-        console.error('获取订单信息时发生异常:', error);
-        
+        console.error("获取订单信息时发生异常:", error);
+
         // 区分网络错误和其他错误
-        if (error.message && error.message.includes('timeout')) {
-          ElMessage.error('网络连接超时，请检查网络后重试');
-        } else if (error.message && error.message.includes('Network Error')) {
-          ElMessage.error('网络连接失败，请检查网络连接');
+        if (error.message && error.message.includes("timeout")) {
+          ElMessage.error("网络连接超时，请检查网络后重试");
+        } else if (error.message && error.message.includes("Network Error")) {
+          ElMessage.error("网络连接失败，请检查网络连接");
         } else {
-          ElMessage.error('获取订单信息失败，请稍后重试');
+          ElMessage.error("获取订单信息失败，请稍后重试");
         }
-        
-        router.push('/orders');
+
+        router.push("/orders");
       }
     };
 
     // 选择支付方式
     const selectPaymentMethod = (method) => {
-      selectedMethod.value = method
-    }
+      selectedMethod.value = method;
+    };
 
     const handleOptionKeydown = (method, e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        selectPaymentMethod(method)
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        selectPaymentMethod(method);
       }
-    }
+    };
 
     // 处理支付
     const processPayment = async () => {
-      console.log('开始处理支付...');
+      console.log("开始处理支付...");
       if (!selectedMethod.value) {
-        ElMessage.warning('请选择支付方式');
+        ElMessage.warning("请选择支付方式");
         return;
       }
 
       // 信用卡前端校验
-      if (selectedMethod.value === 'credit_card') {
-        console.log('校验信用卡信息...');
-        if (!creditCard.cardHolder || !creditCard.cardNumber || !creditCard.expiry || !creditCard.cvv) {
-          ElMessage.error('请完整填写信用卡信息');
+      if (selectedMethod.value === "credit_card") {
+        console.log("校验信用卡信息...");
+        if (
+          !creditCard.cardHolder ||
+          !creditCard.cardNumber ||
+          !creditCard.expiry ||
+          !creditCard.cvv
+        ) {
+          ElMessage.error("请完整填写信用卡信息");
           return;
         }
         if (!luhnCheck(creditCard.cardNumber)) {
-          ElMessage.error('信用卡号格式不正确');
+          ElMessage.error("信用卡号格式不正确");
           return;
         }
         if (!/^\d{2}\/\d{2}$/.test(creditCard.expiry)) {
-          ElMessage.error('有效期格式应为MM/YY');
+          ElMessage.error("有效期格式应为MM/YY");
           return;
         }
         if (!/^\d{3,4}$/.test(creditCard.cvv)) {
-          ElMessage.error('CVV格式不正确');
+          ElMessage.error("CVV格式不正确");
           return;
         }
         if (!creditCard.otp || creditCard.otp.length < 4) {
-          ElMessage.error('请输入短信验证码');
+          ElMessage.error("请输入短信验证码");
           return;
         }
-        console.log('信用卡信息校验通过。');
+        console.log("信用卡信息校验通过。");
       }
 
       loading.value = true;
@@ -468,70 +642,76 @@ export default {
         const paymentData = {
           orderNo: orderInfo.orderNo,
           amount: payAmount.value,
-          paymentMethod: selectedMethod.value
+          paymentMethod: selectedMethod.value,
         };
-        console.log('支付数据:', paymentData);
+        console.log("支付数据:", paymentData);
 
         // 信用卡加密载荷
-        if (selectedMethod.value === 'credit_card') {
-          console.log('获取公钥...');
+        if (selectedMethod.value === "credit_card") {
+          console.log("获取公钥...");
           const pubResp = await paymentApi.getPublicKey();
-          console.log('获取公钥响应:', pubResp);
+          console.log("获取公钥响应:", pubResp);
           if (pubResp.code !== 200 || !pubResp.data) {
-            throw new Error('获取公钥失败');
+            throw new Error("获取公钥失败");
           }
           const publicKeyPem = pubResp.data;
           const payload = {
             cardHolder: creditCard.cardHolder.trim(),
-            cardNumber: creditCard.cardNumber.replace(/\s+/g, ''),
+            cardNumber: creditCard.cardNumber.replace(/\s+/g, ""),
             expiry: creditCard.expiry.trim(),
-            cvv: creditCard.cvv.trim()
+            cvv: creditCard.cvv.trim(),
           };
-          console.log('加密前的信用卡数据:', payload);
-          const securePayload = await encryptWithRsaOaep(publicKeyPem, JSON.stringify(payload));
-          console.log('加密后的信用卡数据:', securePayload);
+          console.log("加密前的信用卡数据:", payload);
+          const securePayload = await encryptWithRsaOaep(
+            publicKeyPem,
+            JSON.stringify(payload),
+          );
+          console.log("加密后的信用卡数据:", securePayload);
           paymentData.securePayload = securePayload;
         }
 
-        console.log('调用 paymentApi.createPayment...');
+        console.log("调用 paymentApi.createPayment...");
         const response = await paymentApi.createPayment(paymentData);
-        console.log('创建支付响应:', response);
+        console.log("创建支付响应:", response);
 
         if (response.code === 200) {
           paymentNo.value = response.data.paymentNo;
           showPaymentModal.value = true;
-          paymentStatus.value = 'processing';
-          
+          paymentStatus.value = "processing";
+
           // 模拟支付处理
           setTimeout(() => {
             checkPaymentStatus();
           }, 3000);
         } else {
-          console.error('创建支付订单失败:', response.message);
-          
+          console.error("创建支付订单失败:", response.message);
+
           // 根据错误类型显示不同提示
-          if (response.message && response.message.includes('订单已支付')) {
-            ElMessage.warning('该订单已完成支付，无需重复支付');
-            router.push('/orders');
-          } else if (response.message && response.message.includes('订单不存在')) {
-            ElMessage.error('订单信息未找到，请返回重新创建');
-            router.push('/orders');
+          if (response.message && response.message.includes("订单已支付")) {
+            ElMessage.warning("该订单已完成支付，无需重复支付");
+            router.push("/orders");
+          } else if (
+            response.message &&
+            response.message.includes("订单不存在")
+          ) {
+            ElMessage.error("订单信息未找到，请返回重新创建");
+            router.push("/orders");
           } else {
-            ElMessage.error(response.message || '创建支付订单失败，请重试');
+            ElMessage.error(response.message || "创建支付订单失败，请重试");
           }
         }
       } catch (error) {
-        console.error('支付处理时发生异常:', error);
-        
+        console.error("支付处理时发生异常:", error);
+
         // 区分不同类型的错误
-        if (error.message && error.message.includes('timeout')) {
-          ElMessage.error('网络连接超时，请检查网络后重试');
-        } else if (error.message && error.message.includes('Network Error')) {
-          ElMessage.error('网络连接失败，请检查网络连接');
-        } else if (error.message && error.message.includes('公钥')) {
-          ElMessage.error('加密初始化失败，请重试或选择其他支付方式');
+        if (error.message && error.message.includes("timeout")) {
+          ElMessage.error("网络连接超时，请检查网络后重试");
+        } else if (error.message && error.message.includes("Network Error")) {
+          ElMessage.error("网络连接失败，请检查网络连接");
+        } else if (error.message && error.message.includes("公钥")) {
+          ElMessage.error("加密初始化失败，请重试或选择其他支付方式");
         } else {
-          ElMessage.error('支付处理失败，请稍后重试');
+          ElMessage.error("支付处理失败，请稍后重试");
         }
       } finally {
         loading.value = false;
@@ -539,163 +719,194 @@ export default {
     };
 
     // 检查支付状态
+    const notifyBackendCallback = async () => {
+      if (!paymentNo.value || !selectedMethod.value) return;
+      const method =
+        selectedMethod.value === "credit_card"
+          ? "virtual"
+          : selectedMethod.value;
+      const params = new URLSearchParams();
+      params.append("out_trade_no", paymentNo.value);
+      params.append("transaction_id", `CLIENT-${Date.now()}`);
+      params.append("order_no", orderInfo.orderNo || "");
+      params.append("amount", String(displayAmount.value || 0));
+      params.append("paid_at", new Date().toISOString());
+      const endpoint = `${API_CONFIG.BASE_URL}/payment/callback/${method}`;
+      await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString(),
+        credentials: "include",
+      });
+    };
+
     const checkPaymentStatus = async () => {
       try {
-        const response = await paymentApi.getPaymentStatus(paymentNo.value)
+        const response = await paymentApi.getPaymentStatus(paymentNo.value);
         if (response.code === 200) {
-          const status = response.data.status
-          if (status === 'paid') {
-            paymentStatus.value = 'success'
-          } else if (status === 'failed' || status === 'cancelled') {
-            paymentStatus.value = 'failed'
-            paymentError.value = response.data.failureReason || '支付失败'
+          const status = response.data.status;
+          if (status === "paid") {
+            paymentStatus.value = "success";
+            try {
+              await notifyBackendCallback();
+            } catch (e) {}
+            try {
+              await paymentApi.getUserPaymentRecords();
+            } catch (e) {}
+          } else if (status === "failed" || status === "cancelled") {
+            paymentStatus.value = "failed";
+            paymentError.value = response.data.failureReason || "支付失败";
           } else {
             // 继续轮询
             setTimeout(() => {
-              checkPaymentStatus()
-            }, 2000)
+              checkPaymentStatus();
+            }, 2000);
           }
         }
       } catch (error) {
-        console.error('查询支付状态失败:', error)
-        paymentStatus.value = 'failed'
-        paymentError.value = '查询支付状态失败'
+        console.error("查询支付状态失败:", error);
+        paymentStatus.value = "failed";
+        paymentError.value = "查询支付状态失败";
       }
-    }
+    };
 
     // 取消支付
     const cancelPayment = () => {
-      router.push('/orders')
-    }
+      router.push("/orders");
+    };
 
     // 关闭支付弹窗
     const closePaymentModal = () => {
-      if (paymentStatus.value === 'processing') {
-        return // 支付处理中不允许关闭
+      if (paymentStatus.value === "processing") {
+        return; // 支付处理中不允许关闭
       }
-      showPaymentModal.value = false
-    }
+      showPaymentModal.value = false;
+    };
 
     // 重新支付
     const retryPayment = () => {
-      showPaymentModal.value = false
-      paymentStatus.value = ''
-      paymentError.value = ''
-      paymentNo.value = ''
-    }
+      showPaymentModal.value = false;
+      paymentStatus.value = "";
+      paymentError.value = "";
+      paymentNo.value = "";
+    };
 
     // 跳转到订单页面
     const goToOrders = () => {
-      router.push('/orders')
-    }
+      router.push("/orders");
+    };
 
     // 格式化日期时间
     const formatDateTime = (dateTime) => {
-      if (!dateTime) return ''
-      const date = new Date(dateTime)
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
+      if (!dateTime) return "";
+      const date = new Date(dateTime);
+      return date.toLocaleString("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
 
     onMounted(() => {
-      getOrderInfo()
-    })
+      getOrderInfo();
+    });
 
     // === helpers ===
     const luhnCheck = (pan) => {
-      const digits = (pan || '').replace(/[^0-9]/g, '')
-      if (!digits || digits.length < 12) return false
-      let sum = 0, alt = false
+      const digits = (pan || "").replace(/[^0-9]/g, "");
+      if (!digits || digits.length < 12) return false;
+      let sum = 0,
+        alt = false;
       for (let i = digits.length - 1; i >= 0; i--) {
-        let n = digits.charCodeAt(i) - 48
+        let n = digits.charCodeAt(i) - 48;
         if (alt) {
-          n *= 2
-          if (n > 9) n -= 9
+          n *= 2;
+          if (n > 9) n -= 9;
         }
-        sum += n
-        alt = !alt
+        sum += n;
+        alt = !alt;
       }
-      return sum % 10 === 0
-    }
+      return sum % 10 === 0;
+    };
 
     const encryptWithRsaOaep = async (pem, plaintext) => {
-      const key = await importRsaPublicKey(pem)
-      const enc = new TextEncoder()
-      const data = enc.encode(plaintext)
+      const key = await importRsaPublicKey(pem);
+      const enc = new TextEncoder();
+      const data = enc.encode(plaintext);
       const cipher = await window.crypto.subtle.encrypt(
-        { name: 'RSA-OAEP' },
+        { name: "RSA-OAEP" },
         key,
-        data
-      )
-      return arrayBufferToBase64(cipher)
-    }
+        data,
+      );
+      return arrayBufferToBase64(cipher);
+    };
 
     const importRsaPublicKey = async (pem) => {
       const b64 = pem
-        .replace('-----BEGIN PUBLIC KEY-----', '')
-        .replace('-----END PUBLIC KEY-----', '')
-        .replace(/\r/g, '')
-        .replace(/\n/g, '')
-        .trim()
-      const raw = base64ToArrayBuffer(b64)
+        .replace("-----BEGIN PUBLIC KEY-----", "")
+        .replace("-----END PUBLIC KEY-----", "")
+        .replace(/\r/g, "")
+        .replace(/\n/g, "")
+        .trim();
+      const raw = base64ToArrayBuffer(b64);
       return await window.crypto.subtle.importKey(
-        'spki',
+        "spki",
         raw,
-        { name: 'RSA-OAEP', hash: 'SHA-256' },
+        { name: "RSA-OAEP", hash: "SHA-256" },
         false,
-        ['encrypt']
-      )
-    }
+        ["encrypt"],
+      );
+    };
 
     const base64ToArrayBuffer = (base64) => {
-      const binaryString = window.atob(base64)
-      const len = binaryString.length
-      const bytes = new Uint8Array(len)
+      const binaryString = window.atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
       for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i)
+        bytes[i] = binaryString.charCodeAt(i);
       }
-      return bytes.buffer
-    }
+      return bytes.buffer;
+    };
 
     const arrayBufferToBase64 = (buffer) => {
-      const bytes = new Uint8Array(buffer)
-      let binary = ''
-      const chunkSize = 0x8000
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      const chunkSize = 0x8000;
       for (let i = 0; i < bytes.length; i += chunkSize) {
-        const chunk = bytes.subarray(i, i + chunkSize)
-        binary += String.fromCharCode.apply(null, chunk)
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
       }
-      return window.btoa(binary)
-    }
+      return window.btoa(binary);
+    };
 
-      return {
-        loading,
-        selectedMethod,
-        showPaymentModal,
-        paymentStatus,
-        paymentError,
-        orderInfo,
-        creditCard,
-        payAmount,
-        formErrors,
-        isCardFormValid,
-        isOrderLoaded,
-        selectPaymentMethod,
-        handleOptionKeydown,
-        processPayment,
-        cancelPayment,
-        closePaymentModal,
-        retryPayment,
-        goToOrders,
-        formatDateTime
-      }
-    }
-  }
+    return {
+      loading,
+      selectedMethod,
+      showPaymentModal,
+      paymentStatus,
+      paymentError,
+      orderInfo,
+      creditCard,
+      payAmount,
+      displayAmount,
+      formattedDisplayAmount,
+      priceMismatch,
+      formErrors,
+      isCardFormValid,
+      isOrderLoaded,
+      selectPaymentMethod,
+      handleOptionKeydown,
+      processPayment,
+      cancelPayment,
+      closePaymentModal,
+      retryPayment,
+      goToOrders,
+      formatDateTime,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -803,6 +1014,12 @@ export default {
   font-weight: 700;
 }
 
+.price-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--brand-primary);
+}
+
 .payment-methods {
   margin-bottom: 32px;
 }
@@ -841,14 +1058,20 @@ export default {
   flex-direction: row;
   gap: 12px;
 }
-.form-row label { font-weight: 600; color: var(--text-primary); }
+.form-row label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
 .form-row input {
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
 }
-.hint { color: #7f8c8d; font-size: 12px; }
+.hint {
+  color: #7f8c8d;
+  font-size: 12px;
+}
 
 .error-msg {
   color: var(--error-color);
@@ -928,7 +1151,11 @@ export default {
   flex: 2;
   padding: 14px;
   border: none;
-  background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary),
+    var(--brand-accent)
+  );
   color: white;
   border-radius: 8px;
   font-size: 16px;
@@ -938,7 +1165,11 @@ export default {
 }
 
 .btn-pay:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--brand-accent), var(--brand-primary-dark));
+  background: linear-gradient(
+    135deg,
+    var(--brand-accent),
+    var(--brand-primary-dark)
+  );
   transform: translateY(-2px);
 }
 
@@ -981,8 +1212,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .success-icon {
@@ -1027,7 +1262,11 @@ export default {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary),
+    var(--brand-accent)
+  );
   color: white;
   border: none;
   padding: 12px 24px;
@@ -1040,7 +1279,11 @@ export default {
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--brand-accent), var(--brand-primary-dark));
+  background: linear-gradient(
+    135deg,
+    var(--brand-accent),
+    var(--brand-primary-dark)
+  );
   transform: translateY(-2px);
 }
 
@@ -1056,21 +1299,27 @@ export default {
   animation: shimmer 1.4s infinite;
   border-radius: 6px;
 }
-.skeleton-line.wide { height: 20px; }
+.skeleton-line.wide {
+  height: 20px;
+}
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @media (max-width: 768px) {
   .payment-container {
     padding: 10px;
   }
-  
+
   .payment-card {
     padding: 20px;
   }
-  
+
   .payment-actions {
     flex-direction: column;
   }

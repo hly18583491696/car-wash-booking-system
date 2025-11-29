@@ -4,17 +4,32 @@
       <!-- 主加载动画 -->
       <div class="loading-spinner" :class="type">
         <div v-if="type === 'dots'" class="dots-loader">
-          <div class="dot" v-for="i in 3" :key="i" :style="{ animationDelay: `${i * 0.1}s` }"></div>
+          <div
+            class="dot"
+            v-for="i in 3"
+            :key="i"
+            :style="{ animationDelay: `${i * 0.1}s` }"
+          ></div>
         </div>
-        
+
         <div v-else-if="type === 'pulse'" class="pulse-loader">
-          <div class="pulse-ring" v-for="i in 3" :key="i" :style="{ animationDelay: `${i * 0.4}s` }"></div>
+          <div
+            class="pulse-ring"
+            v-for="i in 3"
+            :key="i"
+            :style="{ animationDelay: `${i * 0.4}s` }"
+          ></div>
         </div>
-        
+
         <div v-else-if="type === 'wave'" class="wave-loader">
-          <div class="wave-bar" v-for="i in 5" :key="i" :style="{ animationDelay: `${i * 0.1}s` }"></div>
+          <div
+            class="wave-bar"
+            v-for="i in 5"
+            :key="i"
+            :style="{ animationDelay: `${i * 0.1}s` }"
+          ></div>
         </div>
-        
+
         <div v-else-if="type === 'car'" class="car-loader">
           <div class="car">
             <div class="car-body"></div>
@@ -23,20 +38,25 @@
           </div>
           <div class="road"></div>
         </div>
-        
+
         <div v-else class="circle-loader">
           <div class="circle"></div>
         </div>
       </div>
-      
+
       <!-- 加载文本 -->
       <div class="loading-text" v-if="text">
         <span class="text-content">{{ currentText }}</span>
         <span class="loading-dots">
-          <span v-for="i in 3" :key="i" :style="{ animationDelay: `${i * 0.3}s` }">.</span>
+          <span
+            v-for="i in 3"
+            :key="i"
+            :style="{ animationDelay: `${i * 0.3}s` }"
+            >.</span
+          >
         </span>
       </div>
-      
+
       <!-- 进度条 -->
       <div class="progress-bar" v-if="showProgress">
         <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
@@ -46,67 +66,69 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 export default {
-  name: 'LoadingAnimation',
+  name: "LoadingAnimation",
   props: {
     type: {
       type: String,
-      default: 'circle',
-      validator: (value) => ['circle', 'dots', 'pulse', 'wave', 'car'].includes(value)
+      default: "circle",
+      validator: (value) =>
+        ["circle", "dots", "pulse", "wave", "car"].includes(value),
     },
     text: {
       type: String,
-      default: ''
+      default: "",
     },
     fullscreen: {
       type: Boolean,
-      default: false
+      default: false,
     },
     showProgress: {
       type: Boolean,
-      default: false
+      default: false,
     },
     progress: {
       type: Number,
-      default: 0
+      default: 0,
     },
     textList: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   setup(props) {
-    const currentTextIndex = ref(0)
-    const textInterval = ref(null)
-    
+    const currentTextIndex = ref(0);
+    const textInterval = ref(null);
+
     const currentText = computed(() => {
       if (props.textList.length > 0) {
-        return props.textList[currentTextIndex.value]
+        return props.textList[currentTextIndex.value];
       }
-      return props.text
-    })
-    
+      return props.text;
+    });
+
     onMounted(() => {
       if (props.textList.length > 1) {
         textInterval.value = setInterval(() => {
-          currentTextIndex.value = (currentTextIndex.value + 1) % props.textList.length
-        }, 2000)
+          currentTextIndex.value =
+            (currentTextIndex.value + 1) % props.textList.length;
+        }, 2000);
       }
-    })
-    
+    });
+
     onUnmounted(() => {
       if (textInterval.value) {
-        clearInterval(textInterval.value)
+        clearInterval(textInterval.value);
       }
-    })
-    
+    });
+
     return {
-      currentText
-    }
-  }
-}
+      currentText,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -147,8 +169,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 点状加载器 */
@@ -166,7 +192,9 @@ export default {
 }
 
 @keyframes bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: scale(0);
   }
   40% {
@@ -220,7 +248,9 @@ export default {
 }
 
 @keyframes wave {
-  0%, 40%, 100% {
+  0%,
+  40%,
+  100% {
     transform: scaleY(0.4);
   }
   20% {
@@ -253,7 +283,7 @@ export default {
 }
 
 .car-body::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -8px;
   left: 15px;
@@ -298,18 +328,30 @@ export default {
 }
 
 @keyframes drive {
-  0% { transform: translateX(-20px); }
-  100% { transform: translateX(60px); }
+  0% {
+    transform: translateX(-20px);
+  }
+  100% {
+    transform: translateX(60px);
+  }
 }
 
 @keyframes rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes roadMove {
-  0% { background-position: 0px 0px; }
-  100% { background-position: 20px 0px; }
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 20px 0px;
+  }
 }
 
 /* 加载文本 */
@@ -330,7 +372,9 @@ export default {
 }
 
 @keyframes dotBlink {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     opacity: 0;
   }
   40% {
@@ -349,14 +393,18 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  background: linear-gradient(
+    90deg,
+    var(--primary-color),
+    var(--primary-light)
+  );
   border-radius: 2px;
   transition: width 0.3s ease;
   position: relative;
 }
 
 .progress-fill::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -372,8 +420,12 @@ export default {
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* 深色主题适配 */
@@ -386,11 +438,11 @@ export default {
   .loading-content {
     gap: 15px;
   }
-  
+
   .progress-bar {
     width: 150px;
   }
-  
+
   .loading-text {
     font-size: 14px;
   }

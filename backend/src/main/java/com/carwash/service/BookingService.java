@@ -44,6 +44,11 @@ public interface BookingService {
     void updateBookingStatus(Long bookingId, String status);
 
     /**
+     * 回滚订单状态到上一个状态
+     */
+    void rollbackBookingStatus(Long bookingId, String reason);
+
+    /**
      * 删除订单（硬删除）
      */
     void deleteBooking(Long bookingId);

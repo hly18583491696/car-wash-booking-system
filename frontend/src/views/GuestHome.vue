@@ -5,12 +5,12 @@
       <div class="loading-spinner"></div>
       <p>正在加载...</p>
     </div>
-    
+
     <!-- 主要内容 -->
     <div v-else class="content-container">
       <!-- 粒子背景 - 懒加载 -->
       <ParticleBackground v-if="showParticles" />
-      
+
       <!-- 主要展示区 -->
       <section class="hero-section">
         <div class="hero-container">
@@ -22,14 +22,14 @@
             <p class="hero-subtitle">
               高效便捷的汽车洗车服务预约平台，为您的爱车提供专业护理
             </p>
-            
+
             <!-- 未登录用户引导 -->
             <div class="auth-guide">
               <div class="auth-prompt">
                 <el-icon class="prompt-icon"><InfoFilled /></el-icon>
                 <span>登录后即可享受完整的预约服务</span>
               </div>
-              
+
               <div class="auth-actions">
                 <router-link to="/login">
                   <el-button type="primary" size="large" class="login-btn">
@@ -44,13 +44,17 @@
                   </el-button>
                 </router-link>
               </div>
-              
+
               <div class="quick-register-guide">
-                <p>新用户？<router-link to="/register" class="register-link">立即注册</router-link>，享受更多优惠</p>
+                <p>
+                  新用户？<router-link to="/register" class="register-link"
+                    >立即注册</router-link
+                  >，享受更多优惠
+                </p>
               </div>
             </div>
           </div>
-          
+
           <div class="hero-image">
             <div class="image-placeholder">
               <el-icon size="120" color="var(--primary-color)">
@@ -61,79 +65,92 @@
         </div>
       </section>
 
-    <!-- 访客模式功能展示 -->
-    <section class="guest-features-section">
-      <div class="container">
-        <h2 class="section-title">访客模式 - 基础功能预览</h2>
-        <p class="section-subtitle">登录后解锁完整功能</p>
-        
-        <div class="features-grid">
-          <div class="feature-card" v-for="feature in guestFeatures" :key="feature.id">
-            <div class="feature-icon" :style="{ background: feature.color }">
-              <el-icon size="32">
-                <component :is="feature.icon" />
-              </el-icon>
-            </div>
-            <h3 class="feature-title">{{ feature.title }}</h3>
-            <p class="feature-description">{{ feature.description }}</p>
-            <div class="feature-status">
-              <el-tag v-if="feature.available" type="success" size="small">
-                <el-icon><Check /></el-icon>
-                可用
-              </el-tag>
-              <el-tag v-else type="info" size="small">
-                <el-icon><Lock /></el-icon>
-                需登录
-              </el-tag>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+      <!-- 访客模式功能展示 -->
+      <section class="guest-features-section">
+        <div class="container">
+          <h2 class="section-title">访客模式 - 基础功能预览</h2>
+          <p class="section-subtitle">登录后解锁完整功能</p>
 
-    <!-- 服务项目预览 -->
-    <section class="services-preview-section">
-      <div class="container">
-        <h2 class="section-title">热门服务项目</h2>
-        <p class="section-subtitle">专业团队，品质保证</p>
-        
-        <div class="services-grid">
-          <div class="service-card" v-for="service in previewServices" :key="service.id">
-            <div class="service-header">
-              <div class="service-icon">
-                <el-icon size="24" :color="service.color">
-                  <component :is="service.icon" />
+          <div class="features-grid">
+            <div
+              class="feature-card"
+              v-for="feature in guestFeatures"
+              :key="feature.id"
+            >
+              <div class="feature-icon" :style="{ background: feature.color }">
+                <el-icon size="32">
+                  <component :is="feature.icon" />
                 </el-icon>
               </div>
-              <div class="service-price">¥{{ service.price }}</div>
-            </div>
-            <h3 class="service-name">{{ service.name }}</h3>
-            <p class="service-description">{{ service.description }}</p>
-            <div class="service-features">
-              <el-tag v-for="feature in service.features" :key="feature" size="small" type="info">
-                {{ feature }}
-              </el-tag>
-            </div>
-            <div class="service-action">
-              <router-link to="/login">
-                <el-button type="primary" size="small" plain>
-                  登录预约
-                </el-button>
-              </router-link>
+              <h3 class="feature-title">{{ feature.title }}</h3>
+              <p class="feature-description">{{ feature.description }}</p>
+              <div class="feature-status">
+                <el-tag v-if="feature.available" type="success" size="small">
+                  <el-icon><Check /></el-icon>
+                  可用
+                </el-tag>
+                <el-tag v-else type="info" size="small">
+                  <el-icon><Lock /></el-icon>
+                  需登录
+                </el-tag>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div class="services-more">
-          <router-link to="/services">
-            <el-button size="large" type="primary" plain>
-              <el-icon><Grid /></el-icon>
-              查看所有服务
-            </el-button>
-          </router-link>
+      </section>
+
+      <!-- 服务项目预览 -->
+      <section class="services-preview-section">
+        <div class="container">
+          <h2 class="section-title">热门服务项目</h2>
+          <p class="section-subtitle">专业团队，品质保证</p>
+
+          <div class="services-grid">
+            <div
+              class="service-card"
+              v-for="service in previewServices"
+              :key="service.id"
+            >
+              <div class="service-header">
+                <div class="service-icon">
+                  <el-icon size="24" :color="service.color">
+                    <component :is="service.icon" />
+                  </el-icon>
+                </div>
+                <div class="service-price">¥{{ service.price }}</div>
+              </div>
+              <h3 class="service-name">{{ service.name }}</h3>
+              <p class="service-description">{{ service.description }}</p>
+              <div class="service-features">
+                <el-tag
+                  v-for="feature in service.features"
+                  :key="feature"
+                  size="small"
+                  type="info"
+                >
+                  {{ feature }}
+                </el-tag>
+              </div>
+              <div class="service-action">
+                <router-link to="/login">
+                  <el-button type="primary" size="small" plain>
+                    登录预约
+                  </el-button>
+                </router-link>
+              </div>
+            </div>
+          </div>
+
+          <div class="services-more">
+            <router-link to="/services">
+              <el-button size="large" type="primary" plain>
+                <el-icon><Grid /></el-icon>
+                查看所有服务
+              </el-button>
+            </router-link>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
       <!-- 注册优惠提示 -->
       <section class="register-promotion-section">
@@ -141,18 +158,26 @@
           <div class="promotion-card">
             <div class="promotion-content">
               <h3 class="promotion-title">新用户专享优惠</h3>
-              <p class="promotion-description">注册即送首次洗车8折优惠券，更有积分奖励等你来拿！</p>
+              <p class="promotion-description">
+                注册即送首次洗车8折优惠券，更有积分奖励等你来拿！
+              </p>
               <div class="promotion-benefits">
                 <div class="benefit-item">
-                  <el-icon color="var(--success-color)"><CircleCheckFilled /></el-icon>
+                  <el-icon color="var(--success-color)"
+                    ><CircleCheckFilled
+                  /></el-icon>
                   <span>首次洗车8折</span>
                 </div>
                 <div class="benefit-item">
-                  <el-icon color="var(--success-color)"><CircleCheckFilled /></el-icon>
+                  <el-icon color="var(--success-color)"
+                    ><CircleCheckFilled
+                  /></el-icon>
                   <span>积分奖励</span>
                 </div>
                 <div class="benefit-item">
-                  <el-icon color="var(--success-color)"><CircleCheckFilled /></el-icon>
+                  <el-icon color="var(--success-color)"
+                    ><CircleCheckFilled
+                  /></el-icon>
                   <span>生日特惠</span>
                 </div>
               </div>
@@ -175,127 +200,128 @@
 </template>
 
 <script>
-import { ref, onMounted, nextTick, defineAsyncComponent } from 'vue'
+import { ref, onMounted, nextTick, defineAsyncComponent } from "vue";
 
 // 懒加载粒子背景组件
-const ParticleBackground = defineAsyncComponent(() => 
-  import('../components/ParticleBackground.vue')
-)
+const ParticleBackground = defineAsyncComponent(
+  () => import("../components/ParticleBackground.vue"),
+);
 
 export default {
-  name: 'GuestHome',
+  name: "GuestHome",
   components: {
-    ParticleBackground
+    ParticleBackground,
   },
   setup() {
-    const loading = ref(true)
-    const showParticles = ref(false)
-    
+    const loading = ref(true);
+    const showParticles = ref(false);
+
     // 性能监控
-    const startTime = performance.now()
-    
+    const startTime = performance.now();
+
     // 访客模式功能（预加载数据）
     const guestFeatures = ref([
       {
         id: 1,
-        icon: 'Grid',
-        title: '服务项目查看',
-        description: '浏览所有洗车服务项目和价格',
-        color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        available: true
+        icon: "Grid",
+        title: "服务项目查看",
+        description: "浏览所有洗车服务项目和价格",
+        color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        available: true,
       },
       {
         id: 2,
-        icon: 'Location',
-        title: '洗车店查询',
-        description: '查找附近的洗车店位置信息',
-        color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        available: true
+        icon: "Location",
+        title: "洗车店查询",
+        description: "查找附近的洗车店位置信息",
+        color: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+        available: true,
       },
       {
         id: 3,
-        icon: 'Calendar',
-        title: '在线预约',
-        description: '选择时间和服务进行预约',
-        color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        available: false
+        icon: "Calendar",
+        title: "在线预约",
+        description: "选择时间和服务进行预约",
+        color: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+        available: false,
       },
       {
         id: 4,
-        icon: 'List',
-        title: '订单管理',
-        description: '查看和管理您的预约订单',
-        color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-        available: false
-      }
-    ])
+        icon: "List",
+        title: "订单管理",
+        description: "查看和管理您的预约订单",
+        color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+        available: false,
+      },
+    ]);
 
     // 服务项目预览（预加载数据）
     const previewServices = ref([
       {
         id: 1,
-        name: '基础洗车',
-        description: '外观清洗，内饰简单清理',
+        name: "基础洗车",
+        description: "外观清洗，内饰简单清理",
         price: 30,
-        features: ['外观清洗', '轮胎清洁', '玻璃清洁'],
-        icon: 'CarWashing',
-        color: 'var(--primary-color)'
+        features: ["外观清洗", "轮胎清洁", "玻璃清洁"],
+        icon: "CarWashing",
+        color: "var(--primary-color)",
       },
       {
         id: 2,
-        name: '精致洗车',
-        description: '深度清洁，内外兼顾',
+        name: "精致洗车",
+        description: "深度清洁，内外兼顾",
         price: 50,
-        features: ['深度清洗', '内饰护理', '轮毂清洁'],
-        icon: 'Star',
-        color: 'var(--warning-color)'
+        features: ["深度清洗", "内饰护理", "轮毂清洁"],
+        icon: "Star",
+        color: "var(--warning-color)",
       },
       {
         id: 3,
-        name: '豪华洗车',
-        description: '全方位护理，专业打蜡',
+        name: "豪华洗车",
+        description: "全方位护理，专业打蜡",
         price: 80,
-        features: ['全面清洗', '专业打蜡', '内饰深度清洁'],
-        icon: 'Crown',
-        color: 'var(--danger-color)'
-      }
-    ])
+        features: ["全面清洗", "专业打蜡", "内饰深度清洁"],
+        icon: "Crown",
+        color: "var(--danger-color)",
+      },
+    ]);
 
     // 页面初始化
     const initializePage = async () => {
       try {
         // 快速初始化核心内容
-        await nextTick()
-        
+        await nextTick();
+
         // 记录加载时间
-        const loadTime = performance.now() - startTime
-        console.log(`GuestHome页面核心内容加载完成，耗时: ${Math.round(loadTime)}ms`)
-        
+        const loadTime = performance.now() - startTime;
+        console.log(
+          `GuestHome页面核心内容加载完成，耗时: ${Math.round(loadTime)}ms`,
+        );
+
         // 延迟加载粒子背景
         setTimeout(() => {
-          showParticles.value = true
-        }, 500)
-        
+          showParticles.value = true;
+        }, 500);
       } catch (error) {
-        console.error('页面初始化失败:', error)
+        console.error("页面初始化失败:", error);
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     onMounted(() => {
       // 快速初始化页面
-      initializePage()
-    })
+      initializePage();
+    });
 
     return {
       loading,
       showParticles,
       guestFeatures,
-      previewServices
-    }
-  }
-}
+      previewServices,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -326,8 +352,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 主要内容 */
@@ -336,8 +366,14 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 主要展示区 */
@@ -372,7 +408,11 @@ export default {
 }
 
 .highlight {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -415,7 +455,8 @@ export default {
   margin-bottom: 1rem;
 }
 
-.login-btn, .register-btn {
+.login-btn,
+.register-btn {
   flex: 1;
   height: 48px;
   font-size: 1rem;
@@ -614,7 +655,11 @@ export default {
 /* 注册优惠区 */
 .register-promotion-section {
   padding: 5rem 0;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
 }
 
 .promotion-card {
@@ -688,20 +733,20 @@ export default {
     gap: 2rem;
     text-align: center;
   }
-  
+
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .auth-actions {
     flex-direction: column;
   }
-  
+
   .promotion-card {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  
+
   .features-grid,
   .services-grid {
     grid-template-columns: 1fr;
@@ -713,11 +758,11 @@ export default {
   .content-container {
     animation: none;
   }
-  
+
   .loading-spinner {
     animation: none;
   }
-  
+
   .feature-card,
   .service-card {
     transition: none;

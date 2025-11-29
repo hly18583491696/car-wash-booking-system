@@ -7,16 +7,20 @@
     <div class="stat-content">
       <h3 class="stat-value" v-if="!isLoading">{{ formattedValue }}</h3>
       <div v-else class="skeleton-value"></div>
-      
+
       <p class="stat-label">{{ label }}</p>
-      
-      <div class="stat-trend" :class="trendClass" v-if="!isLoading && showTrend">
+
+      <div
+        class="stat-trend"
+        :class="trendClass"
+        v-if="!isLoading && showTrend"
+      >
         <el-icon><ArrowUp v-if="trend > 0" /><ArrowDown v-else /></el-icon>
         <span>{{ Math.abs(trend) }}%</span>
         <span class="trend-text">{{ trendText }}</span>
       </div>
     </div>
-    
+
     <!-- 迷你图表 -->
     <div class="mini-chart" v-if="chartData && !isLoading">
       <div ref="miniChart" class="mini-chart-container"></div>
@@ -25,155 +29,164 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import * as echarts from 'echarts'
+import { ref, computed, onMounted, nextTick, watch } from "vue";
+import * as echarts from "echarts";
 
 export default {
-  name: 'StatCard',
+  name: "StatCard",
   props: {
     icon: {
       type: String,
-      required: true
+      required: true,
     },
     label: {
       type: String,
-      required: true
+      required: true,
     },
     value: {
       type: [String, Number],
-      required: true
+      required: true,
     },
     trend: {
       type: Number,
-      default: 0
+      default: 0,
     },
     iconColor: {
       type: String,
-      default: 'var(--primary-gradient)'
+      default: "var(--primary-gradient)",
     },
     isLoading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     showTrend: {
       type: Boolean,
-      default: true
+      default: true,
     },
     chartData: {
       type: Array,
-      default: null
+      default: null,
     },
     valueType: {
       type: String,
-      default: 'number', // number, currency, percentage
-      validator: value => ['number', 'currency', 'percentage'].includes(value)
-    }
+      default: "number", // number, currency, percentage
+      validator: (value) =>
+        ["number", "currency", "percentage"].includes(value),
+    },
   },
   setup(props) {
-    const miniChart = ref(null)
-    let miniChartInstance = null
-    
+    const miniChart = ref(null);
+    let miniChartInstance = null;
+
     const formattedValue = computed(() => {
-      if (props.isLoading) return ''
-      
+      if (props.isLoading) return "";
+
       switch (props.valueType) {
-        case 'currency':
-          return `¥${Number(props.value).toLocaleString()}`
-        case 'percentage':
-          return `${props.value}%`
+        case "currency":
+          return `¥${Number(props.value).toLocaleString()}`;
+        case "percentage":
+          return `${props.value}%`;
         default:
-          return Number(props.value).toLocaleString()
+          return Number(props.value).toLocaleString();
       }
-    })
-    
+    });
+
     const trendClass = computed(() => ({
       positive: props.trend > 0,
       negative: props.trend < 0,
-      neutral: props.trend === 0
-    }))
-    
+      neutral: props.trend === 0,
+    }));
+
     const trendText = computed(() => {
-      if (props.trend > 0) return '较上期'
-      if (props.trend < 0) return '较上期'
-      return '与上期持平'
-    })
-    
+      if (props.trend > 0) return "较上期";
+      if (props.trend < 0) return "较上期";
+      return "与上期持平";
+    });
+
     const initMiniChart = () => {
-      if (!miniChart.value || !props.chartData) return
-      
-      miniChartInstance = echarts.init(miniChart.value)
-      
+      if (!miniChart.value || !props.chartData) return;
+
+      miniChartInstance = echarts.init(miniChart.value);
+
       const option = {
         grid: {
           left: 0,
           right: 0,
           top: 0,
-          bottom: 0
+          bottom: 0,
         },
         xAxis: {
-          type: 'category',
+          type: "category",
           show: false,
-          data: props.chartData.map((_, index) => index)
+          data: props.chartData.map((_, index) => index),
         },
         yAxis: {
-          type: 'value',
-          show: false
+          type: "value",
+          show: false,
         },
-        series: [{
-          type: 'line',
-          data: props.chartData,
-          smooth: true,
-          symbol: 'none',
-          lineStyle: {
-            color: 'var(--primary-color)',
-            width: 2
+        series: [
+          {
+            type: "line",
+            data: props.chartData,
+            smooth: true,
+            symbol: "none",
+            lineStyle: {
+              color: "var(--primary-color)",
+              width: 2,
+            },
+            areaStyle: {
+              color: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  {
+                    offset: 0,
+                    color: "var(--primary-color)",
+                  },
+                  {
+                    offset: 1,
+                    color: "transparent",
+                  },
+                ],
+              },
+            },
           },
-          areaStyle: {
-            color: {
-              type: 'linear',
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [{
-                offset: 0,
-                color: 'var(--primary-color)'
-              }, {
-                offset: 1,
-                color: 'transparent'
-              }]
-            }
-          }
-        }]
-      }
-      
-      miniChartInstance.setOption(option)
-    }
-    
+        ],
+      };
+
+      miniChartInstance.setOption(option);
+    };
+
     onMounted(() => {
       if (props.chartData) {
         nextTick(() => {
-          initMiniChart()
-        })
+          initMiniChart();
+        });
       }
-    })
-    
-    watch(() => props.chartData, () => {
-      if (props.chartData) {
-        nextTick(() => {
-          initMiniChart()
-        })
-      }
-    })
-    
+    });
+
+    watch(
+      () => props.chartData,
+      () => {
+        if (props.chartData) {
+          nextTick(() => {
+            initMiniChart();
+          });
+        }
+      },
+    );
+
     return {
       miniChart,
       formattedValue,
       trendClass,
-      trendText
-    }
-  }
-}
+      trendText,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -222,8 +235,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .stat-content {
@@ -247,8 +264,13 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .stat-label {
@@ -301,17 +323,17 @@ export default {
     padding: 16px;
     gap: 12px;
   }
-  
+
   .stat-icon {
     width: 48px;
     height: 48px;
     font-size: 20px;
   }
-  
+
   .stat-value {
     font-size: 1.5rem;
   }
-  
+
   .mini-chart {
     display: none;
   }

@@ -2,84 +2,84 @@
   <div id="app" :class="themeClass">
     <router-view />
     <BackToTop />
-    
+
     <!-- 浮动操作按钮 -->
     <FloatingActionButton />
-    
+
     <!-- 通知系统 -->
     <NotificationSystem ref="notificationSystem" />
   </div>
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted } from 'vue'
-import BackToTop from './components/BackToTop.vue'
-import FloatingActionButton from './components/FloatingActionButton.vue'
-import NotificationSystem from './components/NotificationSystem.vue'
-import { useWebSocket } from '@/composables/useWebSocket'
-import { useUserStore } from '@/stores/user'
+import { computed, onMounted, onUnmounted } from "vue";
+import BackToTop from "./components/BackToTop.vue";
+import FloatingActionButton from "./components/FloatingActionButton.vue";
+import NotificationSystem from "./components/NotificationSystem.vue";
+import { useWebSocket } from "@/composables/useWebSocket";
+import { useUserStore } from "@/stores/user";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
     BackToTop,
     FloatingActionButton,
-    NotificationSystem
+    NotificationSystem,
   },
   setup() {
-    const userStore = useUserStore()
-    const { initWebSocket, disconnectWebSocket, cleanup } = useWebSocket()
-    
+    const userStore = useUserStore();
+    const { initWebSocket, disconnectWebSocket, cleanup } = useWebSocket();
+
     // 简化的主题类名，暂时使用默认主题
     const themeClass = computed(() => {
-      return 'theme-blue'
-    })
-    
+      return "theme-blue";
+    });
+
     // 初始化应用
     onMounted(() => {
       // 设置全局错误处理
-      window.addEventListener('unhandledrejection', (event) => {
-        console.error('未处理的Promise拒绝:', event.reason)
-      })
-      
-      window.addEventListener('error', (event) => {
-        console.error('全局错误:', event.error)
-      })
-      
+      window.addEventListener("unhandledrejection", (event) => {
+        console.error("未处理的Promise拒绝:", event.reason);
+      });
+
+      window.addEventListener("error", (event) => {
+        console.error("全局错误:", event.error);
+      });
+
       // 如果用户已登录，初始化WebSocket连接
       if (userStore.isLoggedIn) {
-        initWebSocket()
+        initWebSocket();
       }
-      
+
       // 监听用户登录状态变化
       userStore.$subscribe((mutation, state) => {
         if (state.isLoggedIn) {
           // 用户登录时连接WebSocket
-          initWebSocket()
+          initWebSocket();
         } else {
           // 用户登出时断开WebSocket
-          disconnectWebSocket()
+          disconnectWebSocket();
         }
-      })
-    })
-    
+      });
+    });
+
     // 组件卸载时清理WebSocket
     onUnmounted(() => {
-      cleanup()
-      disconnectWebSocket()
-    })
-    
+      cleanup();
+      disconnectWebSocket();
+    });
+
     return {
-      themeClass
-    }
-  }
-}
+      themeClass,
+    };
+  },
+};
 </script>
 
 <style>
 /* 导入全局样式 */
-@import './assets/css/themes.css';
-@import './assets/css/profile.css';
+@import "./assets/css/themes.css";
+@import "./assets/css/profile.css";
 
 /* 全局样式重置 */
 * {
@@ -94,7 +94,9 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   background: var(--bg-secondary);
   color: var(--text-primary);
   transition: all var(--transition-normal);
@@ -364,12 +366,12 @@ body {
   .no-print {
     display: none !important;
   }
-  
+
   body {
     background: white !important;
     color: black !important;
   }
-  
+
   .container {
     max-width: none;
     padding: 0;

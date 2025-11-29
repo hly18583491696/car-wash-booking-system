@@ -3,80 +3,86 @@
 </template>
 
 <script>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from "vue";
 
 export default {
-  name: 'AnimatedCounter',
+  name: "AnimatedCounter",
   props: {
     value: {
       type: [Number, String],
-      required: true
+      required: true,
     },
     duration: {
       type: Number,
-      default: 2000
+      default: 2000,
     },
     prefix: {
       type: String,
-      default: ''
+      default: "",
     },
     suffix: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
   setup(props) {
-    const displayValue = ref('0')
-    let animationId = null
-    
+    const displayValue = ref("0");
+    let animationId = null;
+
     const animateValue = (start, end, duration) => {
-      const startTime = performance.now()
-      const isNumber = !isNaN(parseFloat(end))
-      
+      const startTime = performance.now();
+      const isNumber = !isNaN(parseFloat(end));
+
       const animate = (currentTime) => {
-        const elapsed = currentTime - startTime
-        const progress = Math.min(elapsed / duration, 1)
-        
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
         // 使用缓动函数
-        const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-        
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+
         if (isNumber) {
-          const current = start + (parseFloat(end) - start) * easeOutQuart
-          displayValue.value = props.prefix + Math.floor(current).toLocaleString() + props.suffix
+          const current = start + (parseFloat(end) - start) * easeOutQuart;
+          displayValue.value =
+            props.prefix + Math.floor(current).toLocaleString() + props.suffix;
         } else {
-          displayValue.value = props.prefix + end + props.suffix
+          displayValue.value = props.prefix + end + props.suffix;
         }
-        
+
         if (progress < 1) {
-          animationId = requestAnimationFrame(animate)
+          animationId = requestAnimationFrame(animate);
         }
-      }
-      
-      animationId = requestAnimationFrame(animate)
-    }
-    
+      };
+
+      animationId = requestAnimationFrame(animate);
+    };
+
     const startAnimation = () => {
       if (animationId) {
-        cancelAnimationFrame(animationId)
+        cancelAnimationFrame(animationId);
       }
-      
-      const currentValue = displayValue.value.replace(props.prefix, '').replace(props.suffix, '').replace(/,/g, '')
-      const startValue = isNaN(parseFloat(currentValue)) ? 0 : parseFloat(currentValue)
-      
-      animateValue(startValue, props.value, props.duration)
-    }
-    
-    watch(() => props.value, startAnimation)
-    
+
+      const currentValue = displayValue.value
+        .replace(props.prefix, "")
+        .replace(props.suffix, "")
+        .replace(/,/g, "");
+      const startValue = isNaN(parseFloat(currentValue))
+        ? 0
+        : parseFloat(currentValue);
+
+      animateValue(startValue, props.value, props.duration);
+    };
+
+    watch(() => props.value, startAnimation);
+
     onMounted(() => {
-      startAnimation()
-    })
-    
+      startAnimation();
+    });
+
     return {
-      displayValue
-    }
-  }
-}
+      displayValue,
+    };
+  },
+};
 </script>
 
 <style scoped>

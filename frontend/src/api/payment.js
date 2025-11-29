@@ -1,4 +1,4 @@
-import request from './request'
+import request from "./request";
 
 /**
  * 支付相关API
@@ -14,7 +14,7 @@ export const paymentApi = {
    * @returns {Promise} 支付订单信息
    */
   createPayment(paymentData) {
-    return request.post('/payment/create', paymentData)
+    return request.post("/payment/create", paymentData);
   },
 
   /**
@@ -22,7 +22,7 @@ export const paymentApi = {
    * @returns {Promise} 公钥PEM字符串
    */
   getPublicKey() {
-    return request.get('/payment/security/public-key')
+    return request.get("/payment/security/public-key");
   },
 
   /**
@@ -31,7 +31,7 @@ export const paymentApi = {
    * @returns {Promise} 支付状态信息
    */
   getPaymentStatus(paymentNo) {
-    return request.get(`/payment/status/${paymentNo}`)
+    return request.get(`/payment/status/${paymentNo}`);
   },
 
   /**
@@ -40,7 +40,7 @@ export const paymentApi = {
    * @returns {Promise} 支付信息
    */
   getPaymentByOrderNo(orderNo) {
-    return request.get(`/payment/order/${orderNo}`)
+    return request.get(`/payment/order/${orderNo}`);
   },
 
   /**
@@ -51,7 +51,7 @@ export const paymentApi = {
    * @returns {Promise} 支付记录列表
    */
   getUserPaymentRecords(params = {}) {
-    return request.get('/payment/user/payments', { params })
+    return request.get("/payment/user/payments", { params });
   },
 
   /**
@@ -63,7 +63,7 @@ export const paymentApi = {
    * @returns {Promise} 退款申请结果
    */
   requestRefund(refundData) {
-    return request.post('/payment/refund', refundData)
+    return request.post("/payment/refund", refundData);
   },
 
   /**
@@ -72,7 +72,7 @@ export const paymentApi = {
    * @returns {Promise} 退款状态信息
    */
   getRefundStatus(refundNo) {
-    return request.get(`/payment/refund/status/${refundNo}`)
+    return request.get(`/payment/refund/status/${refundNo}`);
   },
 
   /**
@@ -81,7 +81,7 @@ export const paymentApi = {
    * @returns {Promise} 取消结果
    */
   cancelExpiredPayment(paymentNo) {
-    return request.post(`/payment/cancel/${paymentNo}`)
+    return request.post(`/payment/cancel/${paymentNo}`);
   },
 
   // 管理员专用API
@@ -95,7 +95,7 @@ export const paymentApi = {
      * @returns {Promise} 处理结果
      */
     processRefund(refundData) {
-      return request.post('/payment/admin/refund/process', refundData)
+      return request.post("/payment/admin/refund/process", refundData);
     },
 
     /**
@@ -103,7 +103,7 @@ export const paymentApi = {
      * @returns {Promise} 取消结果
      */
     cancelExpiredPayments() {
-      return request.post('/payment/admin/cancel-expired')
+      return request.post("/payment/admin/cancel-expired");
     },
 
     /**
@@ -112,7 +112,7 @@ export const paymentApi = {
      * @returns {Promise} 支付记录列表
      */
     getAllPaymentRecords(params = {}) {
-      return request.get('/payment/admin/records', { params })
+      return request.get("/payment/admin/records", { params });
     },
 
     /**
@@ -121,7 +121,7 @@ export const paymentApi = {
      * @returns {Promise} 审计日志分页结果
      */
     getPaymentAudits(params = {}) {
-      return request.get('/payment/admin/audits', { params })
+      return request.get("/payment/admin/audits", { params });
     },
 
     /**
@@ -130,9 +130,9 @@ export const paymentApi = {
      * @returns {Promise} 退款记录列表
      */
     getAllRefundRecords(params = {}) {
-      return request.get('/payment/admin/refunds', { params })
-    }
-  }
-}
+      return request.get("/payment/admin/refunds", { params });
+    },
+  },
+};
 
-export default paymentApi
+export default paymentApi;

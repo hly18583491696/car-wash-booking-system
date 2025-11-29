@@ -2,7 +2,7 @@
   <div class="enhanced-home">
     <!-- 粒子背景 -->
     <ParticleBackground />
-    
+
     <!-- 英雄区域 -->
     <section class="hero-section">
       <div class="hero-container">
@@ -57,9 +57,9 @@
           <p class="section-subtitle">专业、便捷、高效的洗车服务体验</p>
         </div>
         <div class="features-grid">
-          <div 
-            class="feature-card" 
-            v-for="(feature, index) in features" 
+          <div
+            class="feature-card"
+            v-for="(feature, index) in features"
             :key="feature.id"
             :style="{ animationDelay: `${index * 0.1}s` }"
           >
@@ -79,9 +79,9 @@
     <section class="stats-section">
       <div class="container">
         <div class="stats-grid">
-          <div 
-            class="stat-item" 
-            v-for="(stat, index) in stats" 
+          <div
+            class="stat-item"
+            v-for="(stat, index) in stats"
             :key="stat.id"
             :style="{ animationDelay: `${index * 0.2}s` }"
           >
@@ -91,8 +91,8 @@
               </el-icon>
             </div>
             <div class="stat-number">
-              <AnimatedCounter 
-                :value="stat.numValue" 
+              <AnimatedCounter
+                :value="stat.numValue"
                 :suffix="stat.suffix"
                 :duration="2000 + index * 300"
                 :color="'#ffffff'"
@@ -112,9 +112,9 @@
           <p class="section-subtitle">多种洗车套餐，满足不同需求</p>
         </div>
         <div class="services-grid">
-          <div 
-            class="service-card" 
-            v-for="(service, index) in services" 
+          <div
+            class="service-card"
+            v-for="(service, index) in services"
             :key="service.id"
             :style="{ animationDelay: `${index * 0.15}s` }"
           >
@@ -130,7 +130,11 @@
               <h3 class="service-title">{{ service.name }}</h3>
               <p class="service-desc">{{ service.description }}</p>
               <div class="service-features">
-                <span v-for="feature in service.features" :key="feature" class="feature-tag">
+                <span
+                  v-for="feature in service.features"
+                  :key="feature"
+                  class="feature-tag"
+                >
                   {{ feature }}
                 </span>
               </div>
@@ -157,15 +161,19 @@
           <p class="section-subtitle">听听用户怎么说</p>
         </div>
         <div class="testimonials-grid">
-          <div 
-            class="testimonial-card" 
-            v-for="(testimonial, index) in testimonials" 
+          <div
+            class="testimonial-card"
+            v-for="(testimonial, index) in testimonials"
             :key="testimonial.id"
             :style="{ animationDelay: `${index * 0.1}s` }"
           >
             <div class="testimonial-content">
               <div class="rating">
-                <el-icon v-for="i in 5" :key="i" :class="{ active: i <= testimonial.rating }">
+                <el-icon
+                  v-for="i in 5"
+                  :key="i"
+                  :class="{ active: i <= testimonial.rating }"
+                >
                   <Star />
                 </el-icon>
               </div>
@@ -188,142 +196,160 @@
 </template>
 
 <script>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import ParticleBackground from '@/components/ParticleBackground.vue'
-import AnimatedCounter from '@/components/AnimatedCounter.vue'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import ParticleBackground from "@/components/ParticleBackground.vue";
+import AnimatedCounter from "@/components/AnimatedCounter.vue";
+import publicApi from "@/api/public";
 
 export default {
-  name: 'EnhancedHome',
+  name: "EnhancedHome",
   components: {
     ParticleBackground,
-    AnimatedCounter
+    AnimatedCounter,
   },
   setup() {
-    const router = useRouter()
-    
+    const router = useRouter();
+
     // 特色功能
     const features = ref([
       {
         id: 1,
-        icon: 'Clock',
-        title: '24小时预约',
-        description: '随时随地在线预约，无需等待',
-        color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        icon: "Clock",
+        title: "24小时预约",
+        description: "随时随地在线预约，无需等待",
+        color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       },
       {
         id: 2,
-        icon: 'Star',
-        title: '专业服务',
-        description: '经验丰富的专业团队，品质保证',
-        color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+        icon: "Star",
+        title: "专业服务",
+        description: "经验丰富的专业团队，品质保证",
+        color: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
       },
       {
         id: 3,
-        icon: 'Location',
-        title: '就近服务',
-        description: '多个服务网点，就近选择',
-        color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+        icon: "Location",
+        title: "就近服务",
+        description: "多个服务网点，就近选择",
+        color: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
       },
       {
         id: 4,
-        icon: 'Money',
-        title: '透明定价',
-        description: '明码标价，无隐藏费用',
-        color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-      }
-    ])
-    
+        icon: "Money",
+        title: "透明定价",
+        description: "明码标价，无隐藏费用",
+        color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+      },
+    ]);
+
     // 统计数据
     const stats = ref([
-      { id: 1, icon: 'User', numValue: 10000, suffix: '+', label: '服务用户' },
-      { id: 2, icon: 'ShoppingCart', numValue: 50000, suffix: '+', label: '完成订单' },
-      { id: 3, icon: 'Star', numValue: 98, suffix: '%', label: '满意度' },
-      { id: 4, icon: 'Clock', numValue: 24, suffix: 'h', label: '响应时间' }
-    ])
-    
+      { id: 1, icon: "User", numValue: 0, suffix: "+", label: "服务用户" },
+      {
+        id: 2,
+        icon: "ShoppingCart",
+        numValue: 0,
+        suffix: "+",
+        label: "完成订单",
+      },
+      { id: 3, icon: "Star", numValue: 0, suffix: "%", label: "满意度" },
+      { id: 4, icon: "Clock", numValue: 0, suffix: "h", label: "响应时间" },
+    ]);
+
     // 服务项目
     const services = ref([
       {
         id: 1,
-        name: '基础洗车',
-        description: '外观清洗，内饰简单清理',
+        name: "基础洗车",
+        description: "外观清洗，内饰简单清理",
         price: 30,
-        duration: '30分钟',
-        features: ['外观清洗', '轮胎清洁', '玻璃清洁'],
-        icon: 'House',
-        color: 'var(--primary-color)',
-        popular: false
+        duration: "30分钟",
+        features: ["外观清洗", "轮胎清洁", "玻璃清洁"],
+        icon: "House",
+        color: "var(--primary-color)",
+        popular: false,
       },
       {
         id: 2,
-        name: '精洗套餐',
-        description: '深度清洁，内外兼修',
+        name: "精洗套餐",
+        description: "深度清洁，内外兼修",
         price: 68,
-        duration: '60分钟',
-        features: ['深度清洗', '内饰清洁', '轮毂清洁', '玻璃镀膜'],
-        icon: 'Star',
-        color: 'var(--warning-color)',
-        popular: true
+        duration: "60分钟",
+        features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜"],
+        icon: "Star",
+        color: "var(--warning-color)",
+        popular: true,
       },
       {
         id: 3,
-        name: '豪华套餐',
-        description: '全方位护理，焕然一新',
+        name: "豪华套餐",
+        description: "全方位护理，焕然一新",
         price: 128,
-        duration: '90分钟',
-        features: ['精洗服务', '打蜡护理', '内饰深度清洁', '轮胎护理'],
-        icon: 'Trophy',
-        color: 'var(--error-color)',
-        popular: false
-      }
-    ])
-    
+        duration: "90分钟",
+        features: ["精洗服务", "打蜡护理", "内饰深度清洁", "轮胎护理"],
+        icon: "Trophy",
+        color: "var(--error-color)",
+        popular: false,
+      },
+    ]);
+
     // 用户评价
-    const testimonials = ref([
-      {
-        id: 1,
-        name: '张先生',
-        title: '奔驰车主',
-        content: '服务非常专业，预约方便，洗车效果很满意！',
-        rating: 5,
-        avatar: ''
-      },
-      {
-        id: 2,
-        name: '李女士',
-        title: '宝马车主',
-        content: '价格透明，服务态度好，会继续使用这个平台。',
-        rating: 5,
-        avatar: ''
-      },
-      {
-        id: 3,
-        name: '王先生',
-        title: '奥迪车主',
-        content: '在线预约很方便，服务质量也很不错，推荐！',
-        rating: 4,
-        avatar: ''
-      }
-    ])
-    
+    const testimonials = ref([]);
+
+    const loadStats = async () => {
+      try {
+        const resp = await publicApi.getStatsSummary();
+        if (resp.code === 200 && resp.data) {
+          stats.value[0].numValue = resp.data.usersCount || 0;
+          stats.value[1].numValue = resp.data.completedBookings || 0;
+          stats.value[2].numValue = resp.data.satisfactionPercent || 0;
+          const mins = resp.data.avgPaymentResponseMinutes || 0;
+          stats.value[4 - 1].numValue =
+            mins >= 60 ? Math.floor(mins / 60) : mins;
+          stats.value[4 - 1].suffix = mins >= 60 ? "h" : "m";
+        }
+      } catch (e) {}
+    };
+
+    const loadFeedback = async () => {
+      try {
+        const resp = await publicApi.getLatestFeedback(6);
+        if (resp.code === 200 && Array.isArray(resp.data)) {
+          testimonials.value = resp.data.map((item) => ({
+            id: item.id,
+            name: item.userMaskedName || "匿名用户",
+            title: "",
+            content: item.content,
+            rating: item.rating || 0,
+            avatar: "",
+          }));
+        }
+      } catch (e) {}
+    };
+
     // 预约服务
     const bookService = (service) => {
       router.push({
-        path: '/appointment',
-        query: { serviceId: service.id }
-      })
-    }
-    
+        path: "/appointment",
+        query: { serviceId: service.id },
+      });
+    };
+
+    onMounted(() => {
+      loadStats();
+      loadFeedback();
+    });
+
     return {
       features,
       stats,
       services,
       testimonials,
-      bookService
-    }
-  }
-}
+      bookService,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -371,7 +397,7 @@ export default {
 }
 
 .title-highlight {
-  background: linear-gradient(45deg, #FFD700, #FFA500);
+  background: linear-gradient(45deg, #ffd700, #ffa500);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -379,8 +405,12 @@ export default {
 }
 
 @keyframes glow {
-  from { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
-  to { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
+  from {
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+  }
+  to {
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+  }
 }
 
 .hero-subtitle {
@@ -409,12 +439,19 @@ export default {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.secondary-button, .demo-button {
+.secondary-button,
+.demo-button {
   background: rgba(255, 255, 255, 0.15) !important;
   border: 2px solid rgba(255, 255, 255, 0.4) !important;
   color: #ffffff !important;
@@ -429,7 +466,8 @@ export default {
   border-color: rgba(255, 215, 0, 0.6) !important;
 }
 
-.secondary-button:hover, .demo-button:hover {
+.secondary-button:hover,
+.demo-button:hover {
   background: rgba(255, 255, 255, 0.25) !important;
   border-color: rgba(255, 255, 255, 0.6) !important;
   color: #ffffff !important;
@@ -453,8 +491,13 @@ export default {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 .card-content h3 {
@@ -563,7 +606,7 @@ export default {
 }
 
 .stats-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -757,7 +800,7 @@ export default {
 }
 
 .rating .el-icon.active {
-  color: #FFD700;
+  color: #ffd700;
 }
 
 .testimonial-text {
@@ -796,25 +839,25 @@ export default {
     gap: 40px;
     text-align: center;
   }
-  
+
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .hero-actions {
     justify-content: center;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .features-grid,
   .services-grid,
   .testimonials-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -824,21 +867,21 @@ export default {
   .hero-section {
     padding: 80px 0;
   }
-  
+
   .hero-title {
     font-size: 2rem;
   }
-  
+
   .features-section,
   .services-section,
   .testimonials-section {
     padding: 60px 0;
   }
-  
+
   .stats-section {
     padding: 60px 0;
   }
-  
+
   .stat-number {
     font-size: 2rem;
   }

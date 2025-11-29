@@ -8,7 +8,7 @@
         <div class="skeleton-text short"></div>
       </div>
     </div>
-    
+
     <div v-else-if="type === 'list'" class="skeleton-list">
       <div v-for="i in count" :key="i" class="skeleton-list-item">
         <div class="skeleton-avatar"></div>
@@ -18,7 +18,7 @@
         </div>
       </div>
     </div>
-    
+
     <div v-else-if="type === 'table'" class="skeleton-table">
       <div class="skeleton-table-header">
         <div v-for="i in columns" :key="i" class="skeleton-table-cell"></div>
@@ -27,51 +27,59 @@
         <div v-for="j in columns" :key="j" class="skeleton-table-cell"></div>
       </div>
     </div>
-    
+
     <div v-else class="skeleton-text-block">
-      <div v-for="i in count" :key="i" class="skeleton-text" :class="{ short: i === count }"></div>
+      <div
+        v-for="i in count"
+        :key="i"
+        class="skeleton-text"
+        :class="{ short: i === count }"
+      ></div>
     </div>
   </div>
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed } from "vue";
 
 export default {
-  name: 'SkeletonLoader',
+  name: "SkeletonLoader",
   props: {
     type: {
       type: String,
-      default: 'text',
-      validator: value => ['text', 'card', 'list', 'table'].includes(value)
+      default: "text",
+      validator: (value) => ["text", "card", "list", "table"].includes(value),
     },
     count: {
       type: Number,
-      default: 3
+      default: 3,
     },
     rows: {
       type: Number,
-      default: 5
+      default: 5,
     },
     columns: {
       type: Number,
-      default: 4
+      default: 4,
     },
     dark: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   setup(props) {
     const isDark = computed(() => {
-      return props.dark || document.documentElement.getAttribute('data-theme') === 'dark'
-    })
-    
+      return (
+        props.dark ||
+        document.documentElement.getAttribute("data-theme") === "dark"
+      );
+    });
+
     return {
-      isDark
-    }
-  }
-}
+      isDark,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -86,7 +94,12 @@ export default {
 }
 
 .skeleton-base {
-  background: linear-gradient(90deg, var(--skeleton-color) 25%, var(--skeleton-highlight) 50%, var(--skeleton-color) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-color) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-color) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
   border-radius: 4px;
@@ -204,7 +217,12 @@ export default {
 .skeleton-text,
 .skeleton-avatar,
 .skeleton-table-cell {
-  background: linear-gradient(90deg, var(--skeleton-color) 25%, var(--skeleton-highlight) 50%, var(--skeleton-color) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-color) 25%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-color) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
   border-radius: 4px;

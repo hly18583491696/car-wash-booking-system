@@ -5,24 +5,24 @@
  * 显示条件：订单状态为 pending 或 confirmed，且未支付
  */
 export function shouldShowPayButton(order) {
-  if (!order) return false
-  const statusOk = order.status === 'pending' || order.status === 'confirmed'
-  const notPaid = order.paymentStatus !== 'paid'
-  return statusOk && notPaid
+  if (!order) return false;
+  const statusOk = order.status === "pending" || order.status === "confirmed";
+  const notPaid = order.paymentStatus !== "paid";
+  return statusOk && notPaid;
 }
 
 /**
  * 构建无障碍 aria-label 文案
  */
 export function buildPayAriaLabel(order) {
-  const no = order?.orderNumber || order?.orderNo || '未知订单'
-  return `为订单 ${no} 付款`
+  const no = order?.orderNumber || order?.orderNo || "未知订单";
+  return `为订单 ${no} 付款`;
 }
 
 /**
  * 构建支付页路由对象
  */
 export function resolvePaymentRoute(order) {
-  const orderNo = order?.orderNumber || order?.orderNo
-  return { name: 'Payment', params: { orderNo } }
+  const orderNo = order?.orderNumber || order?.orderNo;
+  return { name: "Payment", params: { orderNo } };
 }

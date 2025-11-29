@@ -85,8 +85,8 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentMapper, Payment> impl
             throw new BusinessException(ResultCode.PERMISSION_DENIED, "无权限操作此订单");
         }
 
-        // 验证订单状态
-        if (!"confirmed".equals(booking.getStatus())) {
+        // 验证订单状态（允许 pending 或 confirmed 发起支付）
+        if (!("confirmed".equals(booking.getStatus()) || "pending".equals(booking.getStatus()))) {
             throw new BusinessException(ResultCode.ORDER_STATUS_ERROR, "订单状态不允许支付");
         }
 
