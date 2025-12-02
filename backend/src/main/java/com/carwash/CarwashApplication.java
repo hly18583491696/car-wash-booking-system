@@ -3,6 +3,7 @@ package com.carwash;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 汽车洗车服务预约系统主启动类
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 @MapperScan("com.carwash.mapper")
+@EnableAsync
 public class CarwashApplication {
 
     public static void main(String[] args) {

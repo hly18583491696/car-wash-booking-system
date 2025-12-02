@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付宝沙箱模拟支付测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .result-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code img {
+            max-width: 200px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            color: #555;
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 支付宝沙箱模拟支付测试 <span class="badge">DEMO</span></h1>
+        <p class="subtitle">用于测试和演示，不涉及真实资金扣款</p>
+
+        <div class="info-box">
+            <h3>功能特性</h3>
+            <ul>
+                <li>完整模拟支付宝支付流程（订单创建→支付请求→回调处理）</li>
+                <li>自动触发支付成功回调（延迟3秒模拟用户扫码支付）</li>
+                <li>无需真实支付宝账号，不产生实际资金流动</li>
+                <li>支持实时查询支付状态和退款测试</li>
+            </ul>
+        </div>
+
+        <div class="form-group">
+            <label for="orderNo">订单号</label>
+            <input type="text" id="orderNo" placeholder="留空将自动生成">
+        </div>
+
+        <div class="form-group">
+            <label for="amount">支付金额（元）</label>
+            <input type="number" id="amount" value="0.01" step="0.01" min="0.01">
+        </div>
+
+        <div class="form-group">
+            <label for="paymentMethod">支付方式</label>
+            <select id="paymentMethod">
+                <option value="alipay_mock">支付宝沙箱模拟（推荐）</option>
+                <option value="alipay">支付宝（标准API）</option>
+                <option value="wechat">微信支付</option>
+                <option value="virtual">虚拟支付</option>
+            </select>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-primary" onclick="createPayment()">创建支付订单</button>
+            <button class="btn-secondary" onclick="queryPayment()">查询支付状态</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">处理中...</p>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-title">支付结果</div>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/api';
+        let currentPaymentNo = '';
+
+        // 生成订单号
+        function generateOrderNo() {
+            return 'ORD' + Date.now() + Math.random().toString(36).substr(2, 4).toUpperCase();
+        }
+
+        // 显示加载状态
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        // 显示结果
+        function showResult(data, isError = false) {
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultSection.classList.add('show');
+            
+            if (isError) {
+                resultContent.innerHTML = `
+                    <div class="result-item">
+                        <span class="result-label">错误信息:</span>
+                        <span class="result-value" style="color: #d32f2f;">${data.message || data}</span>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            if (data.paymentNo) {
+                currentPaymentNo = data.paymentNo;
+                html += `
+                    <div class="result-item">
+                        <span class="result-label">支付流水号:</span>
+                        <span class="result-value">${data.paymentNo}</span>
+                    </div>
+                `;
+            }
+
+            if (data.orderNo) {
+                html += `
+                    <div class="result-item">
+                        <span class="result-label">订单号:</span>
+                        <span class="result-value">${data.orderNo}</span>
+                    </div>
+                `;
+            }
+
+            if (data.amount !== undefined) {
+                html += `
+                    <div class="result-item">
+                        <span class="result-label">支付金额:</span>
+                        <span class="result-value">¥${data.amount}</span>
+                    </div>
+                `;
+            }
+
+            if (data.status) {
+                const statusClass = data.status === 'paid' ? 'status-paid' : 
+                                   data.status === 'pending' ? 'status-pending' : 'status-failed';
+                const statusText = data.status === 'paid' ? '已支付' : 
+                                  data.status === 'pending' ? '待支付' : '支付失败';
+                html += `
+                    <div class="result-item">
+                        <span class="result-label">支付状态:</span>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            }
+
+            if (data.message) {
+                html += `
+                    <div class="result-item">
+                        <span class="result-label">提示信息:</span>
+                        <span class="result-value">${data.message}</span>
+                    </div>
+                `;
+            }
+
+            if (data.qrCode) {
+                html += `
+                    <div class="qr-code">
+                        <p style="color: #666; margin-bottom: 10px;">支付二维码（模拟）</p>
+                        <div style="padding: 20px; background: white; border: 2px dashed #ccc; border-radius: 10px;">
+                            <p style="color: #999; font-size: 14px;">🔗 ${data.qrCode.substring(0, 50)}...</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (data.paymentUrl) {
+                html += `
+                    <div class="result-item">
+                        <span class="result-label">支付链接:</span>
+                        <a href="${data.paymentUrl}" target="_blank" style="color: #667eea;">查看详情</a>
+                    </div>
+                `;
+            }
+
+            resultContent.innerHTML = html;
+
+            // 如果是pending状态，5秒后自动查询
+            if (data.status === 'pending') {
+                setTimeout(() => {
+                    console.log('自动查询支付状态...');
+                    queryPayment();
+                }, 5000);
+            }
+        }
+
+        // 创建支付订单
+        async function createPayment() {
+            const orderNo = document.getElementById('orderNo').value || generateOrderNo();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+
+            if (amount <= 0) {
+                alert('支付金额必须大于0');
+                return;
+            }
+
+            document.getElementById('orderNo').value = orderNo;
+
+            showLoading(true);
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/payment/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        orderNo: orderNo,
+                        amount: amount,
+                        paymentMethod: paymentMethod,
+                        description: `洗车服务预约 - ${orderNo}`
+                    })
+                });
+
+                const result = await response.json();
+                
+                showLoading(false);
+
+                if (result.code === 200 && result.data) {
+                    showResult(result.data);
+                    console.log('支付订单创建成功:', result.data);
+                } else {
+                    showResult({ message: result.message || '创建支付订单失败' }, true);
+                }
+            } catch (error) {
+                showLoading(false);
+                showResult({ message: '网络错误: ' + error.message }, true);
+                console.error('创建支付订单失败:', error);
+            }
+        }
+
+        // 查询支付状态
+        async function queryPayment() {
+            if (!currentPaymentNo) {
+                alert('请先创建支付订单');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/payment/status/${currentPaymentNo}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+                
+                showLoading(false);
+
+                if (result.code === 200 && result.data) {
+                    showResult(result.data);
+                    console.log('支付状态查询成功:', result.data);
+                } else {
+                    showResult({ message: result.message || '查询支付状态失败' }, true);
+                }
+            } catch (error) {
+                showLoading(false);
+                showResult({ message: '网络错误: ' + error.message }, true);
+                console.error('查询支付状态失败:', error);
+            }
+        }
+
+        // 页面加载时检查登录状态
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('请先登录系统');
+                // window.location.href = '/login';
+            }
+        };
+    </script>
+</body>
+</html>

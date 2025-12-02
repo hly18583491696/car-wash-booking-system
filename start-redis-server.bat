@@ -1,46 +1,36 @@
 @echo off
-title Redis Server
-color 0A
+chcp 65001 >nul
+echo ====================================
+echo Redis 服务自动启动脚本
+echo ====================================
 
-echo ================================
-echo   Redis Server 启动脚本
-echo ================================
-echo.
+REM 检查 6379 端口是否被占用
+netstat -ano | findstr ":6379" >nul 2>&1
 
-REM 检查项目目录中的Redis是否可用
-echo 检查本地Redis安装...
-if exist "redis\redis-server.exe" (
-    echo 启动本地Redis服务...
-    cd redis
-    start "Redis Server" redis-server.exe redis.windows.conf
-    cd ..
-    timeout /t 5 >nul
-    goto start_mcp
+if %errorlevel% equ 0 (
+    echo [信息] Redis 服务已在运行中 (端口 6379)
+    goto :end
 ) else (
-    echo 错误：未检测到Redis安装
-    echo 请先安装Redis服务，参考 Redis安装和配置指南.md
-    goto error
+    echo [信息] Redis 服务未启动，正在启动...
+    
+    REM 启动 Redis 服务
+    start /min "" "%~dp0redis\redis-server.exe" "%~dp0redis\redis.windows.conf"
+    
+    REM 等待 3 秒让服务完全启动
+    timeout /t 3 /nobreak >nul
+    
+    REM 验证服务是否成功启动
+    netstat -ano | findstr ":6379" >nul 2>&1
+    
+    if %errorlevel% equ 0 (
+        echo [成功] Redis 服务已成功启动
+    ) else (
+        echo [错误] Redis 服务启动失败
+        exit /b 1
+    )
 )
-
-:start_mcp
-echo.
-echo 验证Redis连接...
-redis-cli ping >nul 2>&1
-if %errorlevel% == 0 (
-    echo Redis连接正常，启动MCP Server Redis...
-    echo.
-    npx -y @modelcontextprotocol/server-redis redis://localhost:6379
-) else (
-    echo Redis连接失败，请检查Redis服务状态
-    goto error
-)
-
-:error
-echo.
-echo Redis服务启动失败，请参考 Redis安装和配置指南.md 进行配置
-echo.
 
 :end
-echo.
-echo 脚本执行结束
-pause
+echo ====================================
+echo Redis 服务状态检查完成
+echo ====================================
