@@ -8,6 +8,9 @@
 
     <!-- 通知系统 -->
     <NotificationSystem ref="notificationSystem" />
+
+    <!-- AI智能客服 -->
+    <AiChatWidget />
   </div>
 </template>
 
@@ -16,6 +19,7 @@ import { computed, onMounted, onUnmounted } from "vue";
 import BackToTop from "./components/BackToTop.vue";
 import FloatingActionButton from "./components/FloatingActionButton.vue";
 import NotificationSystem from "./components/NotificationSystem.vue";
+import AiChatWidget from "./components/AiChatWidget.vue";
 import { useWebSocket } from "@/composables/useWebSocket";
 import { useUserStore } from "@/stores/user";
 
@@ -25,6 +29,7 @@ export default {
     BackToTop,
     FloatingActionButton,
     NotificationSystem,
+    AiChatWidget,
   },
   setup() {
     const userStore = useUserStore();

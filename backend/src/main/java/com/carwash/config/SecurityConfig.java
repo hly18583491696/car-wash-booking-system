@@ -86,6 +86,9 @@ public class SecurityConfig {
                 // 支付回调接口（第三方支付平台回调，无需认证）
                 .requestMatchers("/api/payment/callback/**").permitAll()
                 
+                // AI客服接口（允许未登录用户访问）
+                .requestMatchers("/api/ai-chat/**").permitAll()
+                
                 // Swagger文档接口
                 .requestMatchers("/doc.html", "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()
                 
