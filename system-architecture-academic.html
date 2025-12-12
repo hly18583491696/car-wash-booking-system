@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汽车洗车服务预约系统架构图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 15mm;
+        }
+
+        body {
+            font-family: 'SimSun', '宋体', 'Times New Roman', serif;
+            background: white;
+            padding: 20mm;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            border: 2px solid #000;
+            background: white;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 18pt;
+            font-weight: bold;
+            padding: 15px 0;
+            border-bottom: 2px solid #000;
+            background: #f5f5f5;
+        }
+
+        .layer {
+            border-bottom: 1px solid #000;
+        }
+
+        .layer:last-child {
+            border-bottom: none;
+        }
+
+        .layer-header {
+            background: #e8e8e8;
+            padding: 8px 15px;
+            font-size: 11pt;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #666;
+        }
+
+        .layer-content {
+            padding: 15px;
+            background: white;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .row:last-child {
+            margin-bottom: 0;
+        }
+
+        .box {
+            flex: 1;
+            border: 1px solid #666;
+            background: white;
+        }
+
+        .box-header {
+            background: #d8d8d8;
+            padding: 6px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #666;
+        }
+
+        .box-content {
+            padding: 8px;
+        }
+
+        .item {
+            padding: 5px 8px;
+            margin: 3px 0;
+            border: 1px solid #999;
+            font-size: 8.5pt;
+            text-align: center;
+            background: white;
+        }
+
+        .simple-box {
+            padding: 10px;
+            border: 1px solid #000;
+            text-align: center;
+            flex: 1;
+            background: white;
+        }
+
+        .simple-box-title {
+            font-weight: bold;
+            font-size: 9pt;
+            margin-bottom: 3px;
+        }
+
+        .simple-box-subtitle {
+            font-size: 8pt;
+            color: #333;
+        }
+
+        .tech-section {
+            padding: 12px 15px;
+            border-top: 2px solid #000;
+            background: #fafafa;
+        }
+
+        .tech-title {
+            font-size: 10pt;
+            font-weight: bold;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #999;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .tech-item {
+            padding: 5px;
+            border: 1px solid #999;
+            font-size: 8pt;
+            text-align: center;
+            background: white;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+            .container {
+                border: 1px solid #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题 -->
+        <div class="title">汽车洗车服务预约系统架构图</div>
+
+        <!-- 用户层 -->
+        <div class="layer">
+            <div class="layer-header">用户层（User Layer）</div>
+            <div class="layer-content">
+                <div class="row">
+                    <div class="simple-box">
+                        <div class="simple-box-title">普通用户</div>
+                    </div>
+                    <div class="simple-box">
+                        <div class="simple-box-title">系统管理员</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表示层 -->
+        <div class="layer">
+            <div class="layer-header">表示层（Presentation Layer）</div>
+            <div class="layer-content">
+                <div class="row">
+                    <div class="box">
+                        <div class="box-header">前端框架</div>
+                        <div class="box-content">
+                            <div class="item">Vue.js 3.3.4</div>
+                            <div class="item">Vue Router 4.2.4</div>
+                            <div class="item">Pinia 2.3.1 状态管理</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">UI组件库</div>
+                        <div class="box-content">
+                            <div class="item">Element Plus 2.3.8</div>
+                            <div class="item">ECharts 5.4.3 图表</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">通信层</div>
+                        <div class="box-content">
+                            <div class="item">Axios HTTP客户端</div>
+                            <div class="item">WebSocket实时通信</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">构建工具</div>
+                        <div class="box-content">
+                            <div class="item">Vite 4.4.5</div>
+                            <div class="item">开发服务器</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 安全认证层 -->
+        <div class="layer">
+            <div class="layer-header">安全认证层（Security Layer）</div>
+            <div class="layer-content">
+                <div class="row">
+                    <div class="box">
+                        <div class="box-header">身份认证</div>
+                        <div class="box-content">
+                            <div class="item">Spring Security</div>
+                            <div class="item">JWT令牌机制（jjwt 0.11.5）</div>
+                            <div class="item">Token生成与验证</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">权限控制</div>
+                        <div class="box-content">
+                            <div class="item">RBAC角色访问控制</div>
+                            <div class="item">URL权限拦截</div>
+                            <div class="item">方法级权限注解</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">安全防护</div>
+                        <div class="box-content">
+                            <div class="item">XSS跨站脚本过滤</div>
+                            <div class="item">CSRF防护</div>
+                            <div class="item">SQL注入防护</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 业务逻辑层 -->
+        <div class="layer">
+            <div class="layer-header">业务逻辑层（Business Logic Layer）- Spring Boot 3.1.5</div>
+            <div class="layer-content">
+                <div class="row">
+                    <div class="box">
+                        <div class="box-header">控制器层（Controller）</div>
+                        <div class="box-content">
+                            <div class="item">认证控制器</div>
+                            <div class="item">用户管理控制器</div>
+                            <div class="item">服务管理控制器</div>
+                            <div class="item">预约管理控制器</div>
+                            <div class="item">支付控制器</div>
+                            <div class="item">统计控制器</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">业务服务层（Service）</div>
+                        <div class="box-content">
+                            <div class="item">用户服务</div>
+                            <div class="item">预约服务</div>
+                            <div class="item">支付服务</div>
+                            <div class="item">通知服务</div>
+                            <div class="item">统计服务</div>
+                            <div class="item">时间管理服务</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">外部集成</div>
+                        <div class="box-content">
+                            <div class="item">支付宝支付网关</div>
+                            <div class="item">微信支付网关</div>
+                            <div class="item">短信通知接口</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据访问层 -->
+        <div class="layer">
+            <div class="layer-header">数据访问层（Data Access Layer）</div>
+            <div class="layer-content">
+                <div class="row">
+                    <div class="box">
+                        <div class="box-header">ORM框架</div>
+                        <div class="box-content">
+                            <div class="item">MyBatis Plus 3.5.3.1</div>
+                            <div class="item">实体映射（Entity）</div>
+                            <div class="item">数据访问对象（Mapper）</div>
+                            <div class="item">自动SQL生成</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">缓存机制</div>
+                        <div class="box-content">
+                            <div class="item">Redis缓存（Spring Data Redis）</div>
+                            <div class="item">Session管理</div>
+                            <div class="item">热点数据缓存</div>
+                            <div class="item">缓存策略配置</div>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">实时通信</div>
+                        <div class="box-content">
+                            <div class="item">WebSocket服务</div>
+                            <div class="item">订单状态推送</div>
+                            <div class="item">实时消息通知</div>
+                            <div class="item">连接管理</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据持久层 -->
+        <div class="layer">
+            <div class="layer-header">数据持久层（Data Persistence Layer）</div>
+            <div class="layer-content">
+                <div class="row">
+                    <div class="simple-box">
+                        <div class="simple-box-title">MySQL 8.0</div>
+                        <div class="simple-box-subtitle">关系型数据库</div>
+                        <div class="simple-box-subtitle" style="margin-top: 5px;">用户、预约、服务、支付、反馈数据</div>
+                    </div>
+                    <div class="simple-box">
+                        <div class="simple-box-title">Redis 6.0+</div>
+                        <div class="simple-box-subtitle">键值型缓存数据库</div>
+                        <div class="simple-box-subtitle" style="margin-top: 5px;">Session、Token、热点数据</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 技术栈说明 -->
+        <div class="tech-section">
+            <div class="tech-title">核心技术栈说明</div>
+            <div class="tech-grid">
+                <div class="tech-item">前端：Vue.js 3.3.4 + Vite</div>
+                <div class="tech-item">UI框架：Element Plus 2.3.8</div>
+                <div class="tech-item">状态管理：Pinia 2.3.1</div>
+                <div class="tech-item">后端：Spring Boot 3.1.5</div>
+                <div class="tech-item">安全：Spring Security + JWT</div>
+                <div class="tech-item">ORM：MyBatis Plus 3.5.3.1</div>
+                <div class="tech-item">数据库：MySQL 8.0</div>
+                <div class="tech-item">缓存：Redis 6.0+</div>
+                <div class="tech-item">实时通信：WebSocket</div>
+                <div class="tech-item">API文档：Knife4j 4.1.0</div>
+                <div class="tech-item">工具库：Lombok + FastJSON2</div>
+                <div class="tech-item">构建工具：Maven 3.x + Vite</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            console.log('系统架构图已生成');
+            console.log('打印方式：Ctrl+P → 横向 → 保存为PDF');
+            console.log('页面设置：A4横向，边距15mm');
+        });
+    </script>
+</body>
+</html>

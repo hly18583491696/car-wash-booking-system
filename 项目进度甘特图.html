@@ -223,22 +223,22 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>项目总进度</h3>
-                    <div class="value">75%</div>
+                    <div class="value">82%</div>
                     <div class="unit">核心功能已完成</div>
                 </div>
                 <div class="stat-card">
                     <h3>已完成模块</h3>
-                    <div class="value">8</div>
+                    <div class="value">10</div>
                     <div class="unit">个功能模块</div>
                 </div>
                 <div class="stat-card">
                     <h3>待开发功能</h3>
-                    <div class="value">10</div>
+                    <div class="value">8</div>
                     <div class="unit">个扩展功能</div>
                 </div>
                 <div class="stat-card">
                     <h3>预计完成时间</h3>
-                    <div class="value">6</div>
+                    <div class="value">5</div>
                     <div class="unit">个月</div>
                 </div>
             </div>
@@ -310,11 +310,11 @@
                         <div style="color: #666; font-size: 0.9em;">2024年12月 - 服务项目，价格管理</div>
                     </div>
                 </div>
-                <div class="milestone-item in-progress">
-                    <div class="milestone-status status-in-progress"></div>
+                <div class="milestone-item completed">
+                    <div class="milestone-status status-completed"></div>
                     <div>
                         <strong>支付系统集成</strong>
-                        <div style="color: #666; font-size: 0.9em;">2025年1月 - 微信支付，支付宝集成</div>
+                        <div style="color: #666; font-size: 0.9em;">2025年1月 - 支付宝沙箱模拟支付已完成</div>
                     </div>
                 </div>
                 <div class="milestone-item pending">
@@ -343,11 +343,11 @@
             <!-- 风险预警 -->
             <div class="risk-alerts">
                 <div class="chart-title">🚨 风险预警</div>
-                <div class="risk-alert">
-                    <div class="risk-level risk-high">高风险</div>
+                <div class="risk-alert" style="background: #d4edda; border-left-color: #28a745;">
+                    <div class="risk-level" style="background: #28a745;">已解决</div>
                     <div>
                         <strong>支付系统集成复杂度</strong>
-                        <div style="color: #666; font-size: 0.9em;">第三方支付接口集成可能遇到技术难题，建议提前进行技术调研</div>
+                        <div style="color: #666; font-size: 0.9em;">✅ 支付宝沙箱模拟支付已完成，包含自动回调机制、状态管理、单元测试</div>
                     </div>
                 </div>
                 <div class="risk-alert">
@@ -389,8 +389,8 @@
             {name: '系统测试优化', start: '2024-12-15', end: '2025-01-15', status: 'completed', category: '测试优化'},
             
             // 进行中的功能
-            {name: '支付系统集成', start: '2025-01-01', end: '2025-02-15', status: 'in-progress', category: '扩展功能'},
-            {name: '注册功能完善', start: '2025-01-15', end: '2025-02-01', status: 'in-progress', category: '功能完善'},
+            {name: '支付系统集成', start: '2025-01-01', end: '2025-01-15', status: 'completed', category: '扩展功能'},
+            {name: '注册功能完善', start: '2025-01-15', end: '2025-02-01', status: 'completed', category: '功能完善'},
             
             // 待开发的功能
             {name: '会员积分系统', start: '2025-02-01', end: '2025-03-01', status: 'pending', category: '扩展功能'},
@@ -514,8 +514,8 @@
                     radius: ['40%', '70%'],
                     center: ['50%', '50%'],
                     data: [
-                        {value: 8, name: '已完成', itemStyle: {color: '#28a745'}},
-                        {value: 2, name: '进行中', itemStyle: {color: '#ffc107'}},
+                        {value: 10, name: '已完成', itemStyle: {color: '#28a745'}},
+                        {value: 0, name: '进行中', itemStyle: {color: '#ffc107'}},
                         {value: 7, name: '待开始', itemStyle: {color: '#6c757d'}},
                         {value: 1, name: '风险项', itemStyle: {color: '#e74c3c'}}
                     ],

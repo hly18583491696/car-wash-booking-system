@@ -80,6 +80,18 @@ public class PaymentResponse {
         return transactionId;
     }
 
+    public boolean isSuccess() {
+        return "paid".equals(status) || "SUCCESS".equals(status) || "pending".equals(status);
+    }
+
+    public String getPaymentUrl() {
+        return payUrl;
+    }
+
+    public String getMessage() {
+        return errorMessage;
+    }
+
     public void setSuccess(boolean success) {
         // This method is for compatibility, maps to status
         this.status = success ? "SUCCESS" : "FAILED";
