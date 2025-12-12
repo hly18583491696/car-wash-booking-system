@@ -22,7 +22,7 @@
         <div class="chat-header">
           <div class="header-info">
             <div class="avatar">
-              <el-icon :size="24"><Robot /></el-icon>
+              <el-icon :size="24"><Service /></el-icon>
             </div>
             <div class="info-text">
               <span class="title">AI智能客服</span>
@@ -72,7 +72,7 @@
             :class="['message', msg.role]"
           >
             <div class="message-avatar">
-              <el-icon v-if="msg.role === 'assistant'"><Robot /></el-icon>
+              <el-icon v-if="msg.role === 'assistant'"><Service /></el-icon>
               <el-icon v-else><User /></el-icon>
             </div>
             <div class="message-content">
@@ -110,7 +110,7 @@
           <!-- 加载状态 -->
           <div v-if="isLoading" class="message assistant">
             <div class="message-avatar">
-              <el-icon><Robot /></el-icon>
+              <el-icon><Service /></el-icon>
             </div>
             <div class="message-content">
               <div class="message-bubble typing">
@@ -161,7 +161,6 @@ import {
   Close, 
   Delete, 
   Promotion,
-  Robot,
   User,
   Service
 } from '@element-plus/icons-vue'
