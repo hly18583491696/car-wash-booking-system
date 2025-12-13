@@ -8,7 +8,7 @@
     </div>
     <input ref="fileInput" type="file" :accept="accept" class="hidden-input" @change="onFileChange" />
 
-    <el-dialog v-model="cropperOpen" title="裁剪头像" width="680px" :close-on-click-modal="false">
+    <el-dialog v-model="cropperOpen" title="裁剪头像" width="500px" :close-on-click-modal="false">
       <div class="cropper-area">
         <img v-if="previewUrl" :src="previewUrl" ref="cropImg" class="crop-image" @load="onImageLoad" />
       </div>
@@ -116,17 +116,19 @@ export default {
         try {
           cropper.value = new Cropper(cropImg.value, {
             aspectRatio: 1,
-            viewMode: 1,
+            viewMode: 2,
             dragMode: 'move',
-            autoCropArea: 0.9,
+            autoCropArea: 1,
             responsive: true,
-            background: true,
+            background: false,
             center: true,
             highlight: true,
             cropBoxMovable: true,
             cropBoxResizable: true,
-            minCropBoxWidth: 100,
-            minCropBoxHeight: 100
+            minCropBoxWidth: 80,
+            minCropBoxHeight: 80,
+            guides: true,
+            modal: true
           })
           console.log('Cropper初始化成功')
         } catch (e) {
@@ -213,11 +215,8 @@ export default {
 .actions { position: absolute; right: -6px; bottom: -6px; }
 .cropper-area { 
   width: 100%; 
-  height: 450px; 
+  height: 400px; 
   background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .crop-image { 
   display: block;
@@ -228,15 +227,14 @@ export default {
 </style>
 
 <style>
-/* 覆盖cropperjs默认背景样式，使其与对话框背景一致 */
-.cropper-container .cropper-bg {
-  background-image: none !important;
-  background-color: #fff !important;
-}
+/* 覆盖cropperjs默认样式，让图片填充容器 */
 .cropper-container {
   background-color: #fff !important;
 }
+.cropper-view-box {
+  outline-color: rgba(64, 158, 255, 0.75) !important;
+}
 .cropper-modal {
-  background-color: rgba(255, 255, 255, 0.5) !important;
+  background-color: rgba(0, 0, 0, 0.3) !important;
 }
 </style>
