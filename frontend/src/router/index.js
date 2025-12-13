@@ -6,6 +6,7 @@ import { nextTick } from 'vue'
 const Home = () => import('../views/Home.vue')
 const GuestHome = () => import('../views/GuestHome.vue')
 const Services = () => import('../views/Services.vue')
+const ServiceDetail = () => import('../views/ServiceDetail.vue')
 const Appointment = () => import('../views/Appointment.vue')
 const Orders = () => import('../views/Orders.vue')
 const Profile = () => import('../views/Profile.vue')
@@ -42,6 +43,15 @@ const routes = [
         component: Services,
         meta: {
           title: '服务项目',
+          requiresAuth: false
+        }
+      },
+      {
+        path: 'service-detail',
+        name: 'ServiceDetail',
+        component: ServiceDetail,
+        meta: {
+          title: '服务详情',
           requiresAuth: false
         }
       },
