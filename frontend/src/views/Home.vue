@@ -132,11 +132,12 @@
             :key="service.id"
           >
             <div class="service-image">
-              <div class="image-placeholder">
-                <el-icon size="60" :color="service.color">
-                  <component :is="service.icon" />
-                </el-icon>
-              </div>
+              <img 
+                :src="service.image" 
+                :alt="service.name"
+                class="service-img"
+                @error="(e) => e.target.src = 'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&h=300&fit=crop'"
+              />
               <div class="service-badge" v-if="service.popular">热门</div>
             </div>
             <div class="service-content">
@@ -298,15 +299,46 @@ export default {
     const popularServices = ref([]);
     const servicesLoading = ref(false);
 
-    // 服务分类到图标的映射
-    const categoryIconMap = {
-      basic: { icon: "Car", color: "var(--primary-color)" },
-      premium: { icon: "Star", color: "var(--warning-color)" },
-      luxury: { icon: "Trophy", color: "var(--error-color)" },
-      interior: { icon: "Brush", color: "var(--success-color)" },
-      beauty: { icon: "MagicStick", color: "#9b59b6" },
-      maintenance: { icon: "Setting", color: "#3498db" },
+    // 服务分类到图标和默认图片的映射
+    const categoryStyleMap = {
+      basic: { 
+        icon: "Car", 
+        color: "var(--primary-color)",
+        image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&h=300&fit=crop"
+      },
+      premium: { 
+        icon: "Star", 
+        color: "var(--warning-color)",
+        image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop"
+      },
+      luxury: { 
+        icon: "Trophy", 
+        color: "var(--error-color)",
+        image: "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop"
+      },
+      interior: { 
+        icon: "Brush", 
+        color: "var(--success-color)",
+        image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop"
+      },
+      beauty: { 
+        icon: "MagicStick", 
+        color: "#9b59b6",
+        image: "https://images.unsplash.com/photo-1486754735734-325b5831c3ad?w=400&h=300&fit=crop"
+      },
+      maintenance: { 
+        icon: "Setting", 
+        color: "#3498db",
+        image: "https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=400&h=300&fit=crop"
+      },
     };
+
+    // 默认服务图片（按索引循环使用）
+    const defaultServiceImages = [
+      "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&h=300&fit=crop", // 洗车
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop", // 精洗
+      "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop", // 豪华
+    ];
 
     // 加载热门服务数据
     const loadPopularServices = async () => {
@@ -322,7 +354,9 @@ export default {
           
           // 取前3个作为热门服务展示
           popularServices.value = serviceList.slice(0, 3).map((service, index) => {
-            const categoryStyle = categoryIconMap[service.category] || categoryIconMap.basic;
+            const categoryStyle = categoryStyleMap[service.category] || categoryStyleMap.basic;
+            // 优先使用后端返回的图片URL，其次使用分类默认图片，最后使用索引图片
+            const imageUrl = service.imageUrl || categoryStyle.image || defaultServiceImages[index % defaultServiceImages.length];
             return {
               id: service.id,
               name: service.name,
@@ -332,6 +366,7 @@ export default {
               features: service.description ? service.description.split("、").slice(0, 4) : [],
               icon: categoryStyle.icon,
               color: categoryStyle.color,
+              image: imageUrl,
               popular: index === 0, // 第一个标记为热门
             };
           });
@@ -350,6 +385,7 @@ export default {
             features: ["外观清洗", "轮胎清洁", "玻璃清洁"],
             icon: "Car",
             color: "var(--primary-color)",
+            image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&h=300&fit=crop",
             popular: false,
           },
           {
@@ -361,6 +397,7 @@ export default {
             features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜"],
             icon: "Star",
             color: "var(--warning-color)",
+            image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
             popular: true,
           },
           {
@@ -372,6 +409,7 @@ export default {
             features: ["精洗服务", "打蜡护理", "内饰深度清洁", "轮胎护理"],
             icon: "Trophy",
             color: "var(--error-color)",
+            image: "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop",
             popular: false,
           },
         ];
@@ -753,13 +791,24 @@ export default {
 }
 
 .service-image {
-  height: 160px;
+  height: 180px;
   background: var(--bg-light);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
+}
+
+.service-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-img {
+  transform: scale(1.05);
 }
 
 .service-image .image-placeholder {
