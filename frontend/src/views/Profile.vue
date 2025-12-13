@@ -367,6 +367,7 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { User, Car, Lock, Setting, Star, Plus, Delete, Edit } from "@element-plus/icons-vue";
 import ThemeToggle from "../components/ThemeToggle.vue";
 import AvatarUploader from "../components/AvatarUploader.vue";
 
@@ -375,6 +376,14 @@ export default {
   components: {
     ThemeToggle,
     AvatarUploader,
+    User,
+    Car,
+    Lock,
+    Setting,
+    Star,
+    Plus,
+    Delete,
+    Edit,
   },
   setup() {
     const activeTab = ref("info");
