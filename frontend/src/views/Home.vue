@@ -120,7 +120,12 @@
           <h2 class="section-title">热门服务项目</h2>
           <p class="section-subtitle">多种洗车套餐，满足不同需求</p>
         </div>
-        <div class="services-grid">
+        <div class="services-grid" v-loading="servicesLoading">
+          <!-- 空状态 -->
+          <div v-if="!servicesLoading && popularServices.length === 0" class="empty-services">
+            <el-empty description="暂无服务数据" />
+          </div>
+          <!-- 服务卡片 -->
           <div
             class="service-card"
             v-for="service in popularServices"
@@ -242,6 +247,7 @@ import { ElMessage } from "element-plus";
 import ParticleBackground from "@/components/ParticleBackground.vue";
 import AnimatedCounter from "@/components/AnimatedCounter.vue";
 import AuthManager from "../utils/auth.js";
+import { serviceApi } from "@/api/service.js";
 
 export default {
   name: "Home",
@@ -288,42 +294,91 @@ export default {
       },
     ]);
 
-    // 热门服务
-    const popularServices = ref([
-      {
-        id: 1,
-        name: "基础洗车",
-        description: "外观清洗，内饰简单清理",
-        price: 30,
-        duration: "30分钟",
-        features: ["外观清洗", "轮胎清洁", "玻璃清洁"],
-        icon: "CarWashing",
-        color: "var(--primary-color)",
-        popular: false,
-      },
-      {
-        id: 2,
-        name: "精洗套餐",
-        description: "深度清洁，内外兼修",
-        price: 68,
-        duration: "60分钟",
-        features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜"],
-        icon: "Star",
-        color: "var(--warning-color)",
-        popular: true,
-      },
-      {
-        id: 3,
-        name: "豪华套餐",
-        description: "全方位护理，焕然一新",
-        price: 128,
-        duration: "90分钟",
-        features: ["精洗服务", "打蜡护理", "内饰深度清洁", "轮胎护理"],
-        icon: "Crown",
-        color: "var(--error-color)",
-        popular: false,
-      },
-    ]);
+    // 热门服务（从后端API动态获取）
+    const popularServices = ref([]);
+    const servicesLoading = ref(false);
+
+    // 服务分类到图标的映射
+    const categoryIconMap = {
+      basic: { icon: "Car", color: "var(--primary-color)" },
+      premium: { icon: "Star", color: "var(--warning-color)" },
+      luxury: { icon: "Trophy", color: "var(--error-color)" },
+      interior: { icon: "Brush", color: "var(--success-color)" },
+      beauty: { icon: "MagicStick", color: "#9b59b6" },
+      maintenance: { icon: "Setting", color: "#3498db" },
+    };
+
+    // 加载热门服务数据
+    const loadPopularServices = async () => {
+      servicesLoading.value = true;
+      try {
+        const response = await serviceApi.getServiceList();
+        if (response && response.data) {
+          // 处理分页数据格式
+          let serviceList = response.data.records || response.data;
+          if (!Array.isArray(serviceList)) {
+            serviceList = [];
+          }
+          
+          // 取前3个作为热门服务展示
+          popularServices.value = serviceList.slice(0, 3).map((service, index) => {
+            const categoryStyle = categoryIconMap[service.category] || categoryIconMap.basic;
+            return {
+              id: service.id,
+              name: service.name,
+              description: service.description || "",
+              price: parseFloat(service.price) || 0,
+              duration: service.duration ? `${service.duration}分钟` : "30分钟",
+              features: service.description ? service.description.split("、").slice(0, 4) : [],
+              icon: categoryStyle.icon,
+              color: categoryStyle.color,
+              popular: index === 0, // 第一个标记为热门
+            };
+          });
+          console.log("✅ 热门服务加载成功:", popularServices.value.length, "个");
+        }
+      } catch (error) {
+        console.error("❌ 加载热门服务失败:", error);
+        // 加载失败时使用默认数据
+        popularServices.value = [
+          {
+            id: 1,
+            name: "基础洗车",
+            description: "外观清洗，内饰简单清理",
+            price: 30,
+            duration: "30分钟",
+            features: ["外观清洗", "轮胎清洁", "玻璃清洁"],
+            icon: "Car",
+            color: "var(--primary-color)",
+            popular: false,
+          },
+          {
+            id: 2,
+            name: "精洗套餐",
+            description: "深度清洁，内外兼修",
+            price: 68,
+            duration: "60分钟",
+            features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜"],
+            icon: "Star",
+            color: "var(--warning-color)",
+            popular: true,
+          },
+          {
+            id: 3,
+            name: "豪华套餐",
+            description: "全方位护理，焕然一新",
+            price: 128,
+            duration: "90分钟",
+            features: ["精洗服务", "打蜡护理", "内饰深度清洁", "轮胎护理"],
+            icon: "Trophy",
+            color: "var(--error-color)",
+            popular: false,
+          },
+        ];
+      } finally {
+        servicesLoading.value = false;
+      }
+    };
 
     // 统计数据
     const stats = ref([
@@ -384,11 +439,14 @@ export default {
     onMounted(() => {
       // 页面加载时的初始化逻辑
       console.log("Home页面已加载，用户登录状态:", isLoggedIn.value);
+      // 加载热门服务数据
+      loadPopularServices();
     });
 
     return {
       features,
       popularServices,
+      servicesLoading,
       stats,
       testimonials,
       bookService,
