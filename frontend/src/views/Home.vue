@@ -339,11 +339,14 @@ export default {
       },
     };
 
-    // 默认服务图片（按索引循环使用，每个都不同）
-    const defaultServiceImages = [
-      "https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop", // 基础洗车
-      "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=400&h=300&fit=crop", // 精洗套餐
-      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop", // 豪华套餐
+    // 首页热门服务专属图片（每个位置使用不同的图片，确保视觉差异化）
+    const servicePositionImages = [
+      // 第一个服务 - 快速/基础洗车：水枱清洗场景
+      "https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop",
+      // 第二个服务 - 精洗套餐：泡沫清洗场景
+      "https://images.unsplash.com/photo-1552930294-6b595f4c4dc0?w=400&h=300&fit=crop",
+      // 第三个服务 - 豪华套餐：精致车身招打场景
+      "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop",
     ];
 
     // 加载热门服务数据
@@ -361,8 +364,8 @@ export default {
           // 取前3个作为热门服务展示
           popularServices.value = serviceList.slice(0, 3).map((service, index) => {
             const categoryStyle = categoryStyleMap[service.category] || categoryStyleMap.basic;
-            // 优先使用后端返回的图片URL，其次使用分类默认图片，最后使用索引图片
-            const imageUrl = service.imageUrl || categoryStyle.image || defaultServiceImages[index % defaultServiceImages.length];
+            // 图片选择逻辑：优先后端imageUrl > 否则按位置使用不同图片
+            const imageUrl = service.imageUrl || servicePositionImages[index];
             return {
               id: service.id,
               name: service.name,
@@ -403,7 +406,7 @@ export default {
             features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜"],
             icon: "Star",
             color: "var(--warning-color)",
-            image: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=400&h=300&fit=crop",
+            image: "https://images.unsplash.com/photo-1552930294-6b595f4c4dc0?w=400&h=300&fit=crop",
             popular: true,
           },
           {
@@ -415,7 +418,7 @@ export default {
             features: ["精洗服务", "打蜡护理", "内饰深度清洁", "轮胎护理"],
             icon: "Trophy",
             color: "var(--error-color)",
-            image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop",
+            image: "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop",
             popular: false,
           },
         ];
