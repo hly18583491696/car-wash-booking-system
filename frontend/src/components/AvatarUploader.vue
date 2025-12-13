@@ -56,6 +56,7 @@ export default {
     const csrfToken = ref('')
 
     const imageLoaded = ref(false)
+    const cropperReady = ref(false)
     
     const selectFile = () => fileInput.value && fileInput.value.click()
     const onDragOver = () => dragOver.value = true
@@ -88,6 +89,7 @@ export default {
       if (!newVal) {
         destroyCropper()
         imageLoaded.value = false
+        cropperReady.value = false
       }
     })
 
@@ -105,6 +107,7 @@ export default {
     const initCropper = () => {
       // 确保之前的实例已销毁
       destroyCropper()
+      cropperReady.value = false
       
       if (!cropImg.value) {
         console.warn('cropImg元素未就绪')
@@ -128,7 +131,11 @@ export default {
             minCropBoxWidth: 80,
             minCropBoxHeight: 80,
             guides: true,
-            modal: true
+            modal: true,
+            ready: () => {
+              cropperReady.value = true
+              console.log('Cropper已就绪')
+            }
           })
           console.log('Cropper初始化成功')
         } catch (e) {
@@ -150,9 +157,9 @@ export default {
     }
 
     const confirmCrop = async () => {
-      // 检查Cropper实例是否有效
-      if (!cropper.value || typeof cropper.value.getCroppedCanvas !== 'function') {
-        ElMessage.error('图片裁剪组件未就绪，请重新选择图片')
+      // 检查Cropper是否已就绪
+      if (!cropperReady.value || !cropper.value) {
+        ElMessage.warning('图片裁剪组件正在准备中，请稍候...')
         return
       }
       
