@@ -223,17 +223,17 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>项目总进度</h3>
-                    <div class="value">82%</div>
+                    <div class="value">88%</div>
                     <div class="unit">核心功能已完成</div>
                 </div>
                 <div class="stat-card">
                     <h3>已完成模块</h3>
-                    <div class="value">10</div>
+                    <div class="value">11</div>
                     <div class="unit">个功能模块</div>
                 </div>
                 <div class="stat-card">
                     <h3>待开发功能</h3>
-                    <div class="value">8</div>
+                    <div class="value">7</div>
                     <div class="unit">个扩展功能</div>
                 </div>
                 <div class="stat-card">
@@ -331,11 +331,11 @@
                         <div style="color: #666; font-size: 0.9em;">2025年3月 - 微信小程序，移动APP</div>
                     </div>
                 </div>
-                <div class="milestone-item pending">
-                    <div class="milestone-status status-pending"></div>
+                <div class="milestone-item completed">
+                    <div class="milestone-status status-completed"></div>
                     <div>
                         <strong>AI智能客服</strong>
-                        <div style="color: #666; font-size: 0.9em;">2025年4月 - 智能对话，自动回复</div>
+                        <div style="color: #666; font-size: 0.9em;">2024年12月 - 意图识别、知识库匹配、智能回复已完成</div>
                     </div>
                 </div>
             </div>
@@ -350,11 +350,11 @@
                         <div style="color: #666; font-size: 0.9em;">✅ 支付宝沙箱模拟支付已完成，包含自动回调机制、状态管理、单元测试</div>
                     </div>
                 </div>
-                <div class="risk-alert">
-                    <div class="risk-level risk-medium">中风险</div>
+                <div class="risk-alert" style="background: #d4edda; border-left-color: #28a745;">
+                    <div class="risk-level" style="background: #28a745;">已解决</div>
                     <div>
                         <strong>AI客服技术实现</strong>
-                        <div style="color: #666; font-size: 0.9em;">大语言模型集成需要较强的AI技术背景，可能需要外部技术支持</div>
+                        <div style="color: #666; font-size: 0.9em;">✅ 基于关键词的意图识别、知识库匹配、智能回复系统已完成，支持会话管理和历史记录</div>
                     </div>
                 </div>
                 <div class="risk-alert">
@@ -396,7 +396,7 @@
             {name: '会员积分系统', start: '2025-02-01', end: '2025-03-01', status: 'pending', category: '扩展功能'},
             {name: '消息通知系统', start: '2025-02-15', end: '2025-03-15', status: 'pending', category: '扩展功能'},
             {name: '微信小程序', start: '2025-03-01', end: '2025-04-01', status: 'pending', category: '移动端'},
-            {name: 'AI智能客服', start: '2025-03-15', end: '2025-05-15', status: 'risk', category: '创新功能'},
+            {name: 'AI智能客服', start: '2024-12-10', end: '2024-12-13', status: 'completed', category: '创新功能'},
             {name: '数据分析报表', start: '2025-04-01', end: '2025-05-01', status: 'pending', category: '数据分析'},
             {name: '移动APP开发', start: '2025-04-15', end: '2025-06-15', status: 'pending', category: '移动端'},
             {name: '多门店管理', start: '2025-05-01', end: '2025-06-01', status: 'pending', category: '扩展功能'},
@@ -514,10 +514,10 @@
                     radius: ['40%', '70%'],
                     center: ['50%', '50%'],
                     data: [
-                        {value: 10, name: '已完成', itemStyle: {color: '#28a745'}},
+                        {value: 11, name: '已完成', itemStyle: {color: '#28a745'}},
                         {value: 0, name: '进行中', itemStyle: {color: '#ffc107'}},
                         {value: 7, name: '待开始', itemStyle: {color: '#6c757d'}},
-                        {value: 1, name: '风险项', itemStyle: {color: '#e74c3c'}}
+                        {value: 0, name: '风险项', itemStyle: {color: '#e74c3c'}}
                     ],
                     emphasis: {
                         itemStyle: {
@@ -560,7 +560,7 @@
                     name: '风险评估',
                     type: 'bar',
                     data: [
-                        {value: 3, itemStyle: {color: '#e74c3c'}}, // 技术风险-高
+                        {value: 2, itemStyle: {color: '#f39c12'}}, // 技术风险-中（AI客服已解决）
                         {value: 2, itemStyle: {color: '#f39c12'}}, // 进度风险-中
                         {value: 2, itemStyle: {color: '#f39c12'}}, // 资源风险-中
                         {value: 1, itemStyle: {color: '#27ae60'}}  // 业务风险-低
