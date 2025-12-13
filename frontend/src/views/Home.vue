@@ -299,45 +299,51 @@ export default {
     const popularServices = ref([]);
     const servicesLoading = ref(false);
 
-    // 服务分类到图标和默认图片的映射
+    // 服务分类到图标和专属图片的映射（每个分类使用独立的代表性图片）
     const categoryStyleMap = {
+      // 基础洗车 - 水枱清洗汽车外观
       basic: { 
         icon: "Car", 
         color: "var(--primary-color)",
-        image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&h=300&fit=crop"
+        image: "https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop"
       },
+      // 精洗套餐 - 专业洗车工具和泡沫
       premium: { 
         icon: "Star", 
         color: "var(--warning-color)",
-        image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop"
+        image: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=400&h=300&fit=crop"
       },
+      // 豪华套餐 - 高端豪车护理
       luxury: { 
         icon: "Trophy", 
         color: "var(--error-color)",
-        image: "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop"
+        image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop"
       },
+      // 内饰清洁 - 车内内饰清理
       interior: { 
         icon: "Brush", 
         color: "var(--success-color)",
-        image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop"
+        image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop"
       },
+      // 汽车美容 - 打蜡镀晶
       beauty: { 
         icon: "MagicStick", 
         color: "#9b59b6",
-        image: "https://images.unsplash.com/photo-1486754735734-325b5831c3ad?w=400&h=300&fit=crop"
+        image: "https://images.unsplash.com/photo-1619405399517-d7fce0f13302?w=400&h=300&fit=crop"
       },
+      // 养护服务 - 车辆维护保养
       maintenance: { 
         icon: "Setting", 
         color: "#3498db",
-        image: "https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=400&h=300&fit=crop"
+        image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&h=300&fit=crop"
       },
     };
 
-    // 默认服务图片（按索引循环使用）
+    // 默认服务图片（按索引循环使用，每个都不同）
     const defaultServiceImages = [
-      "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&h=300&fit=crop", // 洗车
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop", // 精洗
-      "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop", // 豪华
+      "https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop", // 基础洗车
+      "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=400&h=300&fit=crop", // 精洗套餐
+      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop", // 豪华套餐
     ];
 
     // 加载热门服务数据
@@ -385,7 +391,7 @@ export default {
             features: ["外观清洗", "轮胎清洁", "玻璃清洁"],
             icon: "Car",
             color: "var(--primary-color)",
-            image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&h=300&fit=crop",
+            image: "https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop",
             popular: false,
           },
           {
@@ -397,7 +403,7 @@ export default {
             features: ["深度清洗", "内饰清洁", "轮毂清洁", "玻璃镀膜"],
             icon: "Star",
             color: "var(--warning-color)",
-            image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
+            image: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=400&h=300&fit=crop",
             popular: true,
           },
           {
@@ -409,7 +415,7 @@ export default {
             features: ["精洗服务", "打蜡护理", "内饰深度清洁", "轮胎护理"],
             icon: "Trophy",
             color: "var(--error-color)",
-            image: "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop",
+            image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop",
             popular: false,
           },
         ];
