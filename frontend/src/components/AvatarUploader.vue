@@ -214,7 +214,7 @@ export default {
 .cropper-area { 
   width: 100%; 
   height: 450px; 
-  background: #f5f5f5;
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,4 +225,18 @@ export default {
   max-height: 100%;
 }
 .dragOver { outline: 2px dashed var(--primary-color); border-radius: 50%; }
+</style>
+
+<style>
+/* 覆盖cropperjs默认背景样式，使其与对话框背景一致 */
+.cropper-container .cropper-bg {
+  background-image: none !important;
+  background-color: #fff !important;
+}
+.cropper-container {
+  background-color: #fff !important;
+}
+.cropper-modal {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
 </style>
