@@ -759,6 +759,16 @@ export default {
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
+}
+
+.service-image .image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .service-badge {
