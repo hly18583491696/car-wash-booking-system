@@ -8,9 +8,9 @@
     </div>
     <input ref="fileInput" type="file" :accept="accept" class="hidden-input" @change="onFileChange" />
 
-    <el-dialog v-model="cropperOpen" title="裁剪头像" width="520px">
+    <el-dialog v-model="cropperOpen" title="裁剪头像" width="680px" :close-on-click-modal="false">
       <div class="cropper-area">
-        <img v-if="previewUrl" :src="previewUrl" ref="cropImg" class="crop-image" />
+        <img v-if="previewUrl" :src="previewUrl" ref="cropImg" class="crop-image" @load="onImageLoad" />
       </div>
       <template #footer>
         <el-button @click="cropperOpen=false">取消</el-button>
@@ -55,11 +55,19 @@ export default {
     const dragOver = ref(false)
     const csrfToken = ref('')
 
+    const imageLoaded = ref(false)
+    
     const selectFile = () => fileInput.value && fileInput.value.click()
     const onDragOver = () => dragOver.value = true
     const onDragLeave = () => dragOver.value = false
     const onDrop = (e) => { dragOver.value = false; handleFile(e.dataTransfer.files?.[0]) }
     const onFileChange = (e) => handleFile(e.target.files?.[0])
+    
+    // 图片加载完成后初始化Cropper
+    const onImageLoad = () => {
+      imageLoaded.value = true
+      initCropper()
+    }
 
     const handleFile = (file) => {
       if (!file) return
@@ -75,16 +83,11 @@ export default {
       cropperOpen.value = true
     }
 
-    // 监听对话框打开状态，延迟初始化Cropper
+    // 监听对话框关闭，销毁Cropper实例
     watch(cropperOpen, (newVal) => {
-      if (newVal) {
-        // 对话框打开后，等待DOM渲染完成再初始化
-        nextTick(() => {
-          setTimeout(() => initCropper(), 300)
-        })
-      } else {
-        // 对话框关闭时销毁Cropper实例
+      if (!newVal) {
         destroyCropper()
+        imageLoaded.value = false
       }
     })
 
@@ -100,26 +103,37 @@ export default {
     }
 
     const initCropper = () => {
+      // 确保之前的实例已销毁
       destroyCropper()
       
       if (!cropImg.value) {
-        console.warn('cropImg元素未就绪，延迟初始化')
-        setTimeout(() => initCropper(), 100)
+        console.warn('cropImg元素未就绪')
         return
       }
       
-      try {
-        cropper.value = new Cropper(cropImg.value, {
-          aspectRatio: 1,
-          viewMode: 1,
-          dragMode: 'move',
-          autoCropArea: 0.8,
-          responsive: true
-        })
-      } catch (e) {
-        console.error('Cropper初始化失败:', e)
-        ElMessage.error('图片裁剪组件初始化失败')
-      }
+      // 等待下一帧确保DOM稳定
+      requestAnimationFrame(() => {
+        try {
+          cropper.value = new Cropper(cropImg.value, {
+            aspectRatio: 1,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.9,
+            responsive: true,
+            background: true,
+            center: true,
+            highlight: true,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            minCropBoxWidth: 100,
+            minCropBoxHeight: 100
+          })
+          console.log('Cropper初始化成功')
+        } catch (e) {
+          console.error('Cropper初始化失败:', e)
+          ElMessage.error('图片裁剪组件初始化失败')
+        }
+      })
     }
 
     const fetchCsrf = async () => {
@@ -188,7 +202,7 @@ export default {
     }
 
     onMounted(() => {})
-    return { fileInput, cropImg, previewUrl, cropperOpen, uploading, progress, dragOver, selectFile, onDragOver, onDragLeave, onDrop, onFileChange, confirmCrop }
+    return { fileInput, cropImg, previewUrl, cropperOpen, uploading, progress, dragOver, selectFile, onDragOver, onDragLeave, onDrop, onFileChange, onImageLoad, confirmCrop }
   }
 }
 </script>
@@ -197,7 +211,18 @@ export default {
 .avatar-uploader { position: relative; display: inline-flex; align-items: center; gap: 8px; }
 .hidden-input { display: none; }
 .actions { position: absolute; right: -6px; bottom: -6px; }
-.cropper-area { width: 100%; max-height: 360px; overflow: auto; }
-.crop-image { max-width: 100%; }
+.cropper-area { 
+  width: 100%; 
+  height: 450px; 
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.crop-image { 
+  display: block;
+  max-width: 100%; 
+  max-height: 100%;
+}
 .dragOver { outline: 2px dashed var(--primary-color); border-radius: 50%; }
 </style>
