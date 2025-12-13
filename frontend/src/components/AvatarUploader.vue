@@ -23,10 +23,11 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request.js'
 import Cropper from 'cropperjs'
+import 'cropperjs/dist/cropper.css'
 
 export default {
   name: 'AvatarUploader',
@@ -67,12 +68,53 @@ export default {
       }
       previewUrl.value = URL.createObjectURL(file)
       cropperOpen.value = true
-      setTimeout(() => initCropper(), 0)
+    }
+
+    // 监听对话框打开状态，延迟初始化Cropper
+    watch(cropperOpen, (newVal) => {
+      if (newVal) {
+        // 对话框打开后，等待DOM渲染完成再初始化
+        nextTick(() => {
+          setTimeout(() => initCropper(), 300)
+        })
+      } else {
+        // 对话框关闭时销毁Cropper实例
+        destroyCropper()
+      }
+    })
+
+    const destroyCropper = () => {
+      if (cropper.value) {
+        try {
+          cropper.value.destroy()
+        } catch (e) {
+          console.warn('Cropper销毁失败:', e)
+        }
+        cropper.value = null
+      }
     }
 
     const initCropper = () => {
-      if (cropper.value) { cropper.value.destroy(); cropper.value = null }
-      cropper.value = new Cropper(cropImg.value, { aspectRatio: 1, viewMode: 1, dragMode: 'move' })
+      destroyCropper()
+      
+      if (!cropImg.value) {
+        console.warn('cropImg元素未就绪，延迟初始化')
+        setTimeout(() => initCropper(), 100)
+        return
+      }
+      
+      try {
+        cropper.value = new Cropper(cropImg.value, {
+          aspectRatio: 1,
+          viewMode: 1,
+          dragMode: 'move',
+          autoCropArea: 0.8,
+          responsive: true
+        })
+      } catch (e) {
+        console.error('Cropper初始化失败:', e)
+        ElMessage.error('图片裁剪组件初始化失败')
+      }
     }
 
     const fetchCsrf = async () => {
@@ -87,12 +129,28 @@ export default {
     }
 
     const confirmCrop = async () => {
+      // 检查Cropper实例是否有效
+      if (!cropper.value || typeof cropper.value.getCroppedCanvas !== 'function') {
+        ElMessage.error('图片裁剪组件未就绪，请重新选择图片')
+        return
+      }
+      
       try {
         uploading.value = true
         progress.value = 0
         await fetchCsrf()
+        
         const canvas = cropper.value.getCroppedCanvas({ width: 256, height: 256 })
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg'))
+        if (!canvas) {
+          throw new Error('裁剪图片失败')
+        }
+        
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob((b) => {
+            if (b) resolve(b)
+            else reject(new Error('生成图片失败'))
+          }, 'image/jpeg', 0.9)
+        })
         const fd = new FormData()
         fd.append('file', blob, 'avatar.jpg')
         fd.append('fileName', 'avatar')
