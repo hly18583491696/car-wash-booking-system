@@ -1,62 +1,71 @@
 @echo off
 chcp 65001 >nul
-echo ========================================
-echo 汽车洗车服务预约系统 - 服务重启
-echo ========================================
-echo.
+setlocal enabledelayedexpansion
 
-echo [1/3] 停止现有服务...
-echo 🛑 正在停止前端服务（端口3003）...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :3003') do (
-    echo 发现进程 %%a 占用端口 3003，正在终止...
-    taskkill /f /pid %%a >nul 2>&1
+REM 参数解析：-b 仅后端, -f 仅前端
+set "MODE=all"
+if "%1"=="-b" set "MODE=backend"
+if "%1"=="-f" set "MODE=frontend"
+if "%1"=="--backend" set "MODE=backend"
+if "%1"=="--frontend" set "MODE=frontend"
+
+echo ========================================
+echo   服务重启 v2.0
+echo ========================================
+
+REM ====== 停止服务 ======
+echo [1/2] 停止服务...
+
+if "%MODE%" neq "frontend" (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8080.*LISTENING" 2^>nul') do (
+        echo       终止后端 PID: %%a
+        taskkill /f /pid %%a >nul 2>&1
+    )
 )
 
-echo 🛑 正在停止后端服务（端口8080）...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8080') do (
-    echo 发现进程 %%a 占用端口 8080，正在终止...
-    taskkill /f /pid %%a >nul 2>&1
+if "%MODE%" neq "backend" (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3003.*LISTENING" 2^>nul') do (
+        echo       终止前端 PID: %%a
+        taskkill /f /pid %%a >nul 2>&1
+    )
 )
 
-echo 🛑 正在停止相关Java进程...
-taskkill /f /im java.exe >nul 2>&1
-taskkill /f /im node.exe >nul 2>&1
+ping -n 2 127.0.0.1 >nul 2>&1
+echo [OK] 服务已停止
 
-echo ✅ 服务停止完成
-echo.
+REM ====== 启动服务 ======
+echo [2/2] 启动服务...
 
-echo [2/3] 等待端口释放...
-timeout /t 3 >nul
-echo ✅ 端口释放完成
-echo.
+REM Redis
+if "%MODE%" neq "frontend" (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":6379.*LISTENING" 2^>nul') do set "REDIS_OK=1"
+    if not defined REDIS_OK (
+        if exist "%~dp0redis\redis-server.exe" (
+            start /min "Redis" "%~dp0redis\redis-server.exe" "%~dp0redis\redis.windows.conf"
+            ping -n 2 127.0.0.1 >nul 2>&1
+        )
+    )
+    echo [OK] Redis 就绪
+)
 
-echo [3/3] 重新启动服务...
-echo 🚀 启动后端服务...
-cd /d "%~dp0backend"
-start "后端服务" cmd /k "echo 重启后端服务... && mvn spring-boot:run"
+REM 后端
+if "%MODE%" neq "frontend" (
+    cd /d "%~dp0backend"
+    start "后端" cmd /c "title 后端-8080 && set SPRING_PROFILES_ACTIVE=payment && mvn spring-boot:run -q"
+    echo [OK] 后端启动中
+)
 
-echo 🚀 启动前端服务...
-cd /d "%~dp0frontend"
-start "前端服务" cmd /k "echo 重启前端服务... && npm run dev"
+REM 前端
+if "%MODE%" neq "backend" (
+    cd /d "%~dp0frontend"
+    start "前端" cmd /c "title 前端-3003 && npm run dev"
+    echo [OK] 前端启动中
+)
 
 echo.
 echo ========================================
-echo 🎉 服务重启完成！
+echo   重启完成!
+echo ----------------------------------------
+if "%MODE%" neq "backend" echo   前端: http://localhost:3003
+if "%MODE%" neq "frontend" echo   后端: http://localhost:8080/api
 echo ========================================
-echo.
-echo 📋 访问地址：
-echo   • 前端主页: http://localhost:3003
-echo   • 数据同步测试: http://localhost:3003/data-sync-test
-echo   • 后台管理: http://localhost:3003/admin
-echo   • 后端API: http://localhost:8080/api
-echo.
-echo ⏰ 请等待服务完全启动（约30-60秒）
-echo.
-
-timeout /t 5 >nul
-echo 🌐 正在打开测试页面...
-start http://localhost:3003/data-sync-test
-
-echo.
-echo 按任意键退出...
-pause >nul
