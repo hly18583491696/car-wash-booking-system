@@ -163,7 +163,7 @@
                   <div class="vehicle-info">
                     <div class="vehicle-icon">
                       <el-icon size="32" color="var(--primary-color)"
-                        ><Car
+                        ><Van
                       /></el-icon>
                     </div>
                     <div class="vehicle-details">
@@ -367,7 +367,7 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { User, Car, Lock, Setting, Star, Plus, Delete, Edit } from "@element-plus/icons-vue";
+import { User, Van, Lock, Setting, Star, Plus, Delete, Edit } from "@element-plus/icons-vue";
 import ThemeToggle from "../components/ThemeToggle.vue";
 import AvatarUploader from "../components/AvatarUploader.vue";
 
@@ -377,7 +377,7 @@ export default {
     ThemeToggle,
     AvatarUploader,
     User,
-    Car,
+    Van,
     Lock,
     Setting,
     Star,
@@ -396,7 +396,7 @@ export default {
     // 导航菜单
     const navItems = ref([
       { key: "info", label: "个人信息", icon: "User" },
-      { key: "vehicles", label: "车辆管理", icon: "Car" },
+      { key: "vehicles", label: "车辆管理", icon: "Van" },
       { key: "security", label: "安全设置", icon: "Lock" },
       { key: "preferences", label: "偏好设置", icon: "Setting" },
       { key: "points", label: "积分记录", icon: "Star" },
