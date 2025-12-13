@@ -25,12 +25,17 @@
 <script>
 import { ref, onMounted, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { User, Camera } from '@element-plus/icons-vue'
 import request from '@/api/request.js'
 import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.css'
 
 export default {
   name: 'AvatarUploader',
+  components: {
+    User,
+    Camera
+  },
   props: {
     src: { type: String, default: '' },
     uploadUrl: { type: String, default: '/api/user/avatar/upload' },
