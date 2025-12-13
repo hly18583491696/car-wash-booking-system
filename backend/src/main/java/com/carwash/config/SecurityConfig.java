@@ -78,10 +78,14 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/services/list").permitAll()
+                .requestMatchers("/api/services/{id}").permitAll()
                 .requestMatchers("/api/time-slots/available").permitAll()
                 .requestMatchers("/api/bookings").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/api/debug/**").permitAll()
+                
+                // WebSocket接口（允许WebSocket连接握手）
+                .requestMatchers("/ws/**").permitAll()
                 
                 // 支付回调接口（第三方支付平台回调，无需认证）
                 .requestMatchers("/api/payment/callback/**").permitAll()
