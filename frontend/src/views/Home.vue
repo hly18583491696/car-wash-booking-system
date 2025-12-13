@@ -339,15 +339,46 @@ export default {
       },
     };
 
-    // 首页热门服务专属图片（每个位置使用不同的图片，确保视觉差异化）
-    const servicePositionImages = [
-      // 第一个服务 - 快速/基础洗车：水枱清洗场景
-      "https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop",
-      // 第二个服务 - 精洗套餐：泡沫清洗场景
-      "https://images.unsplash.com/photo-1552930294-6b595f4c4dc0?w=400&h=300&fit=crop",
-      // 第三个服务 - 豪华套餐：精致车身招打场景
-      "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop",
+    // 服务名称关键词到专属图片的映射（根据服务名称匹配不同图片）
+    const serviceNameImageMap = {
+      // 快速洗车 - 高压水枱快速冲洗
+      '快速': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+      // 基础洗车 - 常规洗车场景
+      '基础': 'https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop',
+      // 标准洗车 - 泡沫清洗场景
+      '标准': 'https://images.unsplash.com/photo-1552930294-6b595f4c4dc0?w=400&h=300&fit=crop',
+      // 精洗套餐 - 专业深度清洁
+      '精洗': 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=400&h=300&fit=crop',
+      // 豪华套餐 - 高端车身护理
+      '豪华': 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop',
+      // 内饰清洁 - 车内清理
+      '内饰': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop',
+      // 打蜡/美容 - 漆面护理
+      '打蜡': 'https://images.unsplash.com/photo-1619405399517-d7fce0f13302?w=400&h=300&fit=crop',
+      '美容': 'https://images.unsplash.com/photo-1619405399517-d7fce0f13302?w=400&h=300&fit=crop',
+      // 养护/保养 - 车辆维护
+      '养护': 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&h=300&fit=crop',
+      '保养': 'https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&h=300&fit=crop',
+    };
+
+    // 首页热门服务备用图片（当无法匹配服务名称时按位置使用）
+    const fallbackImages = [
+      'https://images.unsplash.com/photo-1605164599901-db0b9283e705?w=400&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1552930294-6b595f4c4dc0?w=400&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=400&h=300&fit=crop',
     ];
+
+    // 根据服务名称获取匹配的图片
+    const getServiceImage = (serviceName, index) => {
+      // 遍历关键词映射，查找匹配的图片
+      for (const [keyword, imageUrl] of Object.entries(serviceNameImageMap)) {
+        if (serviceName.includes(keyword)) {
+          return imageUrl;
+        }
+      }
+      // 未匹配到关键词，使用备用图片
+      return fallbackImages[index % fallbackImages.length];
+    };
 
     // 加载热门服务数据
     const loadPopularServices = async () => {
@@ -364,8 +395,8 @@ export default {
           // 取前3个作为热门服务展示
           popularServices.value = serviceList.slice(0, 3).map((service, index) => {
             const categoryStyle = categoryStyleMap[service.category] || categoryStyleMap.basic;
-            // 图片选择逻辑：优先后端imageUrl > 否则按位置使用不同图片
-            const imageUrl = service.imageUrl || servicePositionImages[index];
+            // 图片选择逻辑：优先后端imageUrl > 根据服务名称匹配图片
+            const imageUrl = service.imageUrl || getServiceImage(service.name, index);
             return {
               id: service.id,
               name: service.name,
